@@ -223,6 +223,8 @@ button.decrease-quantity {
 <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.2/dist/umd/popper.min.js"></script>
 <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
 <script>
     $('#filterForm').on('submit', function (e) {
         e.preventDefault();
@@ -275,11 +277,26 @@ $(document).ready(function () {
                 type: 'POST',
                 data: form.serialize(),
                 success: function (response) {
+                    Swal.fire({
+                    toast: true,
+                    position: 'top-end',
+                    icon: 'success',
+                    title: response.message,
+                    showConfirmButton: false,
+                    timer: 3000
+                });
                     updateCartCount(response.total_quantity ?? 0);
                 },
                 error: function (xhr) {
                     console.error(xhr.responseText);
-                    alert('An error occurred while adding the item to the cart.');
+                    Swal.fire({
+                    toast: true,
+                    position: 'top-end',
+                    icon: 'error',
+                    title: response.message,
+                    showConfirmButton: false,
+                    timer: 3000
+                });
                 }
             });
         });
@@ -312,11 +329,28 @@ $(document).ready(function () {
                     id: id
                 },
                 success: function (response) {
+                    Swal.fire({
+                    toast: true,
+                    position: 'top-end',
+                    icon: 'success',
+                    title: response.message,
+                    showConfirmButton: false,
+                    timer: 3000
+                });
                     updateCartCount(response.total_quantity);
                 },
-                error: function () {
-                    alert('Failed to increase quantity.');
-                }
+                error: function (xhr) {
+                    const errorMessage = xhr.responseJSON?.message || 'Something went wrong!';
+                    
+                    Swal.fire({
+                        toast: true,
+                        position: 'top-end',
+                        icon: 'error', // ✅ make sure this is set
+                        title: errorMessage,
+                        showConfirmButton: false,
+                        timer: 3000
+                    });
+}
             });
         });
 

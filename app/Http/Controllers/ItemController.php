@@ -19,7 +19,7 @@ class ItemController extends Controller
 
     public function all()
     {
-        $items = Item::select('item_desc','item_code','rest_code','item_rate')->get();
+        $items = Item::select('item_desc','item_code','rest_code','item_rate','item_status')->get();
 
 
     //    echo"<pre>";print_r($items->toArray());die;
@@ -29,7 +29,7 @@ class ItemController extends Controller
     
     public function index(Request $request)
     {
-
+        // echo"a";die;
         if (!request()->hasCookie(config('session.cookie'))) {
             session()->forget('cart');
         }
@@ -54,18 +54,16 @@ class ItemController extends Controller
         // Access the keys
         $group_code = $data['group_code'] ?? null;
         $rest_code = $data['rest_code'] ?? null;
-        $table_no = $data['table_no'] ?? null;
 
-       // echo $group_code.'-'.$rest_code.'-'.$table_no;die;
+       // echo $group_code.'-'.$rest_code;die;
 
         $rest_code = '01';
         $group_code = '01';
 
         Session::put('group_code',$group_code);
         Session::put('rest_code',$rest_code);
-        Session::put('table_no','1');
 
-        $items = Item::where('group_code',$group_code)->where('rest_code',$rest_code)->get();
+        $items = Item::where('group_code',$group_code)->where('item_status','A')->where('rest_code',$rest_code)->get();
         
     // echo"<pre>";print_r($items->toArray());die;
         return view('items.index', compact('items'));
@@ -74,7 +72,13 @@ class ItemController extends Controller
     public function addToCart(Request $request, $id)
     {
         // echo"<pre>";print_r($request->all());die;
-        $item = Item::where('item_code',$id)->where('item_grpcode',$request->item_grpcode)->first();
+        $item = Item::where('item_code',$id)->where('item_status','A')->where('item_grpcode',$request->item_grpcode)->first();
+        if(!$item){
+            return response()->json([
+                'success' => false,
+                'message' => 'Item out of Stock!'
+            ]);
+        }
         $cart = session()->get('cart', []);
 
         if (isset($cart[$id])) {
@@ -90,7 +94,13 @@ class ItemController extends Controller
         }
 
         session()->put('cart', $cart);
-        return redirect()->back()->with('success', 'Item added to cart!');
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Item added to cart!'
+        ]);
+
+        // return redirect()->back()->with('success', 'Item added to cart!');
     }
 
     public function cart()
@@ -128,7 +138,6 @@ class ItemController extends Controller
         $amount = $total_amount;
         $group_code = Session::get('group_code');
         $rest_code = Session::get('rest_code');
-        $table_no = Session::get('table_no');
         $paymode_mode = Session::get('paymode_mode');
         $confirm_order = Session::get('confirm_order');
 
@@ -168,10 +177,18 @@ class ItemController extends Controller
         }
         $mobile =  Session::get('phone');
 
+        $trans_no =  DB::table('order_hd')->where(['rest_code' => $rest_code,'tran_date'=>date('Y-m-d')])->orderby('tran_no','desc')->value('tran_no');
+
+        if($trans_no){
+            $trans_no = $trans_no + 1;
+        }else{
+            $trans_no = 1;
+        }
+
         $order_hd = [
             'group_code' => $group_code,
+            'tran_no' => $trans_no,
             'rest_code' => $rest_code,
-            'table_no' => $table_no, 
             'net_amt' => $amount, 
             'cgst_amt' => $cgst, 
             'sgst_amt' => $cgst, 
@@ -190,10 +207,13 @@ class ItemController extends Controller
             'payment_mode' =>$paymode_mode, 
         ];
 
-       $trans_no = DB::table('order_hd')->insertGetId($order_hd);
+        DB::table('order_hd')->insertGetId($order_hd);
+
+    //    echo $trans_no;die;
 
        DB::table('order_hd')
         ->where('tran_no', $trans_no)
+        ->where('tran_date',date('Y-m-d'))
         ->update(['invoice_no' => $trans_no]);
 
         foreach($carts as $cart){
@@ -215,7 +235,6 @@ class ItemController extends Controller
             DB::table('order_dt')->insert([
                 'group_code' => $group_code,
                 'rest_code' => $rest_code,
-                'table_no' => $table_no, 
                 'tran_no' => $trans_no,
                 'item_code' => $cart['item_code'],
                 'item_qty' => $cart['quantity'],
@@ -230,14 +249,16 @@ class ItemController extends Controller
         
         // $trans_no = 1;
 
-        $hd_data =   DB::table('order_hd')->where('tran_no',$trans_no)->where('status_trans',$status)->first();
+        $hd_data =   DB::table('order_hd')->where('tran_no',$trans_no)->where('tran_date',date('Y-m-d'))->where('status_trans',$status)->first();
 
         $rest_data =  DB::table('chain_master')->where('group_code',$group_code)->where('rest_code',$rest_code)->first();
 
-        $dt_data =   DB::table('order_dt')->select('order_dt.*','item_master.item_desc','item_master.item_gst as igst')
+        $dt_data =   DB::table('order_dt')->select('order_dt.*','item_master.item_desc','item_master.item_gst as igst','item_master.item_rate')
         ->join('item_master','order_dt.item_code','=','item_master.item_code')
         ->join('order_hd','order_dt.tran_no','=','order_hd.tran_no')
         ->where('order_hd.tran_no',$trans_no)
+        ->where('order_dt.tran_date',date('Y-m-d'))
+        ->where('order_hd.tran_date',date('Y-m-d'))
         ->where('order_hd.status_trans',$status)
         ->where('order_dt.tran_no',$trans_no)
         ->get();
@@ -261,7 +282,14 @@ class ItemController extends Controller
         $cart = session()->get('cart', []);
         $quantity = $request->input('quantity');
         $id = $request->id;
-        $item = Item::where('item_code',$id)->first();
+        $item = Item::where('item_code',$id)->where('item_status','A')->first();
+
+        if(!$item){
+            return response()->json([
+                'success' => false,
+                'message' => 'Item out of Stock!'
+            ]);
+        }
         $cart = session()->get('cart', []);
 
         if (isset($cart[$id])) {
@@ -279,7 +307,8 @@ class ItemController extends Controller
         $totalQuantity = array_sum(array_column($cart, 'quantity'));
 
         session()->put('cart', $cart);
-        return response()->json(['quantity' => $cart[$id]['quantity'],'total_quantity' => $totalQuantity]);
+        return response()->json(['quantity' => $cart[$id]['quantity'],'total_quantity' => $totalQuantity, 'success' => true,
+        'message' => 'Item added to cart']);
     }
     
     public function removeFromCart(Request $request)
@@ -443,14 +472,17 @@ class ItemController extends Controller
 
     public function save(Request $request)
     {
+
         $cart = $request->cart; // From POST
+        // echo"<pre>";print_r($cart);die;
         $paymode_mode = $request->paymode; // C / Z / S / O
         $order_id = $request->order_id; // C / Z / S / O
         $mobile = $request->mobile; // C / Z / S / O
+        $finalAmt = $request->ft; // C / Z / S / O
+        $discount = $request->dsc; // C / Z / S / O
 
         $group_code = Session::get('group_code');
         $rest_code = Session::get('rest_code');
-        $table_no = Session::get('table_no', '0');
         $confirm_order = 'Y';
        /// $mobile = Session::get('phone', '');
 
@@ -464,8 +496,12 @@ class ItemController extends Controller
                 ->where('rest_code', $rest_code)
                 ->where('item_code', $item['id'])
                 ->value('item_gst');
-
-            $line_amt = $item['qty'] * $item['price'];
+            if(@$item['qty']){
+                $line_amt = @$item['qty'] * $item['price'];
+            }else{
+                $line_amt = $item['amount'];
+            }
+            
             $itemWiseAmt += $line_amt;
             $taxes += ($item_gst * $itemWiseAmt / 100);
 
@@ -477,7 +513,12 @@ class ItemController extends Controller
         $final_conv = 0;
 
         $amount = $itemWiseAmt;
-        $paid_amt = $amount;
+        if($finalAmt){
+            $paid_amt = $finalAmt;
+        }else{
+            $paid_amt = $amount;
+        }
+      
         $service_charge = 0;
         $cgst = 0;
         $gross_amt = $cgst + $cgst + $amount;
@@ -485,15 +526,27 @@ class ItemController extends Controller
         $transactionNumber = str_pad(rand(0, 99999999), 8, '0', STR_PAD_LEFT);
         $status = 'success';
 
+        $trans_no =  DB::table('order_hd')->where(['rest_code' => $rest_code,'tran_date'=>date('Y-m-d')])->orderby('tran_no','desc')->value('tran_no');
+
+        if($trans_no){
+            $trans_no = $trans_no + 1;
+        }else{
+            $trans_no = 1;
+        }
+
+       
+
+
         $order_hd = [
             'group_code' => $group_code,
             'rest_code' => $rest_code,
-            'table_no' => $table_no,
+            'tran_no' => $trans_no,
+            'discount' => $discount,
             'net_amt' => $amount,
             'cgst_amt' => $cgst,
             'sgst_amt' => $cgst,
             'gross_amt' => $amount,
-            'paid_amt' => round($amount),
+            'paid_amt' => round($paid_amt),
             'order_id' =>$order_id,
             'cust_mobile' => $mobile,
             'service_charge' => $convin_amt,
@@ -507,10 +560,11 @@ class ItemController extends Controller
             'payment_mode' => $paymode_mode,
         ];
 
-        $trans_no = DB::table('order_hd')->insertGetId($order_hd);
+       DB::table('order_hd')->insertGetId($order_hd);
 
         DB::table('order_hd')
             ->where('tran_no', $trans_no)
+            ->where('tran_date',date('Y-m-d'))
             ->update(['invoice_no' => $trans_no]);
 
         foreach ($cart as $item) {
@@ -519,11 +573,18 @@ class ItemController extends Controller
                 ->where('rest_code', $rest_code)
                 ->where('item_code', $item['id'])
                 ->value('item_gst');
-
-            $item_amt = $item['qty'] * $item['price'];
+            if(@$item['qty']){
+                $item_amt = @$item['qty'] * $item['price'];
+            }else{
+                $item_amt = $item['amount'];
+            }
+          
             // $item_gst_amt = ($item_amt * $item_gst / 100);
-
-            $reverseamt = $this->reverseGST($item_amt,$item_gst);
+            if(@$item['qty']){
+                $reverseamt = $this->reverseGST($item_amt,$item_gst);
+            }else{
+                $reverseamt = $this->reverseGST($item_amt,$item_gst);
+            }
 
             $item_amt_real = $reverseamt['base'];
             $item_gst_amt = $reverseamt['gst'];
@@ -531,16 +592,42 @@ class ItemController extends Controller
             DB::table('order_dt')->insert([
                 'group_code' => $group_code,
                 'rest_code' => $rest_code,
-                'table_no' => $table_no,
                 'tran_no' => $trans_no,
                 'item_code' => $item['id'],
-                'item_qty' => $item['qty'],
+                'item_qty' => @$item['qty'],
+                'item_gm' => @$item['grams'],
                 'customise_flag' => 'S',
                 'amount' => $item_amt_real,
                 'item_gst' => $item_gst_amt,
             ]);
         }
 
+
+        $hd_data =   DB::table('order_hd')->where('tran_no',$trans_no)->where('tran_date',date('Y-m-d'))->where('status_trans','success')->first();
+
+        $rest_data =  DB::table('chain_master')->where('group_code',$group_code)->where('rest_code',$rest_code)->first();
+
+        $dt_data =   DB::table('order_dt')->select('order_dt.*','item_master.item_desc','item_master.item_gst as igst')
+        ->join('item_master','order_dt.item_code','=','item_master.item_code')
+        ->join('order_hd','order_dt.tran_no','=','order_hd.tran_no')
+        ->where('order_hd.tran_no',$trans_no)
+        ->where('order_hd.tran_date',date('Y-m-d'))
+        ->where('order_dt.tran_date',date('Y-m-d'))
+
+        ->where('order_hd.status_trans','success')
+        ->where('order_dt.tran_no',$trans_no)
+        ->get();
+
+      // $this->generateBillImage($trans_no,$mobile);
+
+    //   echo"<pre>";print_r($hd_data);die;
+
+
+        
+        
+        //  $billHtml = view('items.bill', compact('dt_data', 'hd_data', 'rest_data'))->render();
+
+         session()->forget('cart');
         return response()->json(['success' => true, 'order_id' => $trans_no]);
     }
 
@@ -564,7 +651,7 @@ public function generateBillImage($trans_no,$toPhoneNumber)
     $group_code = Session::get('group_code');
     $rest_code = Session::get('rest_code');
 
-    $hd_data =   DB::table('order_hd')->where('tran_no',$trans_no)->where('status_trans','success')->first();
+    $hd_data =   DB::table('order_hd')->where('tran_no',$trans_no)->where('tran_date',date('Y-m-d'))->where('status_trans','success')->first();
 
     $rest_data =  DB::table('chain_master')->where('group_code',$group_code)->where('rest_code',$rest_code)->first();
 
@@ -572,6 +659,8 @@ public function generateBillImage($trans_no,$toPhoneNumber)
     ->join('item_master','order_dt.item_code','=','item_master.item_code')
     ->join('order_hd','order_dt.tran_no','=','order_hd.tran_no')
     ->where('order_hd.tran_no',$trans_no)
+    ->where('order_hd.tran_date',date('Y-m-d'))
+    ->where('order_dt.tran_date',date('Y-m-d'))
     ->where('order_hd.status_trans','success')
     ->where('order_dt.tran_no',$trans_no)
     ->get();
