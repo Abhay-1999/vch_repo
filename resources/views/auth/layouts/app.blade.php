@@ -99,6 +99,21 @@ $admin = Auth::guard('admin')->user();
             background-color: #dc3545;
             border: none;
         }
+
+         /* Loader Styles */
+        #loader-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(8, 8, 8, 0.8);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+            display: none; /* Hidden by default */
+        }
     </style>
 </head>
 <body>
@@ -116,6 +131,30 @@ $admin = Auth::guard('admin')->user();
                     <a class="nav-link {{ request()->routeIs('create.order') ? 'active' : '' }}" href="{{ route('create.order') }}">
                         <i class="bi bi-bag-fill me-2"></i>Create Order
                     </a>
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle d-flex justify-content-between align-items-center"
+                        href="#" id="dropdownReports" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                            <span><i class="bi bi-graph-up-arrow me-2"></i>Reports</span>
+                        </a>
+                        <ul class="dropdown-menu" aria-labelledby="dropdownReports">
+                            <li>
+                                <a class="dropdown-item" href="{{ route('item_ws_form') }}">
+                                    <i class="bi bi-file-earmark-text me-2"></i>Item Wise
+                                </a>
+                            </li>
+                            <li>
+                                <a class="dropdown-item" href="{{ route('bill_ws_form') }}">
+                                    <i class="bi bi-file-earmark-bar-graph me-2"></i>Bill Wise
+                                </a>
+                            </li>
+                            <li>
+                                <a class="dropdown-item" href="{{ route('mode_pay_form') }}">
+                                    <i class="bi bi-file-earmark-bar-graph me-2"></i>Mode Wise Payment
+                                </a>
+                            </li>
+                        </ul>
+                    </li>
+
                     @else
                     <a class="nav-link {{ request()->routeIs('orders.index') ? 'active' : '' }}" href="{{ route('orders.index') }}">
                         <i class="bi bi-bag-fill me-2"></i>Orders
@@ -145,13 +184,16 @@ $admin = Auth::guard('admin')->user();
         </div>
     </div>
 
+    <!-- Loader Overlay -->
+    <div id="loader-overlay">
+        <div class="spinner-border text-primary" style="width: 3rem; height: 3rem;" role="status">
+            <span class="visually-hidden">Loading...</span>
+        </div>
+    </div>
+
     <!-- Bootstrap JS Bundle -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/5.2.0/js/bootstrap.bundle.min.js"></script>
     
-    <script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
-
-    <script src="{{ asset('assets/js/jquery-3.6.0.js') }}"></script>
-	<script src="{{ asset('assets/js/bootstrap.bundle.min.js') }}"></script>
 	<!-- aos animation -->
 	<script src="{{ asset('assets/aos/aos.js') }}"></script>
 	<script src="{{ asset('assets/js/select2.min.js') }}"></script>
@@ -168,6 +210,19 @@ $admin = Auth::guard('admin')->user();
 
     // Initial call to display the date and time immediately
     updateDateTime();
+
+    // Function to show the loader
+        function showLoader() {
+            document.getElementById('loader-overlay').style.display = 'flex';
+        }
+        // Function to hide the loader
+        function hideLoader() {
+            document.getElementById('loader-overlay').style.display = 'none';
+        }
+        // Attach the showLoader function to all forms
+        document.querySelectorAll('form').forEach(form => {
+            form.addEventListener('submit', showLoader);
+        });
 </script>
 </body>
 </html>

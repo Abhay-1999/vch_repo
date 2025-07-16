@@ -9,6 +9,7 @@ use Illuminate\Support\Facades\Response;
 use App\Http\Controllers\Auth\AdminAuthController;
 use App\Http\Controllers\Auth\UserAuthController;
 use App\Http\Controllers\CashfreeController;
+use App\Http\Controllers\ReportController;
 
 
 Route::prefix('admin')->group(function () {
@@ -22,8 +23,21 @@ Route::prefix('admin')->group(function () {
     Route::post('/orders/deliver', [OrderController::class, 'deliver'])->name('orders.deliver');
     Route::post('/orders/makePayment', [OrderController::class, 'makePayment'])->name('orders.makePayment');
     Route::post('/orders/flag', [OrderController::class, 'updateFlag'])->name('orders.flag');
-Route::get('/orders/refresh', [OrderController::class, 'refresh'])->name('orders.refresh');
-Route::get('/ordersp/refresh', [OrderController::class, 'refreshp'])->name('ordersp.refresh');
+    Route::get('/orders/refresh', [OrderController::class, 'refresh'])->name('orders.refresh');
+    Route::get('/ordersp/refresh', [OrderController::class, 'refreshp'])->name('ordersp.refresh');
+
+    //reports 
+    //item wise
+    Route::get("item-form",[ReportController::class,'item_wise_form'])->name('item_ws_form');
+    Route::post("item-data",[ReportController::class,'item_wise_data'])->name('item_ws_data');
+
+    //bill wise
+    Route::get("bill-form",[ReportController::class,'bill_wise_form'])->name('bill_ws_form');
+    Route::post("bill-form",[ReportController::class,'bill_wise_data'])->name('bill_ws_data');
+
+    //mode wise payment
+    Route::get('pay-mode-form',[ReportController::class,'pay_mode_form'])->name('mode_pay_form');
+    Route::post('pay-mode-data',[ReportController::class,'pay_mode_data'])->name('mode_pay_data');
 
     Route::get('dashboard', function () {
         return view('auth.admin.dashboard'); // Ensure this view exists

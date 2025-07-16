@@ -9,7 +9,7 @@
 }
 
 </style>
-    <h1 class="text-center">Pending Orders Invoices</h1>
+    <h2 class="text-center">PENDING ORDERS INVOICES</h2>
     
     <table class="table table-striped">
         <thead>

@@ -4,13 +4,13 @@
 
     <!-- Table No. and Time -->
     <td>
-        <span class="badge bg-primary">{{ $order->tran_no }}</span>
-        <span class="badge bg-warning">{{ date('h:i A', strtotime($order->tran_time)) }}</span>
+        <span class="badge bg-primary mb-1">{{ $order->tran_no }}</span>
+        <span class="badge bg-warning text-dark">{{ date('h:i A', strtotime($order->tran_time)) }}</span>
     </td>
     <td>
-        <span class="badge bg-primary">Invoice no-{{ $order->invoice_no }}</span><br>
-        <span class="badge bg-warning">Invoice Date{{ date('d-m-Y ', strtotime($order->invoice_date)) }}</span><br>
-        <span class="badge bg-info">Invoice Time{{ date('h:i A', strtotime($order->invoice_time)) }}</span><br>
+        <span class="badge bg-primary mb-1">Invoice no-{{ $order->invoice_no }}</span><br>
+        <span class="badge bg-warning mb-1 text-dark">Invoice Date- {{ date('d-m-Y ', strtotime($order->invoice_date)) }}</span><br>
+        <span class="badge bg-info">Invoice Time- {{ date('h:i A', strtotime($order->invoice_time)) }}</span><br>
     </td>
     <!-- Order Items -->
     <td>
@@ -20,7 +20,7 @@
                 $colors = ['success', 'warning', 'danger', 'info', 'secondary', 'dark', 'primary'];
             @endphp
             @foreach($items as $index => $item)
-                <span class="badge bg-{{ $colors[$index % count($colors)] }} text-white me-1">{{ $item }}</span>
+                <span class="badge bg-{{ $colors[$index % count($colors)] }} text-white me-1 m-1">{{ $item }}</span>
             @endforeach
         @else
             <span class="text-muted">No Detail</span>
