@@ -54,50 +54,67 @@
 <body>
   <div class="container page-break">
     <div class="invoice-box">
-      <div class="row mb-3">
-        <div class="col-12 col-md-6">
-          <h4 class="invoice-header">
-            {{ $rest_data->rest_name }}<br>
-            {{ $rest_data->rest_add2 }} {{ $rest_data->rest_city }}
-          </h4>
-          <p>
-            Phone: 91 {{ $rest_data->rest_contact }}<br>
-            GSTIN: {{ $rest_data->rest_gstin }}<br>
-            FSSAI: {{ $rest_data->rest_fssai }}<br>
-            Regd. Off: Dewas<br>
-            Website: {{ $rest_data->rest_website }}
-          </p>
-        </div>
-        <div class="col-12 col-md-6 text-md-end mt-3 mt-md-0">
-          <strong>RESTAURANT SERVICE</strong><br>
-          Order ID: <strong>{{ $hd_data->bill_no }}</strong><br>
-          Invoice No: <strong>303/2425/539373</strong><br>
-          Date: <strong>{{ date('d-m-Y',strtotime($hd_data->tran_date)) }}</strong><br>
-          Customer: void@razorpay.com<br>{{ $hd_data->cust_mobile }}<br>
-          Table: <strong>{{ $hd_data->table_no }}</strong>
-        </div>
-      </div>
+    <div class="d-flex justify-content-between flex-wrap mb-3">
+  <!-- Left: Restaurant Address -->
+  <div style="min-width: 280px;">
+    <h4 class="invoice-header mb-1">
+      {{ $rest_data->rest_name }}
+    </h4>
+    <p class="mb-1">
+      {{ $rest_data->rest_add2 }} {{ $rest_data->rest_city }}<br>
+      Phone: 91 {{ $rest_data->rest_contact }}<br>
+      GSTIN: {{ $rest_data->rest_gstin }}<br>
+      FSSAI: {{ $rest_data->rest_fssai }}<br>
+      Website: {{ $rest_data->rest_website }}
+    </p>
+  </div>
+
+  <!-- Right: Alternate / Branch / Customer Address -->
+  <div class="text-end" style="min-width: 280px;">
+    <h4 class="invoice-header mb-1">
+      {{ $rest_data->rest_alt_name ?? 'Branch Address' }}
+    </h4>
+    <p class="mb-1">
+      {{ $rest_data->rest_alt_add ?? '2nd Floor, ABC Building, XYZ City' }}<br>
+      Phone: {{ $rest_data->rest_alt_contact ?? '9876543210' }}<br>
+      Email: {{ $rest_data->rest_email ?? 'info@example.com' }}
+    </p>
+  </div>
+</div>
+
 
       <h5 class="text-center">TAX INVOICE</h5>
-      <p>Token No: <strong>{{ rand(12458,74859) }}</strong></p>
+      <p>Token No: <strong>{{ $hd_data->tran_no }}</strong></p>
+      @if($hd_data->order_id)
+      <p>Zomato/Swiggy Order Id: <strong>{{ $hd_data->order_id }}</strong></p>
+      @endif
 
       <div class="table-responsive">
         <table class="table table-bordered">
           <thead class="table-light">
             <tr>
               <th>Description</th>
-              <th>Qty</th>
+              <th>Qty/gram</th>
               <th>Rate</th>
               <th>Amt</th>
             </tr>
           </thead>
           <tbody>
             @foreach($dt_data as $d_data)
+            <?php $itemAmt = $d_data->amount + $d_data->item_gst; ?>
             <tr>
               <td>{{ $d_data->item_desc }}</td>
-              <td>{{ $d_data->item_qty }}<br><small>HSN/SAC: 996331</small></td>
-              <td>{{ $d_data->amount }}<br><small>{{ $d_data->igst }}% GST</small></td>
-              <td>{{ $d_data->amount * $d_data->item_qty }}<br><small>{{ $d_data->item_gst }}</small></td>
+              <td>
+                @if($d_data->item_qty)
+                {{ $d_data->item_qty }}
+                @else
+                {{ $d_data->item_gm }} gram
+                @endif
+                <br><small>HSN/SAC: 996331</small></td>
+              <td>{{ $d_data->item_rate }}<br><small>{{ $d_data->igst }}% GST </small><small>{{ $d_data->item_gst }}</small></td>
+              <td>
+                {{ $itemAmt }}
+                <br></td>
             </tr>
             @endforeach
           </tbody>
@@ -105,16 +122,30 @@
       </div>
 
       <div class="row">
-        <div class="col-12 text-end">
+      <div class="col-12 text-end">
           <div class="total-box">
-            <p>Item Total: <strong>{{ number_format($convi_fee, 2) }}</strong></p>
-            <p>IGST: <strong>{{ number_format($taxes, 2) }}</strong></p>
-            <hr>
-            <p>Total Amount: <strong>{{ number_format($taxes + $convi_fee, 2) }}</strong></p>
-            <p>Paid (Rounded Off): <strong class="paidAmt">{{ round($taxes + $convi_fee + $final_conv) }}</strong></p>
-            <p class="mt-2"><em class="ptext"></em></p>
+              <hr>
+
+              @if($hd_data->discount)
+                  @php
+                      $discountAmount = ($hd_data->gross_amt * $hd_data->discount) / 100;
+                      $finalAmount = $hd_data->gross_amt - $discountAmount;
+                  @endphp
+
+                  <p>Gross Amount: <strong>₹{{ number_format($hd_data->gross_amt, 2) }}</strong></p>
+                  <p>Discount ({{ $hd_data->discount }}%): <strong>− ₹{{ number_format($discountAmount, 2) }}</strong></p>
+                  <p>Final Amount: <strong>₹{{ number_format($finalAmount, 2) }}</strong></p>
+                  <p>Paid (Rounded Off): <strong class="paidAmt">₹{{ number_format(round($hd_data->paid_amt), 2) }}</strong></p>
+
+              @else
+                  <p>Total Amount: <strong>₹{{ number_format(round($hd_data->paid_amt), 2) }}</strong></p>
+                  <p>Paid (Rounded Off): <strong class="paidAmt">₹{{ number_format(round($hd_data->paid_amt), 2) }}</strong></p>
+              @endif
+
+              <p class="mt-2"><em class="ptext"></em></p>
           </div>
-        </div>
+      </div>
+
       </div>
 
       <div class="text-center mt-4">

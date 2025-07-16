@@ -17,13 +17,20 @@ Route::prefix('admin')->group(function () {
     Route::post('logout', [AdminAuthController::class, 'logout'])->name('admin.logout');
     Route::get('/orders', [OrderController::class, 'index'])->name('orders.index');
     Route::get('/ordersp', [OrderController::class, 'indexp'])->name('orders.indexp');
+    Route::get('/delivered', [OrderController::class, 'delivered'])->name('orders.delivered');
+    Route::get('/items', [OrderController::class, 'items'])->name('items');
     Route::get('/create-order', [OrderController::class, 'create_order'])->name('create.order');
+
+    Route::post('/update-item-status', [OrderController::class, 'updateStatus'])->name('update.item.status');
+
+
     Route::get('/order-detail/{id}', [OrderController::class, 'OrderDetail'])->name('order.detail');
     Route::post('/orders/deliver', [OrderController::class, 'deliver'])->name('orders.deliver');
     Route::post('/orders/makePayment', [OrderController::class, 'makePayment'])->name('orders.makePayment');
     Route::post('/orders/flag', [OrderController::class, 'updateFlag'])->name('orders.flag');
 Route::get('/orders/refresh', [OrderController::class, 'refresh'])->name('orders.refresh');
 Route::get('/ordersp/refresh', [OrderController::class, 'refreshp'])->name('ordersp.refresh');
+Route::get('/ordersp/refreshdelivered', [OrderController::class, 'refreshdelivered'])->name('orders.refreshdelivered');
 
     Route::get('dashboard', function () {
         return view('auth.admin.dashboard'); // Ensure this view exists
@@ -83,3 +90,7 @@ Route::post('/webhook/cashfree', [CashfreeController::class, 'handleWebhook'])->
 
 Route::post('/order/item-update', [OrderController::class, 'updateOrderItem'])->name('order.item.update');
 Route::post('/order/complete', [OrderController::class, 'markOrderComplete'])->name('order.complete');
+Route::get('/dashboard', [OrderController::class, 'dashboard'])->name('dashboard');
+
+
+Route::post('/print-content', [OrderController::class, 'printContent'])->name('print.content');

@@ -61,22 +61,40 @@
                     <tr>
                         <?php $itemAmt = $d_data->amount + $d_data->item_gst; ?>
                         <td>{{ $d_data->item_desc }}</td>
+
+                        @if($d_data->item_qty)
                         <td>{{ $d_data->item_qty }}</td>
+                        @else
+                        <td>{{ $d_data->item_gm }} gram</td>
+                        @endif
+
+                        <td>{{ $d_data->item_rate }}</td>
+
                         <td>{{ $itemAmt }}</td>
-                        <td>{{ $itemAmt*$d_data->item_qty }}</td>
                     </tr>
                     @endforeach
                 </tbody>
             </table>
             
             <div class="row text-end">
-                <div class="col-12">
-              
-              
-                   
-                  
-                    <p class="total-amount">Total Amount: ₹ {{ number_format(round($hd_data->paid_amt),2) }}</p>
+                <<div class="col-12">
+
+                @if($hd_data->discount)
+                    @php
+                        $discountAmount = ($hd_data->gross_amt * $hd_data->discount) / 100;
+                        $finalAmount = $hd_data->gross_amt - $discountAmount;
+                    @endphp
+
+                    <p class="total-amount">Gross Amount: ₹{{ number_format($hd_data->gross_amt, 2) }}</p>
+                    <p class="total-amount">Discount ({{ $hd_data->discount }}%): − ₹{{ number_format($discountAmount, 2) }}</p>
+                    <p class="total-amount fw-bold">Final Amount: ₹{{ number_format($finalAmount, 2) }}</p>
+
+                @else
+                    <p class="total-amount">Total Amount: ₹{{ number_format(round($hd_data->paid_amt), 2) }}</p>
+                @endif
+
                 </div>
+
             </div>
         </div>
     </div>

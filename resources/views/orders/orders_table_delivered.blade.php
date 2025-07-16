@@ -1,4 +1,4 @@
-
+       
 @foreach($orders as $k => $order)
                 <div class="dd-dashboard-right-box dd-dash-redBox">
                     <div class="dd-timer-head">
@@ -36,6 +36,7 @@
                                 @endphp
                                 @foreach($items as $index => $item)
                                     <li style="font-weight: bold; margin-bottom: 4px;">
+                                     
                                         {{ $item }}
                                     </li>
                                 @endforeach
@@ -45,7 +46,21 @@
                         </ul>
                     </div>
 
-                   
+                    <div class="text-center mt-4">
+                <div class="btn-group" role="group" aria-label="Action Buttons">
+                    <a href="javascript:void(0);" onclick="printBill({{ $order->tran_no }}, '{{ $order->tran_date }}')"
+                    class="btn btn-sm btn-primary rounded-pill px-3">
+                        🖨️ Print Bill
+                    </a>
+                    <a href="https://wa.me/?text=Your+bill+details+here" target="_blank" class="btn btn-sm btn-success rounded-pill px-3">
+                        📤 WhatsApp
+                    </a>
+                </div>
+            </div>
+
+
+
+
                 </div>
 
              
