@@ -125,8 +125,8 @@ $admin = Auth::guard('admin')->user();
             <ul class="nav flex-column">
                 <li class="nav-item">
                     @if($admin->role == '3')
-                    <a class="nav-link {{ request()->routeIs('orders.indexp') ? 'active' : '' }}" href="{{ route('orders.indexp') }}">
-                        <i class="bi bi-bag-fill me-2"></i>Pending Order
+                    <a class="nav-link {{ request()->routeIs('dashboard') ? 'active' : '' }}" href="{{ route('dashboard') }}">
+                        <i class="bi bi-bag-fill me-2"></i>Dashboard
                     </a>
                     <a class="nav-link {{ request()->routeIs('create.order') ? 'active' : '' }}" href="{{ route('create.order') }}">
                         <i class="bi bi-bag-fill me-2"></i>Create Order
@@ -155,6 +155,16 @@ $admin = Auth::guard('admin')->user();
                         </ul>
                     </li>
 
+
+                    <a class="nav-link {{ request()->routeIs('orders.delivered') ? 'active' : '' }}" href="{{ route('orders.delivered') }}">
+                        <i class="bi bi-bag-fill me-2"></i>Delivered Order
+                    </a>
+                    <a class="nav-link {{ request()->routeIs('items') ? 'active' : '' }}" href="{{ route('items') }}">
+                        <i class="bi bi-bag-fill me-2"></i>Items-Active/Inacive
+                    </a>
+                    <a class="nav-link {{ request()->routeIs('orders.indexp') ? 'active' : '' }}" href="{{ route('orders.indexp') }}">
+                        <i class="bi bi-bag-fill me-2"></i>Pending Order
+                    </a>
                     @else
                     <a class="nav-link {{ request()->routeIs('orders.index') ? 'active' : '' }}" href="{{ route('orders.index') }}">
                         <i class="bi bi-bag-fill me-2"></i>Orders

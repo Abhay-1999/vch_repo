@@ -103,7 +103,6 @@
                 <th>Price</th>
                 <th>Qty</th>
                 <th>Total</th>
-                <th>Actions</th>
               </tr>
             </thead>
             <tbody>
