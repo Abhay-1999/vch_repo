@@ -19,7 +19,7 @@ class ItemController extends Controller
 
     public function all()
     {
-        $items = Item::select('item_desc','item_code','rest_code','item_rate','item_status')->get();
+        $items = Item::select('item_desc','item_code','rest_code','item_rate')->orderBy('item_desc')->get();
 
 
     //    echo"<pre>";print_r($items->toArray());die;

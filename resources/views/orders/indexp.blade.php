@@ -20,6 +20,7 @@
         cursor: not-allowed;
     }
 </style>
+
     <h1 class="text-center">Pending Orders</h1>
     <div style="overflow-y: auto; max-height: calc(100vh - 100px); padding-bottom: 50px;">
 

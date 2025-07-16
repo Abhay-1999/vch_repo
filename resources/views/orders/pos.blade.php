@@ -1,9 +1,10 @@
 @extends('auth.layouts.app')
 
 @section('content')
-<div class="container-fluid py-4">
+<div class="fluid-container py-4">
     <div class="row g-4">
         <!-- Left Side: Cart -->
+
         <div class="col-md-7">
                 <div class="card shadow">
                     <div class="card-header bg-primary text-white">
@@ -75,7 +76,7 @@
             </div>
 
         <!-- Right Side: Item List -->
-        <div class="col-md-5">
+        <div class="col-md-6">
             <div class="card shadow">
                 <div class="card-header bg-warning">
                     <h5 class="mb-0">📋 Item List</h5>
