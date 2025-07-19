@@ -54,9 +54,9 @@
 <body>
   <div class="container page-break">
     <div class="invoice-box">
-    <div class="d-flex justify-content-between flex-wrap mb-3">
+    <div class="d-flex justify-content-between align-items-start mb-3" style="flex-wrap: nowrap;">
   <!-- Left: Restaurant Address -->
-  <div style="min-width: 280px;">
+  <div style="min-width: 280px; max-width: 60%;">
     <h4 class="invoice-header mb-1">
       {{ $rest_data->rest_name }}
     </h4>
@@ -69,52 +69,59 @@
     </p>
   </div>
 
-  <!-- Right: Alternate / Branch / Customer Address -->
-  <div class="text-end" style="min-width: 280px;">
-    <h4 class="invoice-header mb-1">
-      {{ $rest_data->rest_alt_name ?? 'Branch Address' }}
-    </h4>
-    <p class="mb-1">
-      {{ $rest_data->rest_alt_add ?? '2nd Floor, ABC Building, XYZ City' }}<br>
-      Phone: {{ $rest_data->rest_alt_contact ?? '9876543210' }}<br>
-      Email: {{ $rest_data->rest_email ?? 'info@example.com' }}
-    </p>
+  <!-- Right: Logo -->
+  <div class="text-end" style="min-width: 120px;">
+    <img src="{{ asset('images/vijaychat.webp') }}" alt="Logo" style="max-height: 80px;">
+  </div>
+</div>
+      <h5 class="text-center">RETAIL INVOICE</h5>
+      <div class="d-flex justify-content-between mb-3 flex-wrap">
+  <!-- Left side: Invoice No and Invoice Date -->
+  <div class="pe-3" style="flex: 1;">
+    <p>Invoice No: <strong>{{ date('Y')}}/000000{{ $hd_data->invoice_no }}</strong></p>
+    <p>Invoice Date: <strong>{{ date('d F Y', strtotime($hd_data->invoice_date)) }}</strong></p>
+  </div>
+
+  <!-- Right side: Token No and Order ID -->
+  <div class="text-end ps-3" style="flex: 1;">
+    <p>Token No: <strong>{{ $hd_data->tran_no }}</strong></p>
+    @if($hd_data->order_id)
+      <p>Zomato/Swiggy Order Id: <strong>{{ $hd_data->order_id }}</strong></p>
+    @endif
   </div>
 </div>
 
 
-      <h5 class="text-center">TAX INVOICE</h5>
-      <p>Token No: <strong>{{ $hd_data->tran_no }}</strong></p>
-      @if($hd_data->order_id)
-      <p>Zomato/Swiggy Order Id: <strong>{{ $hd_data->order_id }}</strong></p>
-      @endif
 
       <div class="table-responsive">
         <table class="table table-bordered">
           <thead class="table-light">
             <tr>
-              <th>Description</th>
+              <th>Item</th>
               <th>Qty/gram</th>
-              <th>Rate</th>
-              <th>Amt</th>
+              <th style="text-align: right;">Rate</th>
+              <th style="text-align: right;">Amt</th>
             </tr>
           </thead>
           <tbody>
+            <?php 
+            $itemgst = $itemAmt = 0;
+            ?>
             @foreach($dt_data as $d_data)
-            <?php $itemAmt = $d_data->amount + $d_data->item_gst; ?>
+            <?php $itemgst += $d_data->item_gst; ?>
+            <?php $itemAmt += $d_data->amount; ?>
             <tr>
               <td>{{ $d_data->item_desc }}</td>
-              <td>
+              <td> 
                 @if($d_data->item_qty)
                 {{ $d_data->item_qty }}
                 @else
                 {{ $d_data->item_gm }} gram
                 @endif
-                <br><small>HSN/SAC: 996331</small></td>
-              <td>{{ $d_data->item_rate }}<br><small>{{ $d_data->igst }}% GST </small><small>{{ $d_data->item_gst }}</small></td>
-              <td>
-                {{ $itemAmt }}
-                <br></td>
+              <td style="text-align: right;">{{ number_format($d_data->item_rate,2) }} </td>
+              <td style="text-align: right;">
+                {{ $d_data->amount }}
+                </td>
             </tr>
             @endforeach
           </tbody>
@@ -122,24 +129,29 @@
       </div>
 
       <div class="row">
+      <br><small style="text-align: left;">HSN/SAC: 996331</small>
       <div class="col-12 text-end">
           <div class="total-box">
-              <hr>
-
+             
               @if($hd_data->discount)
                   @php
                       $discountAmount = ($hd_data->gross_amt * $hd_data->discount) / 100;
                       $finalAmount = $hd_data->gross_amt - $discountAmount;
                   @endphp
+                
 
-                  <p>Gross Amount: <strong>₹{{ number_format($hd_data->gross_amt, 2) }}</strong></p>
+                  <p>Total Amount: <strong>₹{{ number_format($itemAmt,2) }}</strong></p>
+                  <p>SGST 2.50% <strong>₹{{ round($itemgst/2,2) }}</strong></p>
+                  <p>CGST 2.50% <strong>₹{{  round($itemgst/2,2) }}</strong></p>
                   <p>Discount ({{ $hd_data->discount }}%): <strong>− ₹{{ number_format($discountAmount, 2) }}</strong></p>
                   <p>Final Amount: <strong>₹{{ number_format($finalAmount, 2) }}</strong></p>
-                  <p>Paid (Rounded Off): <strong class="paidAmt">₹{{ number_format(round($hd_data->paid_amt), 2) }}</strong></p>
+                  <p>Paid (Rounded Off): <strong>₹</strong><strong class="paidAmt">{{ number_format(round($finalAmount), 2) }}</strong></p>
 
               @else
-                  <p>Total Amount: <strong>₹{{ number_format(round($hd_data->paid_amt), 2) }}</strong></p>
-                  <p>Paid (Rounded Off): <strong class="paidAmt">₹{{ number_format(round($hd_data->paid_amt), 2) }}</strong></p>
+                  <p>Total Amount: <strong>₹{{ number_format($itemAmt,2) }}</strong></p>
+                  <p>SGST 2.50% <strong>₹{{ round($itemgst/2,2) }}</strong></p>
+                  <p>CGST 2.50% <strong>₹{{  round($itemgst/2,2) }}</strong></p>
+                  <p>Paid (Rounded Off): <strong>₹</strong> <strong class="paidAmt">{{ number_format(round($hd_data->paid_amt), 2) }}</strong></p>
               @endif
 
               <p class="mt-2"><em class="ptext"></em></p>
@@ -150,7 +162,7 @@
 
       <div class="text-center mt-4">
         <p>Thanks for visiting <strong>{{ $rest_data->rest_name }}</strong><br>Have a nice Day!</p>
-        <p class="text-muted"><small>For any queries call {{ $rest_data->rest_tellno }}<br>Between 10:00 and 22:00</small></p>
+        <!-- <p class="text-muted"><small>For any queries call {{ $rest_data->rest_tellno }}<br>Between 10:00 and 22:00</small></p> -->
       </div>
     </div>
   </div>

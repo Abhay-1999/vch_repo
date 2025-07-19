@@ -33,10 +33,10 @@
     <script>
 
 
-    function markDelivered(tran_no) {
+    function markHold(tran_no) {
         if (!confirm("Are you sure you want to mark this order as delivered?")) return;
 
-        fetch("{{ route('orders.deliver') }}", {
+        fetch("{{ route('orders.hold') }}", {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
