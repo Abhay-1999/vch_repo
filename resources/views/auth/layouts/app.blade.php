@@ -130,61 +130,93 @@ $admin = Auth::guard('admin')->user();
   </style>
 </head>
 <body>
-<div class="dashboard-container">
-  <!-- Sidebar -->
-  <div class="sidebar" id="sidebar">
-    <h4><i class="bi bi-speedometer2 me-2"></i><span>{{ $admin->name }} Panel</span></h4>
-    <ul class="nav flex-column">
-      <li class="nav-item">
-        @if($admin->role == '3')
-        <a class="nav-link {{ request()->routeIs('dashboard') ? 'active' : '' }}" href="{{ route('dashboard') }}">
-          <i class="bi bi-house-door me-2"></i><span>Dashboard</span>
-        </a>
-        <a class="nav-link {{ request()->routeIs('create.order') ? 'active' : '' }}" href="{{ route('create.order') }}">
-          <i class="bi bi-plus-circle me-2"></i><span>Create Order</span>
-        </a>
-        <a class="nav-link {{ request()->routeIs('orders.delivered') ? 'active' : '' }}" href="{{ route('orders.delivered') }}">
-          <i class="bi bi-check-circle me-2"></i><span>Delivered Orders</span>
-        </a>
-        <a class="nav-link {{ request()->routeIs('orders.indexp') ? 'active' : '' }}" href="{{ route('orders.indexp') }}">
-          <i class="bi bi-clock-history me-2"></i><span>Pending Orders</span>
-        </a>
-        <a class="nav-link {{ request()->routeIs('items') ? 'active' : '' }}" href="{{ route('items') }}">
-          <i class="bi bi-box-seam me-2"></i><span>Items</span>
-        </a>
-        <li class="nav-item dropdown">
-          <a class="nav-link dropdown-toggle d-flex justify-content-between align-items-center" href="#" id="dropdownReports" data-bs-toggle="dropdown">
-            <span><i class="bi bi-graph-up-arrow me-2"></i><span>Reports</span></span>
-          </a>
-          <ul class="dropdown-menu">
-            <li><a class="dropdown-item" href="{{ route('item_ws_form') }}"><i class="bi bi-list me-2"></i>Item Wise</a></li>
-            <li><a class="dropdown-item" href="{{ route('bill_ws_form') }}"><i class="bi bi-file-earmark me-2"></i>Bill Wise</a></li>
-            <li><a class="dropdown-item" href="{{ route('mode_pay_form') }}"><i class="bi bi-cash-stack me-2"></i>Mode Wise</a></li>
-          </ul>
-        </li>
-        @else
-        <a class="nav-link {{ request()->routeIs('orders.index') ? 'active' : '' }}" href="{{ route('orders.index') }}">
-          <i class="bi bi-card-list me-2"></i><span>Orders</span>
-        </a>
-        @endif
-      </li>
-      <li class="nav-item mt-4">
-        <form action="{{ route('admin.logout') }}" method="POST">
-          @csrf
-          <button type="submit" class="btn btn-danger w-100">
-            <i class="bi bi-box-arrow-right me-2"></i>Logout
-          </button>
-        </form>
-      </li>
-    </ul>
-  </div>
 
-  <!-- Main Content -->
-  <div class="main-area">
-    <div class="topbar">
-      <button id="toggleSidebar" class="btn btn-outline-dark me-3"><i class="bi bi-list"></i></button>
-      <h5>Welcome, {{ $admin->name }}</h5>
-      <h6 class="ms-auto text-end" id="datetime"></h6>
+    <div class="dashboard-container">
+        <!-- Sidebar -->
+        <div class="sidebar">
+            <h4><i class="bi bi-speedometer2 me-2"></i>{{ $admin->name }} Panel</h4>
+            <ul class="nav flex-column">
+                <li class="nav-item">
+                    @if($admin->role == '3')
+                    <a class="nav-link {{ request()->routeIs('dashboard') ? 'active' : '' }}" href="{{ route('dashboard') }}">
+                        <i class="bi bi-bag-fill me-2"></i>Dashboard
+                    </a>
+                    <a class="nav-link {{ request()->routeIs('create.order') ? 'active' : '' }}" href="{{ route('create.order') }}">
+                        <i class="bi bi-bag-fill me-2"></i>Create Order
+                    </a>
+
+                    <a class="nav-link {{ request()->routeIs('orders.delivered') ? 'active' : '' }}" href="{{ route('orders.delivered') }}">
+                        <i class="bi bi-bag-fill me-2"></i>Delivered Order
+                    </a>
+                    <a class="nav-link {{ request()->routeIs('items') ? 'active' : '' }}" href="{{ route('items') }}">
+                        <i class="bi bi-bag-fill me-2"></i>Items-Active/Inacive
+                    </a>
+                    <a class="nav-link {{ request()->routeIs('orders.indexp') ? 'active' : '' }}" href="{{ route('orders.indexp') }}">
+                        <i class="bi bi-bag-fill me-2"></i>Pending Order
+                    </a>
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle d-flex justify-content-between align-items-center"
+                        href="#" id="dropdownReports" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                            <span><i class="bi bi-graph-up-arrow me-2"></i>Reports</span>
+                        </a>
+                        <ul class="dropdown-menu" aria-labelledby="dropdownReports">
+                            
+                            <li>
+                                <a class="dropdown-item" href="{{ route('bill_ws_form') }}">
+                                    <i class="bi bi-file-earmark-bar-graph me-2"></i>Bill Wise
+                                </a>
+                            </li>
+                            
+                            <li>
+                                <a class="dropdown-item" href="{{ route('bill_item_form') }}">
+                                    <i class="bi bi-file-earmark-bar-graph me-2"></i>Bill-Item Wise</a>
+                            </li>
+                            <li>
+                                <a class="dropdown-item" href="{{ route('item_ws_form') }}">
+                                    <i class="bi bi-file-earmark-text me-2"></i>Item Wise
+                                </a>
+                            </li>
+                            <li>
+                                <a class="dropdown-item" href="{{ route('mode_pay_form') }}">
+                                    <i class="bi bi-file-earmark-bar-graph me-2"></i>Mode Wise Payment
+                                </a>
+                            </li>
+                            <li>
+                                <a class="dropdown-item" href="{{ route('sale_form') }}">
+                                    <i class="bi bi-file-earmark-bar-graph me-2"></i>Total Sale
+                                </a>
+                            </li>
+                        </ul>
+                    </li>
+                    @else
+                    <a class="nav-link {{ request()->routeIs('orders.index') ? 'active' : '' }}" href="{{ route('orders.index') }}">
+                        <i class="bi bi-bag-fill me-2"></i>Orders
+                    </a>
+                    @endif
+                </li>
+                <li class="nav-item mt-4">
+                    <form action="{{ route('admin.logout') }}" method="POST">
+                        @csrf
+                        <button type="submit" class="btn btn-danger w-100">
+                            <i class="bi bi-box-arrow-right me-2"></i>Logout
+                        </button>
+                    </form>
+                </li>
+            </ul>
+        </div>
+
+        <!-- Main area (Topbar + Content) -->
+        <div class="main-area">
+            <div class="topbar d-flex">
+                    <h5>Welcome, {{ $admin->name }}</h5>
+                    <h6 class="ms-auto text-right black" id="datetime"></h6>
+            </div>
+            <div class="content">
+                @yield('content')
+            </div>
+        </div>
+
+
     </div>
     <div class="content">
       @yield('content')

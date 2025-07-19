@@ -17,21 +17,17 @@
             border-bottom: 1px solid black;
             padding-left: 10px;
         }
-
         tbody td, thead th {
             border: 1px solid black;
             padding-left: 10px;
             line-height: 1.3;
         }
-
         table#firstTable {
             border: none;
         }
-
         table#firstTable td, table#firstTable th {
             border: none !important;
         }
-
         .text-right{
             padding-right:5px;
         }
@@ -43,20 +39,19 @@
         }
         td{
             font-size:10px
-        }
-        tfoot {
-            border-top: 1px solid black;
-            border-bottom: 1px solid black; 
-        }
-
-        tfoot td {
-            border: 1px solid black;
-        }
+        }        
         .printDate{
             padding-top:0;
         }
         h2{
             margin-bottom:0;
+        }
+        .total-row-on-last-page {
+            page-break-inside: avoid;
+            break-inside: avoid;
+        }
+        tr, td, th {
+            page-break-inside: avoid !important;
         }
     }
     @page {
@@ -79,11 +74,17 @@
         .text-right{
             text-align:right;
         }
+
+        th {
+            vertical-align: top;     
+            white-space: nowrap;       
+            font-size: 14px;        
+        }
 </style>
 <table style="width: 100%; border-collapse: collapse;" id="firstTable">
     <tr>
         <td>
-            <h2 class="">MODE WISE PAYMENT RECORD</h2>
+            <h2>BILL-ITEM WISE RECORD</h2>
         </td>
         <td style="text-align: right;">
             <button id="exportButton" onclick="exportToExcel()" class="btn btn-info btn-sm">EXCEL</button>
@@ -103,39 +104,84 @@
 <table class="table table-bordered mt-3" id="myTable">
     <thead>
         <tr>
-            <th class="text-left">S.No</th>
-            <th class="text-left">Date</th>
-            <th class="text-right">Cash</th>
-            <th class="text-right">UPI</th>
+            <th class="text-left">S.NO</th>
+            <th class="text-left">DATE</th>
+            <th class="text-left">BILL NO</th>
+            <th class="text-left">ITEM</th>
+            <th class="text-left">HSN CODE</th>
+            <th class="text-right">QTY</th>
+            <th class="text-right">RATE</th>
+            <th class="text-right">GST %</th>
+            <th class="text-right">PAYMENT MODE</th>
+            <th class="text-right">GROSS AMT</th>
+            <th class="text-right">CGST AMT</th>
+            <th class="text-right">SGST AMT</th>
+            <th class="text-right">NET AMT</th>
         </tr>
     </thead>
     <tbody>
-    @php 
-        $i = 1; 
-        $grandTotalCash = 0; // Initialize grand total for cash
-        $grandTotalUPI = 0;   // Initialize grand total for UPI
-    @endphp
-    @foreach ($totals as $date => $amounts)
-    <tr>
-        <td class="text-left">{{ $i++ }}</td>
-        <td class="text-left">{{ $date }}</td>
-        <td class="text-right">{{ number_format($amounts['cash'], 2) }}</td>
-        <td class="text-right">{{ number_format($amounts['upi'], 2) }}</td>
-    </tr>
-    @php
-        // Add to grand totals
-        $grandTotalCash += $amounts['cash'];
-        $grandTotalUPI += $amounts['upi'];
-    @endphp
-    @endforeach
-</tbody>
-<tfoot>
-    <tr>
-        <td colspan="2" class="text-right"><strong>Total</strong></td>
-        <td class="text-right"><strong>{{ number_format($grandTotalCash, 2) }}</strong></td>
-        <td class="text-right"><strong>{{ number_format($grandTotalUPI, 2) }}</strong></td>
-    </tr>
-</tfoot>
+        @php
+            $rateTot = 0;
+            $grossTot = 0;
+            $cgstTot = 0;
+            $sgstTot = 0;
+            $grandTot = 0;
+        @endphp
+        @foreach($data as $index => $d)
+        <tr>
+            <td class="text-center">{{ ++$index }}</td>
+            <td>{{ date('d-m-Y', strtotime($d->tran_date)) ?? '' }}</td>
+            <td>{{ $d->tran_no }}</td>
+            <td>{{ $d->item_desc }}</td>
+            <td>996331</td>
+            <td>{{ $d->item_qty }}</td>
+            <td class="text-right">{{ number_format($d->amount + $d->item_gst, 2) }}</td>
+            <td>5</td>
+            <td>
+                @if($d->payment_mode == 'C')
+                    Over Counter
+                @elseif($d->payment_mode == 'O')
+                    UPI
+                @else
+                    -
+                @endif
+            </td>
+
+            @php
+                $subtotal = ($d->amount + $d->item_gst) * $d->item_qty;
+                $cgst = $subtotal * 0.025;
+                $sgst = $subtotal * 0.025;
+                $total = $subtotal + $cgst + $sgst;
+
+                $rateTot += ($d->amount + $d->item_gst);
+                $grossTot += $subtotal;
+                $cgstTot += $cgst;
+                $sgstTot += $sgst;
+                $grandTot += $total;
+            @endphp
+
+            <td class="text-right">{{ number_format($subtotal, 2) }}</td>
+            <td class="text-right">{{ number_format($cgst, 2) }}</td>
+            <td class="text-right">{{ number_format($sgst, 2) }}</td>
+            <td class="text-right">{{ number_format($total, 2) }}</td>
+        </tr>
+
+        {{-- Show total row only in last iteration --}}
+        @if($loop->last)
+        <tr class="print-total-only-last-page">
+            <td colspan="6" class="text-right"><strong>Total</strong></td>
+            <td class="text-right"><strong>{{ number_format($rateTot, 2) }}</strong></td>
+            <td></td>
+            <td></td>
+            <td class="text-right"><strong>{{ number_format($grossTot, 2) }}</strong></td>
+            <td class="text-right"><strong>{{ number_format($cgstTot, 2) }}</strong></td>
+            <td class="text-right"><strong>{{ number_format($sgstTot, 2) }}</strong></td>
+            <td class="text-right"><strong>{{ number_format($grandTot, 2) }}</strong></td>
+        </tr>
+        @endif
+        @endforeach
+    </tbody>
+
 </table>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.4/xlsx.full.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
@@ -144,7 +190,7 @@
         var table = document.getElementById('myTable');
         
         for (var i = 1; i < table.rows.length; i++) { 
-            var dateCell = table.rows[i].cells[1];
+            var dateCell = table.rows[i].cells[1]; // Assuming date is in the 2nd column
             dateCell.textContent = formatDate(dateCell.textContent);
         }
 
@@ -158,7 +204,7 @@
             return buf;
         }
 
-        var fileName = prompt("Enter file name:", "payment_mode_report.xlsx");
+        var fileName = prompt("Enter file name:", "bill_item_wise_report.xlsx");
         if (fileName === null) {
             return; 
         }

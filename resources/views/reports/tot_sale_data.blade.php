@@ -21,7 +21,7 @@
         tbody td, thead th {
             border: 1px solid black;
             padding-left: 10px;
-            line-height: 1.3;
+            line-height: 1.5;
         }
 
         table#firstTable {
@@ -43,14 +43,6 @@
         }
         td{
             font-size:10px
-        }
-        tfoot {
-            border-top: 1px solid black;
-            border-bottom: 1px solid black; 
-        }
-
-        tfoot td {
-            border: 1px solid black;
         }
         .printDate{
             padding-top:0;
@@ -83,7 +75,7 @@
 <table style="width: 100%; border-collapse: collapse;" id="firstTable">
     <tr>
         <td>
-            <h2 class="">MODE WISE PAYMENT RECORD</h2>
+            <h2>TOTAL SALE RECORD</h2>
         </td>
         <td style="text-align: right;">
             <button id="exportButton" onclick="exportToExcel()" class="btn btn-info btn-sm">EXCEL</button>
@@ -103,39 +95,22 @@
 <table class="table table-bordered mt-3" id="myTable">
     <thead>
         <tr>
-            <th class="text-left">S.No</th>
-            <th class="text-left">Date</th>
-            <th class="text-right">Cash</th>
-            <th class="text-right">UPI</th>
+            <th class="text-left">S.NO</th>
+            <th class="text-left">GST %</th>
+            <th class="text-right">TAXABLE AMT</th>
+            <th class="text-right">GST AMT</th>
+            <th class="text-right">AMT INCLUSIVE GST</th>
         </tr>
     </thead>
     <tbody>
-    @php 
-        $i = 1; 
-        $grandTotalCash = 0; // Initialize grand total for cash
-        $grandTotalUPI = 0;   // Initialize grand total for UPI
-    @endphp
-    @foreach ($totals as $date => $amounts)
-    <tr>
-        <td class="text-left">{{ $i++ }}</td>
-        <td class="text-left">{{ $date }}</td>
-        <td class="text-right">{{ number_format($amounts['cash'], 2) }}</td>
-        <td class="text-right">{{ number_format($amounts['upi'], 2) }}</td>
-    </tr>
-    @php
-        // Add to grand totals
-        $grandTotalCash += $amounts['cash'];
-        $grandTotalUPI += $amounts['upi'];
-    @endphp
-    @endforeach
-</tbody>
-<tfoot>
-    <tr>
-        <td colspan="2" class="text-right"><strong>Total</strong></td>
-        <td class="text-right"><strong>{{ number_format($grandTotalCash, 2) }}</strong></td>
-        <td class="text-right"><strong>{{ number_format($grandTotalUPI, 2) }}</strong></td>
-    </tr>
-</tfoot>
+        <tr>
+            <td class="text-left">1</td>
+            <td>5</td>
+            <td class="text-right">{{ $data->total_net_amt }}</td>
+            <td class="text-right">{{ $data->total_net_amt * 0.05 }}</td>
+            <td class="text-right">{{ $data->total_net_amt + ($data->total_net_amt * 0.05) }}</td>
+        </tr>
+    </tbody>
 </table>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.4/xlsx.full.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
@@ -144,7 +119,7 @@
         var table = document.getElementById('myTable');
         
         for (var i = 1; i < table.rows.length; i++) { 
-            var dateCell = table.rows[i].cells[1];
+            var dateCell = table.rows[i].cells[1]; // date in 2nd column
             dateCell.textContent = formatDate(dateCell.textContent);
         }
 
@@ -158,7 +133,7 @@
             return buf;
         }
 
-        var fileName = prompt("Enter file name:", "payment_mode_report.xlsx");
+        var fileName = prompt("Enter file name:", "total_sale_report.xlsx");
         if (fileName === null) {
             return; 
         }
@@ -171,11 +146,10 @@
         saveAs(blob, fileName);
     }
 
-    // Helper function to format dates in d-m-Y format
     function formatDate(dateStr) {
         var parts = dateStr.split('-');
         if (parts.length === 3) {
-            return parts[1] + '-' + parts[0] + '-' + parts[2]; // Convert to m-d-Y
+            return parts[1] + '-' + parts[0] + '-' + parts[2];
         }
         return dateStr;
     }
