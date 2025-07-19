@@ -19,7 +19,7 @@ class ItemController extends Controller
 
     public function all()
     {
-        $items = Item::select('item_desc','item_code','rest_code','item_rate')->orderBy('item_desc')->get();
+        $items = Item::select('item_desc','item_code','rest_code','item_rate','item_status')->orderBy('item_desc')->get();
 
 
     //    echo"<pre>";print_r($items->toArray());die;
@@ -317,36 +317,40 @@ class ItemController extends Controller
         $id = $request->id;
     
         if (isset($cart[$id])) {
-            // Check if quantity is being decreased
             if ($request->has('quantity')) {
-                $quantity = $request->quantity;
+                $quantity = (int) $request->quantity;
     
-                // Update the quantity in the cart
                 if ($quantity < 1) {
-                    unset($cart[$id]); // Remove the item if quantity is less than 1
+                    unset($cart[$id]); // Remove item if quantity < 1
                 } else {
-                    $cart[$id]['quantity'] = $quantity; // Update the quantity
+                    $cart[$id]['quantity'] = $quantity; // Update quantity
                 }
             } else {
-                // If no quantity is provided, remove the item from the cart
-                unset($cart[$id]);
+                unset($cart[$id]); // Remove item directly
             }
     
-            session()->put('cart', $cart);
-            
-            // Return the updated quantity or a success message
+            session()->put('cart', $cart); // Save updated cart
+    
+            // Calculate total quantity in cart
+            $totalQuantity = array_sum(array_column($cart, 'quantity'));
+    
+            // Check if the item still exists in the cart
             if (isset($cart[$id])) {
-                $totalQuantity = array_sum(array_column($cart, 'quantity'));
-
-                session()->put('cart', $cart);
-                return response()->json(['quantity' => $cart[$id]['quantity'],'total_quantity' => $totalQuantity]);
+                return response()->json([
+                    'quantity' => $cart[$id]['quantity'],
+                    'total_quantity' => $totalQuantity,
+                ]);
             } else {
-                return response()->json(['message' => 'Item removed successfully.']);
+                return response()->json([
+                    'message' => 'Item removed successfully.',
+                    'total_quantity' => $totalQuantity,
+                ]);
             }
         }
     
         return response()->json(['message' => 'Item not found in cart.'], 404);
     }
+    
 
 
 
@@ -534,7 +538,7 @@ class ItemController extends Controller
             $trans_no = 1;
         }
 
-       
+    //    echo $paid_amt;die;
 
 
         $order_hd = [
@@ -595,7 +599,7 @@ class ItemController extends Controller
                 'tran_no' => $trans_no,
                 'item_code' => $item['id'],
                 'item_qty' => @$item['qty'],
-                'item_gm' => @$item['grams'],
+                'item_gm' => round(@$item['grams']),
                 'customise_flag' => 'S',
                 'amount' => $item_amt_real,
                 'item_gst' => $item_gst_amt,

@@ -29,6 +29,7 @@ Route::prefix('admin')->group(function () {
     Route::post('/orders/deliver', [OrderController::class, 'deliver'])->name('orders.deliver');
     Route::post('/orders/makePayment', [OrderController::class, 'makePayment'])->name('orders.makePayment');
     Route::post('/orders/flag', [OrderController::class, 'updateFlag'])->name('orders.flag');
+    Route::post('/orders/hold', [OrderController::class, 'hold'])->name('orders.hold');
 
     //reports 
     //item wise
@@ -96,10 +97,10 @@ Route::get('/home', [App\Http\Controllers\HomeController::class, 'index'])->name
 
 // routes/web.php
 
-Route::get('/pay', [CashfreeController::class, 'showPayPage'])->name('cashfree.pay');
-Route::post('/pay/submit', [CashfreeController::class, 'createOrder'])->name('cashfree.create');
-Route::get('/pay/success', [CashfreeController::class, 'paymentSuccess'])->name('cashfree.success');
-Route::post('/webhook/cashfree', [CashfreeController::class, 'handleWebhook'])->name('cashfree.webhook');
+// Route::get('/pay', [CashfreeController::class, 'showPayPage'])->name('cashfree.pay');
+// Route::post('/pay/submit', [CashfreeController::class, 'createOrder'])->name('cashfree.create');
+// Route::get('/pay/success', [CashfreeController::class, 'paymentSuccess'])->name('cashfree.success');
+// Route::post('/webhook/cashfree', [CashfreeController::class, 'handleWebhook'])->name('cashfree.webhook');
 
 
 Route::post('/order/item-update', [OrderController::class, 'updateOrderItem'])->name('order.item.update');
@@ -108,3 +109,18 @@ Route::get('/dashboard', [OrderController::class, 'dashboard'])->name('dashboard
 
 
 Route::post('/print-content', [OrderController::class, 'printContent'])->name('print.content');
+
+
+// Route::get('/pay', [OrderController::class, 'initiateHDFCPayment']);
+// Route::any('/payment/response', function(Request $request) {
+//     // Handle success or failure callback here
+//     return response()->json($request->all());
+// });
+
+
+
+Route::post('/pay', [OrderController::class, 'initiatePayment'])->name('initiate.payment');
+// Route::any('/payment/status', [OrderController::class, 'paymentStatus'])->name('payment.status.check');
+
+
+Route::get('/order-status/{order_id}', [OrderController::class, 'checkOrderStatus'])->name('order.status.payment');

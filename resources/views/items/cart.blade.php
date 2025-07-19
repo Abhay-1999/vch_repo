@@ -137,10 +137,10 @@
         </div>
 
         <div class="text-center mt-3 paymode_mode" style="max-width: 300px; margin: 0 auto; text-align: center;">
-        <form id="orderForm" action="{{ route('payment.dummy') }}" method="POST">
+        <form id="orderForm" action="{{ route('initiate.payment') }}" method="POST">
           @csrf
 
-          <input type="hidden" class="total" name="total_amount" value="" />
+          <input type="hidden" class="total" name="amount" name="total_amount" value="" />
           <input type="hidden" name="paymode_mode" value="O">
 
   

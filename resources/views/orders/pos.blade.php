@@ -76,7 +76,7 @@
             </div>
 
         <!-- Right Side: Item List -->
-        <div class="col-md-6">
+        <div class="col-md-5">
             <div class="card shadow">
                 <div class="card-header bg-warning">
                     <h5 class="mb-0">📋 Item List</h5>
@@ -315,11 +315,21 @@ function renderCart() {
         let lineTotal = 0;
 
         if (isGramItem) {
-            const amount = parseFloat(item.amount) || 0;
-            const grams = parseFloat(item.grams) || 0;
+            let amount = parseFloat(item.amount) || 0;
+            let grams = parseFloat(item.grams) || 0;
 
-            if (amount && !grams) item.grams = (amount / item.price) * 100;
-            if (grams && !amount) item.amount = (grams / 100) * item.price;
+            // Set default 100gm amount if both are empty
+            if (!amount && !grams) {
+                item.grams = 100;
+                item.amount = item.price;
+            } else {
+                if (amount && !grams) {
+                    item.grams = (amount / item.price) * 100;
+                }
+                if (grams && !amount) {
+                    item.amount = (grams / 100) * item.price;
+                }
+            }
 
             lineTotal = item.amount;
         } else {
@@ -367,8 +377,9 @@ function renderCart() {
     $('#total').text(total.toFixed(2));
 
     bindAmountEvents(); // rebind inputs
-    updateFinalTotal();
+    updateFinalTotal(); // recalculate any discounts/tax if needed
 }
+
 
 
 

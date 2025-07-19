@@ -403,7 +403,7 @@ $(document).ready(function () {
                         id: id
                     },
                     success: function (response) {
-                        updateCartCount(0);
+                        updateCartCount(response.total_quantity);
                     },
                     error: function () {
                         alert('Failed to remove item from cart.');
