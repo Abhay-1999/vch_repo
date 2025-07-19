@@ -5,7 +5,8 @@ use Illuminate\Http\Request;
 use DB;
 use Illuminate\Support\Facades\Session;
 use Illuminate\Support\Facades\Auth;
-
+use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Log;
 
 class OrderController extends Controller
 {
@@ -77,11 +78,13 @@ $monthTotals = $monthlySales->pluck('total');
             ->where('tran_date',date('Y-m-d'))
             ->where('status_trans','success')
             ->where('flag','!=','D')
+            ->where('flag','!=','H')
             ->get();
         }else{
             $orders = DB::table('order_hd')
             ->where('tran_date',date('Y-m-d'))
             ->where('flag','!=','D')
+            ->where('flag','!=','H')
             ->get();
         }
 
@@ -146,6 +149,7 @@ $monthTotals = $monthlySales->pluck('total');
             $orders = DB::table('order_hd')
             ->where('tran_date',date('Y-m-d'))
             ->where('flag','!=','D')
+            ->where('flag','!=','H')
             ->get();
             
             $order_arr = array();
@@ -194,12 +198,28 @@ $monthTotals = $monthlySales->pluck('total');
             return response()->json(['success' => false]);
         }
 
+        public function hold(Request $request)
+        {
+            $order = DB::table('order_hd')->where('tran_date',date('Y-m-d'))->where('tran_no', $request->tran_no)->first();
+
+            if ($order) {
+                DB::table('order_hd')->where('tran_date',date('Y-m-d'))->where('tran_no', $request->tran_no)->update(['flag'=>'H','net_amt'=>'0.00','gross_amt'=>'0.00','paid_amt'=>'0.00']);
+
+                DB::table('order_dt')->where('tran_date',date('Y-m-d'))->where('tran_no', $request->tran_no)->update(['customise_flag'=>'H','amount'=>'0.00','item_gst'=>'0.00']);
+
+                return response()->json(['success' => true]);
+            }
+
+            return response()->json(['success' => false]);
+        }
+
         public function indexp()
     {
         $orders = DB::table('order_hd')
         // ->where('order_hd.status_trans','pending')
         ->where('tran_date',date('Y-m-d'))
         ->where('flag','!=','D')
+        ->where('flag','!=','H')
         ->get();
 
         $admin = Auth::guard('admin')->user();
@@ -236,6 +256,7 @@ $monthTotals = $monthlySales->pluck('total');
         $orders = DB::table('order_hd')
         ->where('tran_date',date('Y-m-d'))
         ->where('flag','!=','D')
+        ->where('flag','!=','H')
         ->get();
         
         $order_arr = array();
@@ -489,5 +510,242 @@ public function updateOrderItem(Request $request)
         return view('orders.orders_table_delivered', compact('orders','order_arr','role','order_arr_item','order_arr_item_f'));
     }
     
+
+     
+    public function initiatePayment(Request $request)
+    {
+        $order_id = "ORD" . time(); // You can save this in DB if needed
+          $amount = $request->amount;
+          $returnUrl = route('payment.status');
+
+
+        $response = Http::withHeaders([
+            'Authorization' => 'Basic ' . base64_encode('EA317F35F824F60A1200589607AD8E'. ':'),
+            'Content-Type' => 'application/json',
+            'x-merchantid' => 'SG3164',
+            'x-customerid' => '355',
+        ])->post('https://smartgatewayuat.hdfcbank.com/session', [
+            "order_id" => $order_id,
+            "amount" => $amount,
+            "customer_id" => '355',
+            "customer_email" => "test@example.com",
+            "customer_phone" => "9999999999",
+            "payment_page_client_id" => 'hdfcmaster',
+            "action" => "paymentPage",
+            "currency" => "INR",
+            "callback_url" => $returnUrl,
+            "description" => "Test Payment",
+            "first_name" => "John",
+            "last_name" => "Doe"
+        ]);
+
+        $data = $response->json();
+        
+        // echo"<pre>";print_r($data);die;
+        
+        session(['last_order_id' =>$data['id']]); // $order_id should be your actual order ID
+    // $orderId = session('last_order_id');
+        $carts = session()->get('cart');
+  
+        $amount = $request->amount;
+
+        $group_code = Session::get('group_code');
+        $rest_code = Session::get('rest_code');
+        $paymode_mode = Session::get('paymode_mode');
+        $confirm_order = Session::get('confirm_order');
+
+        $taxes = $itemWiseAmt = 0; 
+
+        foreach($carts as $cart){
+
+            $item_gst = DB::table('item_master')->where('group_code',$group_code)->where('rest_code',$rest_code)
+            ->where('item_code',$cart['item_code'])->value('item_gst');
+
+             $itemWiseAmt += $cart['quantity']*$cart['price'];
+             $taxes += ($item_gst*$itemWiseAmt/100);
+
+        }
+
+        $convin_amt = 0;
+
+        $convin_amt_gst = 0;
+
+        $final_conv =  $convin_amt + $convin_amt_gst;
+
+        $paid_amt = $amount;
+
+        $service_charge = 0;
+        
+        $sgst_service = 0;
+
+        $cgst = 0;
+
+        $gross_amt = $cgst + $cgst + $amount;
+        $transactionNumber = str_pad(rand(0, 99999999), 8, '0', STR_PAD_LEFT);
+
+        $status = 'pending';
+        
+        $mobile =  Session::get('phone');
+
+        $trans_no =  DB::table('order_hd')->where(['rest_code' => $rest_code,'tran_date'=>date('Y-m-d')])->orderby('tran_no','desc')->value('tran_no');
+
+        if($trans_no){
+            $trans_no = $trans_no + 1;
+        }else{
+            $trans_no = 1;
+        }
+
+        $order_hd = [
+            'group_code' => $group_code,
+            'tran_no' => $trans_no,
+            'rest_code' => $rest_code,
+            'net_amt' => $amount, 
+            'cgst_amt' => $cgst, 
+            'sgst_amt' => $cgst, 
+            'gross_amt' => $amount, 
+            'paid_amt' => round($amount), 
+            'order_id' =>$order_id, 
+            'cust_mobile' =>$mobile, 
+            'service_charge'=>$convin_amt, 
+            'service_cgst' =>$convin_amt_gst/2, 
+            'service_sgst' =>$convin_amt_gst/2, 
+            'email' =>'test@gmail.com', 
+            'status_trans' =>$status, 
+            'flag' => 'S', 
+            'confirm_order' => $confirm_order, 
+            'transaction_no' =>$transactionNumber, 
+            'payment_mode' =>$paymode_mode, 
+        ];
+
+        DB::table('order_hd')->insertGetId($order_hd);
+
+    //    echo $trans_no;die;
+
+       DB::table('order_hd')
+        ->where('tran_no', $trans_no)
+        ->where('tran_date',date('Y-m-d'))
+        ->update(['invoice_no' => $trans_no]);
+
+        foreach($carts as $cart){
+            // echo"<pre>";print_r($cart);die;
+            $item_gst = DB::table('item_master')->where('group_code',$group_code)->where('rest_code',$rest_code)
+            ->where('item_code',$cart['item_code'])->value('item_gst');
+
+            $item_amt = $cart['quantity']*$cart['price'];
+
+            // $item_gst_amt =  ($item_amt*$item_gst/100);
+
+            
+            $reverseamt = $this->reverseGST($item_amt,$item_gst);
+
+            $item_amt_real = $reverseamt['base'];
+            $item_gst_amt = $reverseamt['gst'];
+
+
+            DB::table('order_dt')->insert([
+                'group_code' => $group_code,
+                'rest_code' => $rest_code,
+                'tran_no' => $trans_no,
+                'item_code' => $cart['item_code'],
+                'item_qty' => $cart['quantity'],
+                'customise_flag' => 'S',
+                'amount' =>$item_amt_real,
+                'item_gst' =>$item_gst_amt,
+            ]);
+        }
+
+        session()->forget('cart');
+
+       
+        if (
+            isset($data['payment_links']['web']) &&
+            !empty($data['payment_links']['web'])
+        ) {
+            // Optionally save $order_id and $data['response']['id'] in DB
+            return redirect()->away($data['payment_links']['web']);
+        }
+
+        return response()->json([
+            'error' => true,
+            'message' => 'Unable to generate payment page',
+            'response' => $data
+        ]);
+    }
+
+    /**
+     * Step 2: Handle Return URL After Payment
+     */
+   public function paymentStatus(Request $request)
+{
+   // echo"<pre>";print_r($request->all());die;
+    $orderId = $request['order_id']; // or get from DB
+    // OR try reading from GET if HDFC passes it
+    // $orderId = $request->query('order_id');
+    
+    //  echo $orderId;die;
+
+    if (!$orderId) {
+        return "No order ID found to check status.";
+    }
+
+    // Call HDFC status check API here
+    $response = Http::withHeaders([
+        'Authorization' => 'Basic ' . base64_encode('EA317F35F824F60A1200589607AD8E'. ':'),
+        'Content-Type' => 'application/json',
+        'x-merchantid' => 'SG3164',
+        'x-customerid' => '355',
+    ])->post('https://smartgatewayuat.hdfcbank.com/orders/', [
+        'order_id' => $orderId,
+    ]);
+
+    $result = $response->json();
+
+    $order_id = $result['order_id'];
+    $amount = $result['amount'];
+    $status = $result['status'];
+
+    $data = DB::table('order_hd')->where('order_id',$order_id)->where('tran_date',date('Y-m-d'))->where('status_trans','pending')->first();
+
+    if(!empty($data) && $data->paid_amt == $amount){
+        DB::table('order_hd')->where('order_id',$order_id)->where('tran_date',date('Y-m-d'))->where('status_trans','pending')->update(['status_trans'=>'success']);
+
+        $hd_data =   DB::table('order_hd')->where('order_id',$order_id)->where('tran_date',date('Y-m-d'))->where('status_trans','success')->first();
+
+        $trans_no = $hd_data->tran_no;
+
+        $rest_data =  DB::table('chain_master')->where('group_code','01')->where('rest_code','01')->first();
+
+        $dt_data =   DB::table('order_dt')->select('order_dt.*','item_master.item_desc','item_master.item_gst as igst','item_master.item_rate')
+        ->join('item_master','order_dt.item_code','=','item_master.item_code')
+        ->join('order_hd','order_dt.tran_no','=','order_hd.tran_no')
+        ->where('order_hd.tran_no',$trans_no)
+        ->where('order_dt.tran_date',date('Y-m-d'))
+        ->where('order_hd.tran_date',date('Y-m-d'))
+        ->where('order_hd.status_trans','success')
+        ->where('order_dt.tran_no',$trans_no)
+        ->get();
+
+      // $this->generateBillImage($trans_no,$mobile);
+
+
+
+        
+        
+         return view('items.bill', compact('dt_data', 'hd_data', 'rest_data'));
+    }
+
+
+
+}
+
+public function reverseGST($totalAmount, $gstRate) {
+    $baseAmount = ($totalAmount * 100) / (100 + $gstRate);
+    $gstAmount = $totalAmount - $baseAmount;
+    return [
+        'base' => round($baseAmount, 2),
+        'gst'  => round($gstAmount, 2)
+    ];
+}
+
 
 }

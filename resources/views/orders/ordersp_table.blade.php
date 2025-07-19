@@ -45,7 +45,11 @@
                             @endif
                         </ul>
                     </div>
+                    <div class="dd-timer-footer ">
+                       
 
+                       <a href="javascript:void(0);" onclick="markHold('{{ $order->tran_no }}')" class="dd-big-btn dd-big-green-btn">Mark Hold</a>
+                   </div>
                    
                 </div>
 

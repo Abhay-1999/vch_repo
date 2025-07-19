@@ -1,120 +1,133 @@
 <?php
 use Illuminate\Support\Facades\Auth;
 $admin = Auth::guard('admin')->user();
-
-        
 ?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{{ $admin->name }} Dashboard</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>{{ $admin->name }} Dashboard</title>
 
-    <!-- Bootstrap 5 CSS -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/5.2.0/css/bootstrap.min.css">
-    <!-- Bootstrap Icons -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-icons/1.10.5/font/bootstrap-icons.min.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <!-- Bootstrap CSS -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/5.2.0/css/bootstrap.min.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-icons/1.10.5/font/bootstrap-icons.min.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 
-	<link rel="stylesheet" href="{{ asset('assets/css/bootstrap.min.css') }}" />
-	<link rel="stylesheet" href="{{ asset('assets/css/font-awesome.min.css') }} />
-	<!-- font family Dm  -->
-	<link rel="preconnect" href="https://fonts.googleapis.com">
-	<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-	<link href="https://fonts.googleapis.com/css2?family=Work+Sans:ital,wght@0,100..900;1,100..900&display=swap"
-		rel="stylesheet">
-	<!-- aos css -->
-	<link rel="stylesheet" href="{{ asset('assets/aos/aos.css') }}">
-	<link rel="stylesheet" href="{{ asset('assets/css/select2.min.css') }}">
-	<link rel="stylesheet" href="{{ asset('assets/css/style.css') }}" />
-    <style>
-        body {
-            background-color: #f1f4f9;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            margin: 0;
-            overflow: hidden;
-        }
+  <!-- Custom Styles -->
+  <link rel="stylesheet" href="{{ asset('assets/css/bootstrap.min.css') }}" />
+  <link rel="stylesheet" href="{{ asset('assets/css/style.css') }}" />
+  <link rel="stylesheet" href="{{ asset('assets/css/select2.min.css') }}">
+  <link rel="stylesheet" href="{{ asset('assets/aos/aos.css') }}">
 
-        .dashboard-container {
-            display: flex;
-            height: 100vh;
-            overflow: hidden;
-        }
+  <!-- Google Font -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Work+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 
-        .sidebar {
-            width: 250px;
-            background-color: #343a40;
-            color: white;
-            padding: 20px 15px;
-            flex-shrink: 0;
-        }
+  <style>
+    body {
+      background-color: #f1f4f9;
+      font-family: 'Work Sans', sans-serif;
+      margin: 0;
+      overflow: hidden;
+    }
 
-        .sidebar h4 {
-            color: #fff;
-            margin-bottom: 30px;
-        }
+    .dashboard-container {
+      display: flex;
+      height: 100vh;
+      overflow: hidden;
+    }
 
-        .sidebar .nav-link {
-            color: #adb5bd;
-            font-weight: 500;
-            margin-bottom: 10px;
-            border-radius: 5px;
-        }
+    .sidebar {
+      width: 250px;
+      background-color: #343a40;
+      color: white;
+      padding: 20px 15px;
+      flex-shrink: 0;
+      transition: width 0.3s;
+    }
 
-        .sidebar .nav-link:hover,
-        .sidebar .nav-link.active {
-            background-color: #495057;
-            color: #fff;
-        }
+    .sidebar h4 {
+      color: #fff;
+      margin-bottom: 30px;
+    }
 
-        .main-area {
-            flex-grow: 1;
-            display: flex;
-            flex-direction: column;
-        }
+    .sidebar .nav-link {
+      color: #adb5bd;
+      font-weight: 500;
+      margin-bottom: 10px;
+      border-radius: 5px;
+    }
 
-        .topbar {
-            background-color: #fff;
-            padding: 15px 30px;
-            border-bottom: 1px solid #dee2e6;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            height: 70px;
-            flex-shrink: 0;
-        }
+    .sidebar .nav-link:hover,
+    .sidebar .nav-link.active {
+      background-color: #495057;
+      color: #fff;
+    }
 
-        .content {
-            padding: 20px 30px;
-            overflow-y: auto;
-            height: calc(100vh - 70px); /* Adjust height based on topbar */
-        }
+    .main-area {
+      flex-grow: 1;
+      display: flex;
+      flex-direction: column;
+    }
 
-        .card {
-            border-radius: 10px;
-        }
+    .topbar {
+      background-color: #fff;
+      padding: 15px 30px;
+      border-bottom: 1px solid #dee2e6;
+      display: flex;
+      align-items: center;
+      height: 70px;
+      flex-shrink: 0;
+    }
 
-        .logout-btn {
-            background-color: #dc3545;
-            border: none;
-        }
+    .content {
+      padding: 20px 30px;
+      overflow-y: auto;
+      height: calc(100vh - 70px);
+    }
 
-         /* Loader Styles */
-        #loader-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background-color: rgba(8, 8, 8, 0.8);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            z-index: 9999;
-            display: none; /* Hidden by default */
-        }
-    </style>
+    .card {
+      border-radius: 10px;
+    }
+
+    .logout-btn {
+      background-color: #dc3545;
+      border: none;
+    }
+
+    /* Sidebar Collapse */
+    .sidebar.collapsed {
+      width: 70px;
+    }
+
+    .sidebar.collapsed h4,
+    .sidebar.collapsed .nav-link span {
+      display: none;
+    }
+
+    .sidebar.collapsed .nav-link i {
+      font-size: 1.2rem;
+      width: 100%;
+      text-align: center;
+    }
+
+    /* Loader Overlay */
+    #loader-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(8, 8, 8, 0.8);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      z-index: 9999;
+      display: none;
+    }
+  </style>
 </head>
 <body>
 
@@ -202,47 +215,52 @@ $admin = Auth::guard('admin')->user();
                 @yield('content')
             </div>
         </div>
-    </div>
 
-    <!-- Loader Overlay -->
-    <div id="loader-overlay">
-        <div class="spinner-border text-primary" style="width: 3rem; height: 3rem;" role="status">
-            <span class="visually-hidden">Loading...</span>
-        </div>
-    </div>
 
-    <!-- Bootstrap JS Bundle -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/5.2.0/js/bootstrap.bundle.min.js"></script>
-    
-	<!-- aos animation -->
-	<script src="{{ asset('assets/aos/aos.js') }}"></script>
-	<script src="{{ asset('assets/js/select2.min.js') }}"></script>
+    </div>
+    <div class="content">
+      @yield('content')
+    </div>
+  </div>
+</div>
+
+<!-- Loader Overlay -->
+<div id="loader-overlay">
+  <div class="spinner-border text-primary" style="width: 3rem; height: 3rem;" role="status">
+    <span class="visually-hidden">Loading...</span>
+  </div>
+</div>
+
+<!-- Scripts -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/5.2.0/js/bootstrap.bundle.min.js"></script>
+<script src="{{ asset('assets/aos/aos.js') }}"></script>
+<script src="{{ asset('assets/js/select2.min.js') }}"></script>
 
 <script>
+  // Live Clock
   function updateDateTime() {
-        const now = new Date();
-        const options = { weekday: 'short', year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true };
-        document.getElementById('datetime').innerHTML = now.toLocaleString('en-US', options);
-    }
+    const now = new Date();
+    const options = {
+      weekday: 'short', year: 'numeric', month: 'short', day: 'numeric',
+      hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true
+    };
+    document.getElementById('datetime').innerHTML = now.toLocaleString('en-US', options);
+  }
 
-    // Update the date and time every second
-    setInterval(updateDateTime, 1000);
+  setInterval(updateDateTime, 1000);
+  updateDateTime();
 
-    // Initial call to display the date and time immediately
-    updateDateTime();
+  // Loader on form submit
+  document.querySelectorAll('form').forEach(form => {
+    form.addEventListener('submit', () => {
+      document.getElementById('loader-overlay').style.display = 'flex';
+    });
+  });
 
-    // Function to show the loader
-        function showLoader() {
-            document.getElementById('loader-overlay').style.display = 'flex';
-        }
-        // Function to hide the loader
-        function hideLoader() {
-            document.getElementById('loader-overlay').style.display = 'none';
-        }
-        // Attach the showLoader function to all forms
-        document.querySelectorAll('form').forEach(form => {
-            form.addEventListener('submit', showLoader);
-        });
+  // Sidebar toggle
+  document.getElementById('toggleSidebar').addEventListener('click', function () {
+    document.getElementById('sidebar').classList.toggle('collapsed');
+  });
 </script>
 </body>
 </html>

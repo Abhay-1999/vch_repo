@@ -34,25 +34,27 @@
 <body id="invoiceContent">
     <div class="container page-break ">
         <div class="invoice-box p-4">
-            <div class="row mb-3">
-                <div class="col-6">
-                    <h4 class="invoice-header">Vijay Chaat House</h4>
-                </div>
-                <div class="col-6 text-end">
-                    <p>Token No: <strong>{{ $hd_data->tran_no }}</strong></p>
-                    <p>Order Time: <strong>{{ date('d F Y, h:i A',strtotime($hd_data->created_at)) }}</strong></p>
-                </div>
+        <div class="row mb-3 align-items-center">
+            <div class="col-6 d-flex align-items-center">
+                <img src="{{ asset('images/vijaychat.webp') }}" alt="Logo" style="height: 50px; margin-right: 10px;">
+                <h4 class="invoice-header mb-0">Vijay Chaat House</h4>
             </div>
+            <div class="col-6 text-end">
+                <p>Token No: <strong>{{ $hd_data->tran_no }}</strong></p>
+                <p>Order Time: <strong>{{ date('d F Y, h:i A',strtotime($hd_data->created_at)) }}</strong></p>
+            </div>
+        </div>
+
             
            
             
             <table class="table table-bordered">
                 <thead class="table-dark">
                     <tr>
-                        <th>Item</th>
+                        <th >Item</th>
                         <th>Qty</th>
-                        <th>Unit Price</th>
-                        <th>Total Price</th>
+                        <th style="text-align: right;">Unit Price</th>
+                        <th style="text-align: right;">Total Price</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -68,16 +70,16 @@
                         <td>{{ $d_data->item_gm }} gram</td>
                         @endif
 
-                        <td>{{ $d_data->item_rate }}</td>
+                        <td style="text-align: right;">{{ number_format($d_data->item_rate, 2) }}</td>
+                        <td style="text-align: right;">{{ number_format($itemAmt, 2) }}</td>
 
-                        <td>{{ $itemAmt }}</td>
                     </tr>
                     @endforeach
                 </tbody>
             </table>
             
             <div class="row text-end">
-                <<div class="col-12">
+                <div class="col-12">
 
                 @if($hd_data->discount)
                     @php
