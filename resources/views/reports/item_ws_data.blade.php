@@ -38,8 +38,11 @@
         .text-left{
             text-align:left;
         }
-        th,td{
+        th{
             font-size:12px
+        }
+        td{
+            font-size:10px
         }
         tfoot {
             border-top: 1px solid black;
@@ -91,7 +94,7 @@
             <p class="printDate">FROM : {{ \Carbon\Carbon::parse($startDate)->format('d-m-Y') }} to {{ \Carbon\Carbon::parse($endDate)->format('d-m-Y') }}</p>
         </td>
         <td style="text-align: right;">
-            <button id="printButton" onclick="printContent()" class="btn btn-primary btn-sm">EXCEL</button>
+            <button id="printButton" onclick="printContent()" class="btn btn-primary btn-sm">PRINT</button>
         </td>
     </tr>
 

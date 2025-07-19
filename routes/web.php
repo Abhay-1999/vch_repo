@@ -42,9 +42,18 @@ Route::prefix('admin')->group(function () {
     //mode wise payment
     Route::get('pay-mode-form',[ReportController::class,'pay_mode_form'])->name('mode_pay_form');
     Route::post('pay-mode-data',[ReportController::class,'pay_mode_data'])->name('mode_pay_data');
-Route::get('/orders/refresh', [OrderController::class, 'refresh'])->name('orders.refresh');
-Route::get('/ordersp/refresh', [OrderController::class, 'refreshp'])->name('ordersp.refresh');
-Route::get('/ordersp/refreshdelivered', [OrderController::class, 'refreshdelivered'])->name('orders.refreshdelivered');
+
+    // bill item wise
+    Route::get('/bill-item-form',[ReportController::class,'bill_item_wise_form'])->name('bill_item_form');
+    Route::post('/bill-item-data',[ReportController::class,'bill_item_wise_data'])->name('bill_item_data');
+    
+    //total sale
+    Route::get('/sale-form',[ReportController::class,'total_sale_form'])->name('sale_form');
+    Route::post('/sale-data',[ReportController::class,'total_sale_data'])->name('tot_sale_data');
+
+    Route::get('/orders/refresh', [OrderController::class, 'refresh'])->name('orders.refresh');
+    Route::get('/ordersp/refresh', [OrderController::class, 'refreshp'])->name('ordersp.refresh');
+    Route::get('/ordersp/refreshdelivered', [OrderController::class, 'refreshdelivered'])->name('orders.refreshdelivered');
 
     Route::get('dashboard', function () {
         return view('auth.admin.dashboard'); // Ensure this view exists

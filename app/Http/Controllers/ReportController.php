@@ -18,10 +18,7 @@ class ReportController extends Controller
         $endDate = $request->input('end_date');
 
         $data = DB::table('order_dt')
-            ->select(
-                'order_dt.item_code',
-                'item_master.item_desc',
-                'item_master.item_grpdesc',
+            ->select('order_dt.item_code','item_master.item_desc','item_master.item_grpdesc',
                 DB::raw('SUM(order_dt.item_qty) as total_qty'),
                 DB::raw('SUM(order_dt.amount) as total_amount'),
                 DB::raw('SUM(order_dt.item_gst) as total_gst')
@@ -64,7 +61,6 @@ class ReportController extends Controller
         $startDate = $request->input('start_date');
         $endDate = $request->input('end_date');
 
-        // Fetch and aggregate data
         $data = DB::table('order_hd')
             ->select('tran_date', 'payment_mode', DB::raw('SUM(net_amt) as total_net_amt'))
             ->whereBetween('tran_date', [$startDate, $endDate])
@@ -85,8 +81,47 @@ class ReportController extends Controller
             }
         }
 
-            // echo "<pre>";print_r($data->toArray());die;
+        // echo "<pre>";print_r($data->toArray());die;
 
         return view("reports.pay_mode_data",compact('startDate','endDate','totals'));
+    }
+
+    public function bill_item_wise_form()
+    {
+        return view("reports.bill_item_form");
+    }
+
+    public function bill_item_wise_data(Request $request)
+    {
+        $startDate = $request->input('start_date');
+        $endDate = $request->input('end_date');
+
+        $data = DB::table('order_dt')
+            ->select('order_dt.*','order_hd.payment_mode','item_master.item_desc')
+            ->leftJoin('order_hd','order_dt.tran_no','=','order_hd.tran_no')
+            ->leftJoin('item_master','order_dt.item_code','=','item_master.item_code')
+            ->whereBetween('order_dt.tran_date',[$startDate, $endDate])
+            ->orderBy('order_dt.tran_no')
+            ->get();
+
+        return view("reports.bill_item_data",compact('startDate','endDate','data'));
+    }
+
+    public function total_sale_form()
+    {
+        return view("reports.tot_sale_form");
+    }
+
+    public function total_sale_data(Request $request)
+    {
+        $startDate = $request->input('start_date');
+        $endDate = $request->input('end_date');
+
+        $data = DB::table('order_hd')
+            ->select(DB::raw('SUM(net_amt) as total_net_amt'))
+            ->whereBetween('tran_date', [$startDate, $endDate])
+            ->first();
+
+        return view("reports.tot_sale_data",compact('startDate','endDate','data'));
     }
 }

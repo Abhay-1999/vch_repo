@@ -131,30 +131,6 @@ $admin = Auth::guard('admin')->user();
                     <a class="nav-link {{ request()->routeIs('create.order') ? 'active' : '' }}" href="{{ route('create.order') }}">
                         <i class="bi bi-bag-fill me-2"></i>Create Order
                     </a>
-                    <li class="nav-item dropdown">
-                        <a class="nav-link dropdown-toggle d-flex justify-content-between align-items-center"
-                        href="#" id="dropdownReports" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                            <span><i class="bi bi-graph-up-arrow me-2"></i>Reports</span>
-                        </a>
-                        <ul class="dropdown-menu" aria-labelledby="dropdownReports">
-                            <li>
-                                <a class="dropdown-item" href="{{ route('item_ws_form') }}">
-                                    <i class="bi bi-file-earmark-text me-2"></i>Item Wise
-                                </a>
-                            </li>
-                            <li>
-                                <a class="dropdown-item" href="{{ route('bill_ws_form') }}">
-                                    <i class="bi bi-file-earmark-bar-graph me-2"></i>Bill Wise
-                                </a>
-                            </li>
-                            <li>
-                                <a class="dropdown-item" href="{{ route('mode_pay_form') }}">
-                                    <i class="bi bi-file-earmark-bar-graph me-2"></i>Mode Wise Payment
-                                </a>
-                            </li>
-                        </ul>
-                    </li>
-
 
                     <a class="nav-link {{ request()->routeIs('orders.delivered') ? 'active' : '' }}" href="{{ route('orders.delivered') }}">
                         <i class="bi bi-bag-fill me-2"></i>Delivered Order
@@ -165,6 +141,40 @@ $admin = Auth::guard('admin')->user();
                     <a class="nav-link {{ request()->routeIs('orders.indexp') ? 'active' : '' }}" href="{{ route('orders.indexp') }}">
                         <i class="bi bi-bag-fill me-2"></i>Pending Order
                     </a>
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle d-flex justify-content-between align-items-center"
+                        href="#" id="dropdownReports" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                            <span><i class="bi bi-graph-up-arrow me-2"></i>Reports</span>
+                        </a>
+                        <ul class="dropdown-menu" aria-labelledby="dropdownReports">
+                            
+                            <li>
+                                <a class="dropdown-item" href="{{ route('bill_ws_form') }}">
+                                    <i class="bi bi-file-earmark-bar-graph me-2"></i>Bill Wise
+                                </a>
+                            </li>
+                            
+                            <li>
+                                <a class="dropdown-item" href="{{ route('bill_item_form') }}">
+                                    <i class="bi bi-file-earmark-bar-graph me-2"></i>Bill-Item Wise</a>
+                            </li>
+                            <li>
+                                <a class="dropdown-item" href="{{ route('item_ws_form') }}">
+                                    <i class="bi bi-file-earmark-text me-2"></i>Item Wise
+                                </a>
+                            </li>
+                            <li>
+                                <a class="dropdown-item" href="{{ route('mode_pay_form') }}">
+                                    <i class="bi bi-file-earmark-bar-graph me-2"></i>Mode Wise Payment
+                                </a>
+                            </li>
+                            <li>
+                                <a class="dropdown-item" href="{{ route('sale_form') }}">
+                                    <i class="bi bi-file-earmark-bar-graph me-2"></i>Total Sale
+                                </a>
+                            </li>
+                        </ul>
+                    </li>
                     @else
                     <a class="nav-link {{ request()->routeIs('orders.index') ? 'active' : '' }}" href="{{ route('orders.index') }}">
                         <i class="bi bi-bag-fill me-2"></i>Orders

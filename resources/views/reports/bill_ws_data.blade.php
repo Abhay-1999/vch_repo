@@ -38,8 +38,11 @@
         .text-left{
             text-align:left;
         }
-        th,td{
+        th{
             font-size:12px
+        }
+        td{
+            font-size:10px
         }
         tfoot {
             border-top: 1px solid black;
