@@ -38,7 +38,7 @@ Route::prefix('admin')->group(function () {
 
     //bill wise
     Route::get("bill-form",[ReportController::class,'bill_wise_form'])->name('bill_ws_form');
-    Route::post("bill-form",[ReportController::class,'bill_wise_data'])->name('bill_ws_data');
+    Route::post("bill-data",[ReportController::class,'bill_wise_data'])->name('bill_ws_data');
 
     //mode wise payment
     Route::get('pay-mode-form',[ReportController::class,'pay_mode_form'])->name('mode_pay_form');

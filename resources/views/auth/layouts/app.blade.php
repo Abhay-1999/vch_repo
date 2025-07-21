@@ -215,11 +215,6 @@ $admin = Auth::guard('admin')->user();
                 @yield('content')
             </div>
         </div>
-
-
-    </div>
-    <div class="content">
-      @yield('content')
     </div>
   </div>
 </div>

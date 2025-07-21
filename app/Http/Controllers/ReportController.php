@@ -44,9 +44,27 @@ class ReportController extends Controller
 
         $data = DB::table('order_hd')
             ->select('order_hd.*')
-            ->whereBetween('order_hd.tran_date',[$startDate, $endDate])
+            ->whereBetween('order_hd.tran_date', [$startDate, $endDate])
+            ->where('order_hd.status_trans','success')
+            ->orderBy('order_hd.tran_date')
             ->orderBy('order_hd.tran_no')
-            ->get();
+            ->get()
+            ->map(function ($d) {
+                $inclusiveAmount = $d->net_amt;
+                $baseAmount = $inclusiveAmount / 1.05; // Remove 5% GST
+                $cgst = $baseAmount * 0.025; // 2.5%
+                $sgst = $baseAmount * 0.025; // 2.5%
+                $totalGst = $cgst + $sgst;
+
+                // Append new values
+                $d->base_amt = round($baseAmount, 2);
+                $d->cgst_amt = round($cgst, 2);
+                $d->sgst_amt = round($sgst, 2);
+                $d->total_gst = round($totalGst, 2);
+                $d->net_amt_incl_gst = round($inclusiveAmount, 2);
+
+                return $d;
+            });
 
         return view("reports.bill_ws_data",compact('startDate','endDate','data'));
     }
@@ -97,11 +115,20 @@ class ReportController extends Controller
         $endDate = $request->input('end_date');
 
         $data = DB::table('order_dt')
-            ->select('order_dt.*','order_hd.payment_mode','item_master.item_desc')
-            ->leftJoin('order_hd','order_dt.tran_no','=','order_hd.tran_no')
-            ->leftJoin('item_master','order_dt.item_code','=','item_master.item_code')
-            ->whereBetween('order_dt.tran_date',[$startDate, $endDate])
-            ->orderBy('order_dt.tran_no')
+            ->select(
+                'order_dt.*',
+                'order_hd.payment_mode',
+                'item_master.item_desc'
+            )
+            ->leftJoin('order_hd', function($join) {
+                $join->on('order_dt.tran_no', '=', 'order_hd.tran_no')
+                    ->on('order_dt.tran_date', '=', 'order_hd.tran_date');
+            })
+            ->leftJoin('item_master', 'order_dt.item_code', '=', 'item_master.item_code')
+            ->whereBetween('order_dt.tran_date', [$startDate, $endDate])
+            ->where('order_hd.status_trans','success')
+            ->orderBy('order_hd.tran_date')
+            ->orderBy('order_hd.tran_no')
             ->get();
 
         return view("reports.bill_item_data",compact('startDate','endDate','data'));
@@ -118,9 +145,23 @@ class ReportController extends Controller
         $endDate = $request->input('end_date');
 
         $data = DB::table('order_hd')
-            ->select(DB::raw('SUM(net_amt) as total_net_amt'))
+            ->select(DB::raw('SUM(net_amt) as net_amt'))
             ->whereBetween('tran_date', [$startDate, $endDate])
             ->first();
+
+        if ($data && $data->net_amt !== null) {
+            $inclusiveAmount = $data->net_amt;
+            $baseAmount = $inclusiveAmount / 1.05; // Remove 5% GST
+            $cgst = $baseAmount * 0.025;
+            $sgst = $baseAmount * 0.025;
+            $totalGst = $cgst + $sgst;
+
+            $data->base_amt = round($baseAmount, 2);
+            $data->cgst_amt = round($cgst, 2);
+            $data->sgst_amt = round($sgst, 2);
+            $data->total_gst = round($totalGst, 2);
+            $data->net_amt_incl_gst = round($inclusiveAmount, 2);
+        }
 
         return view("reports.tot_sale_data",compact('startDate','endDate','data'));
     }
