@@ -20,10 +20,11 @@ class AppServiceProvider extends ServiceProvider
     /**
      * Bootstrap any application services.
      */
-    public function boot(): void
+    public function boot()
     {
-           DB::statement("SET time_zone = '+05:30'");
-
-        
+        if (app()->environment('production')) {
+            URL::forceScheme('https');
+        }
+        DB::statement("SET time_zone = '+05:30'");
     }
 }
