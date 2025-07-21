@@ -127,7 +127,19 @@
             $sgstTot = 0;
             $grandTot = 0;
         @endphp
-        @foreach($data as $index => $d)
+
+        @forelse($data as $index => $d)
+            @php
+                $cgst = $d->item_gst / 2;
+                $sgst = $d->item_gst / 2;
+                $total = $d->amount + $d->item_gst;
+
+                $rateTot += $d->amount;
+                $grossTot += $d->amount;
+                $cgstTot += $cgst;
+                $sgstTot += $sgst;
+                $grandTot += $total;
+            @endphp
         <tr>
             <td class="text-center">{{ ++$index }}</td>
             <td>{{ date('d-m-Y', strtotime($d->tran_date)) ?? '' }}</td>
@@ -135,7 +147,7 @@
             <td>{{ $d->item_desc }}</td>
             <td>996331</td>
             <td>{{ $d->item_qty }}</td>
-            <td class="text-right">{{ number_format($d->amount + $d->item_gst, 2) }}</td>
+            <td class="text-right">{{ number_format($d->amount, 2) }}</td>
             <td>5</td>
             <td>
                 @if($d->payment_mode == 'C')
@@ -146,29 +158,20 @@
                     -
                 @endif
             </td>
-
-            @php
-                $subtotal = ($d->amount + $d->item_gst) * $d->item_qty;
-                $cgst = $subtotal * 0.025;
-                $sgst = $subtotal * 0.025;
-                $total = $subtotal + $cgst + $sgst;
-
-                $rateTot += ($d->amount + $d->item_gst);
-                $grossTot += $subtotal;
-                $cgstTot += $cgst;
-                $sgstTot += $sgst;
-                $grandTot += $total;
-            @endphp
-
-            <td class="text-right">{{ number_format($subtotal, 2) }}</td>
+            <td class="text-right">{{ number_format($d->amount, 2) }}</td>
             <td class="text-right">{{ number_format($cgst, 2) }}</td>
             <td class="text-right">{{ number_format($sgst, 2) }}</td>
             <td class="text-right">{{ number_format($total, 2) }}</td>
         </tr>
+        @empty
+            <tr>
+                <td colspan="13" class="text-center text-danger">No records found</td>
+            </tr>
+        @endforelse
+    </tbody>
 
-        {{-- Show total row only in last iteration --}}
-        @if($loop->last)
-        <tr class="print-total-only-last-page">
+    <tfoot>
+        <tr>
             <td colspan="6" class="text-right"><strong>Total</strong></td>
             <td class="text-right"><strong>{{ number_format($rateTot, 2) }}</strong></td>
             <td></td>
@@ -178,9 +181,7 @@
             <td class="text-right"><strong>{{ number_format($sgstTot, 2) }}</strong></td>
             <td class="text-right"><strong>{{ number_format($grandTot, 2) }}</strong></td>
         </tr>
-        @endif
-        @endforeach
-    </tbody>
+    </tfoot>
 
 </table>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.4/xlsx.full.min.js"></script>

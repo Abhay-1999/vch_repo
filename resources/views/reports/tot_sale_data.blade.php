@@ -106,9 +106,9 @@
         <tr>
             <td class="text-left">1</td>
             <td>5</td>
-            <td class="text-right">{{ $data->total_net_amt }}</td>
-            <td class="text-right">{{ $data->total_net_amt * 0.05 }}</td>
-            <td class="text-right">{{ $data->total_net_amt + ($data->total_net_amt * 0.05) }}</td>
+            <td class="text-right">{{ $data->base_amt }}</td>
+            <td class="text-right">{{ $data->total_gst }}</td>
+            <td class="text-right">{{ number_format($data->net_amt_incl_gst,2) }}</td>
         </tr>
     </tbody>
 </table>

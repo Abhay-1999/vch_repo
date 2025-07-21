@@ -116,14 +116,15 @@
         </tr>
     </thead>
     <tbody>
-        @php
-            $amtGross = 0;
-            $amtCGST = 0;
-            $amtSGST = 0;
-            $paidAmt =0;
-            $netAmt =0;
-        @endphp
-        @foreach($data as $index=>$d)
+    @php
+        $amtGross = 0;
+        $amtCGST = 0;
+        $amtSGST = 0;
+        $paidAmt = 0;
+        $netAmt = 0;
+    @endphp
+
+    @forelse($data as $index => $d)
         <tr>
             <td class="text-center">{{ ++$index }}</td>
             <td>{{ date('d-m-Y', strtotime($d->tran_date)) ?? '' }}</td>
@@ -135,34 +136,40 @@
                 @elseif($d->payment_mode == 'O')
                     UPI
                 @else
-                    
+                    --
                 @endif
             </td>
-            <td class="text-right">{{ $d->gross_amt }}</td>
-            <td class="text-right">{{ $d->cgst_amt}}</td>
-            <td class="text-right">{{ $d->sgst_amt }}</td>
-            <td class="text-right">{{ $d->paid_amt }}</td>
-            <td class="text-right">{{ number_format($d->net_amt,2) }}</td>
+            <td class="text-right">{{ number_format($d->base_amt, 2) }}</td>
+            <td class="text-right">{{ number_format($d->cgst_amt, 2) }}</td>
+            <td class="text-right">{{ number_format($d->sgst_amt, 2) }}</td>
+            <td class="text-right">{{ number_format($d->total_gst, 2) }}</td>
+            <td class="text-right">{{ number_format($d->net_amt_incl_gst, 2) }}</td>
         </tr>
         @php
-            $amtGross += $d->gross_amt;
+            $amtGross += $d->base_amt;
             $amtCGST += $d->cgst_amt;
             $amtSGST += $d->sgst_amt;
-            $paidAmt += $d->paid_amt;
-            $netAmt += $d->net_amt;
+            $paidAmt += $d->total_gst;
+            $netAmt += $d->net_amt_incl_gst;
         @endphp
-        @endforeach
-    </tbody>
-    <tfoot>
+    @empty
         <tr>
-            <td colspan=5 class="text-right"><strong>Total</strong></td>
-            <td class="text-right"><strong>{{ number_format($amtGross,2) }}</strong></td>
-            <td class="text-right"><strong>{{ number_format($amtCGST,2) }}</strong></td>
-            <td class="text-right"><strong>{{ number_format($amtSGST,2) }}</strong></td>
-            <td class="text-right"><strong>{{ number_format($amtGross,2) }}</strong></td>
-            <td class="text-right"><strong>{{ number_format($netAmt,2) }}</strong></td>
+            <td colspan="10" class="text-center text-danger">No record found</td>
         </tr>
-    </tfoot>
+    @endforelse
+</tbody>
+
+<tfoot>
+    <tr>
+        <td colspan="5" class="text-right"><strong>Total</strong></td>
+        <td class="text-right"><strong>{{ number_format($amtGross, 2) }}</strong></td>
+        <td class="text-right"><strong>{{ number_format($amtCGST, 2) }}</strong></td>
+        <td class="text-right"><strong>{{ number_format($amtSGST, 2) }}</strong></td>
+        <td class="text-right"><strong>{{ number_format($paidAmt, 2) }}</strong></td>
+        <td class="text-right"><strong>{{ number_format($netAmt, 2) }}</strong></td>
+    </tr>
+</tfoot>
+
 
 </table>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.4/xlsx.full.min.js"></script>
