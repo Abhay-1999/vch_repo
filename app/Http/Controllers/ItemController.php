@@ -64,9 +64,12 @@ class ItemController extends Controller
         Session::put('rest_code',$rest_code);
 
         $items = Item::where('group_code',$group_code)->where('item_status','A')->where('rest_code',$rest_code)->get();
+
+
+        $item_grpcodes = Item::select('item_grpcode','item_grpdesc')->where('group_code',$group_code)->where('item_status','A')->where('rest_code',$rest_code)->groupBy('item_grpcode','item_grpdesc')->get();
         
-    // echo"<pre>";print_r($items->toArray());die;
-        return view('items.index', compact('items'));
+    // echo"<pre>";print_r($item_grpcodes->toArray());die;
+        return view('items.index', compact('items','item_grpcodes'));
     }
 
     public function addToCart(Request $request, $id)
@@ -450,7 +453,7 @@ class ItemController extends Controller
         }
 
         if ($request->filled('item_grpdesc')) {
-            $query->where('item_grpdesc',$request->item_grpdesc);
+            $query->where('item_grpcode',$request->item_grpdesc);
         }
 
         
@@ -566,10 +569,6 @@ class ItemController extends Controller
 
        DB::table('order_hd')->insertGetId($order_hd);
 
-        DB::table('order_hd')
-            ->where('tran_no', $trans_no)
-            ->where('tran_date',date('Y-m-d'))
-            ->update(['invoice_no' => $trans_no]);
 
         foreach ($cart as $item) {
             $item_gst = DB::table('item_master')

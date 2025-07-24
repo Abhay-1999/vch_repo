@@ -78,7 +78,7 @@
       <div class="d-flex justify-content-between mb-3 flex-wrap">
   <!-- Left side: Invoice No and Invoice Date -->
   <div class="pe-3" style="flex: 1;">
-    <p>Invoice No: <strong>{{ date('Y')}}/000000{{ $hd_data->invoice_no }}</strong></p>
+    <p>Invoice No: <strong>{{ $invoiceNo }}</strong></p>
     <p>Invoice Date: <strong>{{ date('d F Y', strtotime($hd_data->invoice_date)) }}</strong></p>
   </div>
 

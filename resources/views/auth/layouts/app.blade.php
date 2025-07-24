@@ -88,10 +88,6 @@ $admin = Auth::guard('admin')->user();
       height: calc(100vh - 70px);
     }
 
-    .card {
-      border-radius: 10px;
-    }
-
     .logout-btn {
       background-color: #dc3545;
       border: none;
@@ -131,92 +127,71 @@ $admin = Auth::guard('admin')->user();
 </head>
 <body>
 
-    <div class="dashboard-container">
-        <!-- Sidebar -->
-        <div class="sidebar">
-            <h4><i class="bi bi-speedometer2 me-2"></i>{{ $admin->name }} Panel</h4>
-            <ul class="nav flex-column">
-                <li class="nav-item">
-                    @if($admin->role == '3')
+<div class="dashboard-container">
+    <!-- Sidebar -->
+    <div class="sidebar" id="sidebar">
+        <h4><i class="bi bi-speedometer2 me-2"></i><span>{{ $admin->name }} Panel</span></h4>
+        <ul class="nav flex-column">
+            <li class="nav-item">
+                @if($admin->role == '3')
                     <a class="nav-link {{ request()->routeIs('dashboard') ? 'active' : '' }}" href="{{ route('dashboard') }}">
-                        <i class="bi bi-bag-fill me-2"></i>Dashboard
+                        <i class="bi bi-bag-fill me-2"></i><span>Dashboard</span>
                     </a>
                     <a class="nav-link {{ request()->routeIs('create.order') ? 'active' : '' }}" href="{{ route('create.order') }}">
-                        <i class="bi bi-bag-fill me-2"></i>Create Order
+                        <i class="bi bi-bag-fill me-2"></i><span>Create Order</span>
                     </a>
-
                     <a class="nav-link {{ request()->routeIs('orders.delivered') ? 'active' : '' }}" href="{{ route('orders.delivered') }}">
-                        <i class="bi bi-bag-fill me-2"></i>Delivered Order
+                        <i class="bi bi-bag-fill me-2"></i><span>Delivered Order</span>
                     </a>
                     <a class="nav-link {{ request()->routeIs('items') ? 'active' : '' }}" href="{{ route('items') }}">
-                        <i class="bi bi-bag-fill me-2"></i>Items-Active/Inacive
+                        <i class="bi bi-bag-fill me-2"></i><span>Items</span>
                     </a>
                     <a class="nav-link {{ request()->routeIs('orders.indexp') ? 'active' : '' }}" href="{{ route('orders.indexp') }}">
-                        <i class="bi bi-bag-fill me-2"></i>Pending Order
+                        <i class="bi bi-bag-fill me-2"></i><span>Pending Order</span>
                     </a>
                     <li class="nav-item dropdown">
                         <a class="nav-link dropdown-toggle d-flex justify-content-between align-items-center"
                         href="#" id="dropdownReports" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                            <span><i class="bi bi-graph-up-arrow me-2"></i>Reports</span>
+                            <span><i class="bi bi-graph-up-arrow me-2"></i><span>Reports</span></span>
                         </a>
                         <ul class="dropdown-menu" aria-labelledby="dropdownReports">
-                            
-                            <li>
-                                <a class="dropdown-item" href="{{ route('bill_ws_form') }}">
-                                    <i class="bi bi-file-earmark-bar-graph me-2"></i>Bill Wise
-                                </a>
-                            </li>
-                            
-                            <li>
-                                <a class="dropdown-item" href="{{ route('bill_item_form') }}">
-                                    <i class="bi bi-file-earmark-bar-graph me-2"></i>Bill-Item Wise</a>
-                            </li>
-                            <li>
-                                <a class="dropdown-item" href="{{ route('item_ws_form') }}">
-                                    <i class="bi bi-file-earmark-text me-2"></i>Item Wise
-                                </a>
-                            </li>
-                            <li>
-                                <a class="dropdown-item" href="{{ route('mode_pay_form') }}">
-                                    <i class="bi bi-file-earmark-bar-graph me-2"></i>Mode Wise Payment
-                                </a>
-                            </li>
-                            <li>
-                                <a class="dropdown-item" href="{{ route('sale_form') }}">
-                                    <i class="bi bi-file-earmark-bar-graph me-2"></i>Total Sale
-                                </a>
-                            </li>
+                            <li><a class="dropdown-item" href="{{ route('bill_ws_form') }}"><i class="bi bi-file-earmark-bar-graph me-2"></i>Bill Wise</a></li>
+                            <li><a class="dropdown-item" href="{{ route('bill_item_form') }}"><i class="bi bi-file-earmark-bar-graph me-2"></i>Bill-Item Wise</a></li>
+                            <li><a class="dropdown-item" href="{{ route('item_ws_form') }}"><i class="bi bi-file-earmark-text me-2"></i>Item Wise</a></li>
+                            <li><a class="dropdown-item" href="{{ route('mode_pay_form') }}"><i class="bi bi-file-earmark-bar-graph me-2"></i>Mode Wise Payment</a></li>
+                            <li><a class="dropdown-item" href="{{ route('sale_form') }}"><i class="bi bi-file-earmark-bar-graph me-2"></i>Total Sale</a></li>
                         </ul>
                     </li>
-                    @else
+                @else
                     <a class="nav-link {{ request()->routeIs('orders.index') ? 'active' : '' }}" href="{{ route('orders.index') }}">
-                        <i class="bi bi-bag-fill me-2"></i>Orders
+                        <i class="bi bi-bag-fill me-2"></i><span>Orders</span>
                     </a>
-                    @endif
-                </li>
-                <li class="nav-item mt-4">
-                    <form action="{{ route('admin.logout') }}" method="POST">
-                        @csrf
-                        <button type="submit" class="btn btn-danger w-100">
-                            <i class="bi bi-box-arrow-right me-2"></i>Logout
-                        </button>
-                    </form>
-                </li>
-            </ul>
-        </div>
+                @endif
+            </li>
+            <li class="nav-item mt-4">
+                <form action="{{ route('admin.logout') }}" method="POST">
+                    @csrf
+                    <button type="submit" class="btn btn-danger w-100">
+                        <i class="bi bi-box-arrow-right me-2"></i>Logout
+                    </button>
+                </form>
+            </li>
+        </ul>
+    </div>
 
-        <!-- Main area (Topbar + Content) -->
-        <div class="main-area">
-            <div class="topbar d-flex">
-                    <h5>Welcome, {{ $admin->name }}</h5>
-                    <h6 class="ms-auto text-right black" id="datetime"></h6>
-            </div>
-            <div class="content">
-                @yield('content')
-            </div>
+    <!-- Main area (Topbar + Content) -->
+    <div class="main-area">
+        <div class="topbar d-flex align-items-center">
+            <button id="toggleSidebar" class="btn btn-outline-secondary me-3">
+                <i class="bi bi-list"></i>
+            </button>
+            <h5 class="mb-0">Welcome, {{ $admin->name }}</h5>
+            <h6 class="ms-auto text-right black mb-0" id="datetime"></h6>
+        </div>
+        <div class="content">
+            @yield('content')
         </div>
     </div>
-  </div>
 </div>
 
 <!-- Loader Overlay -->
@@ -228,6 +203,7 @@ $admin = Auth::guard('admin')->user();
 
 <!-- Scripts -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/5.2.0/js/bootstrap.bundle.min.js"></script>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
 <script src="{{ asset('assets/aos/aos.js') }}"></script>
 <script src="{{ asset('assets/js/select2.min.js') }}"></script>
 
@@ -253,8 +229,15 @@ $admin = Auth::guard('admin')->user();
   });
 
   // Sidebar toggle
-  document.getElementById('toggleSidebar').addEventListener('click', function () {
-    document.getElementById('sidebar').classList.toggle('collapsed');
+  document.addEventListener('DOMContentLoaded', function () {
+    const toggleBtn = document.getElementById('toggleSidebar');
+    const sidebar = document.getElementById('sidebar');
+
+    if (toggleBtn && sidebar) {
+      toggleBtn.addEventListener('click', function () {
+        sidebar.classList.toggle('collapsed');
+      });
+    }
   });
 </script>
 </body>

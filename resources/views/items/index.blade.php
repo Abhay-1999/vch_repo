@@ -6,6 +6,16 @@
     <title>Restaurant Items</title>
     <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
     <style>
+         #page-loader {
+            position: fixed;
+            z-index: 9999;
+            background: #fff;
+            top: 0; left: 0; right: 0; bottom: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
         body {
             /* background-image: url('images/directdine.png'); */
             background-color:#f38534; !important;
@@ -114,6 +124,11 @@ button.decrease-quantity {
     </style>
 </head>
 <body>
+<div id="page-loader">
+    <div class="spinner-border text-danger" role="status" style="width: 4rem; height: 4rem;">
+        <span class="sr-only">Loading...</span>
+    </div>
+</div>
 <div class="header d-flex justify-content-between align-items-center px-3">
     <div class="logo">
         <img src="images/vijaychat.webp" alt="Restaurant Logo" style="width: 120px;">
@@ -149,15 +164,12 @@ button.decrease-quantity {
             <div class="col-md-3 mb-2">
                 <select name="item_grpdesc" class="form-control">
                     <option value="">All Categories</option>
-                    <option value="SNACKS">SNACKS</option>
-                    <option value="SOUPS">SOUPS</option>
-                    <option value="SANDWICHES">SANDWICHES</option>
-                    <option value="STARTER">STARTER</option>
+                    @foreach($item_grpcodes as $item_grpcode)
+                    <option value="{{ $item_grpcode->item_grpcode }}">{{ $item_grpcode->item_grpdesc }}</option>
+                     @endforeach
                 </select>
             </div>
-            <div class="col-md-2 mb-2">
-                <button type="submit" class="btn btn-danger btn-block">Filter</button>
-            </div>
+   
         </div>
     </form>
     <div id="itemsContainer">
@@ -226,28 +238,46 @@ button.decrease-quantity {
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
 <script>
-    $('#filterForm').on('submit', function (e) {
-        e.preventDefault();
-        let form = $(this);
-
-        $.ajax({
-            headers: {
-                'X-CSRF-TOKEN': '{{ csrf_token() }}'
-            },
-            url: "{{ route('item.filter') }}",
-            type: 'post',
-            data: form.serialize(),
-            beforeSend: function() {
-                $('#itemsContainer').html('<div class="text-center w-100 py-5"><div class="spinner-border text-light" role="status"><span class="sr-only">Loading...</span></div></div>');
-            },
-            success: function (data) {
-                $('#itemsContainer').html(data.html);
-            },
-            error: function (xhr) {
-                alert('Something went wrong while filtering items.');
-            }
-        });
+    window.addEventListener('load', function () {
+    const loader = document.getElementById('page-loader');
+    if (loader) {
+        loader.style.transition = 'opacity 0.5s ease';
+        loader.style.opacity = 0;
+        setTimeout(() => loader.remove(), 500);
+    }
     });
+
+
+ function filterItems() {
+    let form = $('#filterForm');
+
+    $.ajax({
+        headers: {
+            'X-CSRF-TOKEN': '{{ csrf_token() }}'
+        },
+        url: "{{ route('item.filter') }}",
+        type: 'post', // still using POST for dynamic filtering
+        data: form.serialize(),
+        beforeSend: function() {
+            $('#itemsContainer').html('<div class="text-center w-100 py-5"><div class="spinner-border text-danger" role="status"><span class="sr-only">Loading...</span></div></div>');
+        },
+        success: function (data) {
+            $('#itemsContainer').html(data.html);
+        },
+        error: function () {
+            alert('Something went wrong while filtering items.');
+        }
+    });
+}
+
+// Call filter when any form input or select changes
+$('#filterForm').on('input change', 'input, select', function () {
+    filterItems();
+});
+
+
+
+
 </script>
 
 <script>
