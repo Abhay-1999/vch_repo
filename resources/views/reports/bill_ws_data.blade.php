@@ -132,11 +132,17 @@
             <td>{{ $d->tran_no }}</td>
             <td>
                 @if($d->payment_mode == 'C')
-                    Over Counter
+                    Cash
                 @elseif($d->payment_mode == 'O')
-                    UPI
+                    Online
+                @elseif($d->payment_mode == 'U')
+                    Counter UPI
+                @elseif($d->payment_mode == 'Z')
+                    Zomato
+                @elseif($d->payment_mode == 'S')
+                    Swiggy
                 @else
-                    --
+                    -
                 @endif
             </td>
             <td class="text-right">{{ number_format($d->base_amt, 2) }}</td>

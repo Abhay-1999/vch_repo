@@ -50,7 +50,7 @@ class ReportController extends Controller
             ->orderBy('order_hd.tran_no')
             ->get()
             ->map(function ($d) {
-                $inclusiveAmount = $d->net_amt;
+                $inclusiveAmount = $d->paid_amt;
                 $baseAmount = $inclusiveAmount / 1.05; // Remove 5% GST
                 $cgst = $baseAmount * 0.025; // 2.5%
                 $sgst = $baseAmount * 0.025; // 2.5%
