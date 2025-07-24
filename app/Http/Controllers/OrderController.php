@@ -79,12 +79,15 @@ $monthTotals = $monthlySales->pluck('total');
             ->where('status_trans','success')
             ->where('flag','!=','D')
             ->where('flag','!=','H')
+            ->orderBy('tran_no','desc')
             ->get();
         }else{
             $orders = DB::table('order_hd')
             ->where('tran_date',date('Y-m-d'))
             ->where('flag','!=','D')
             ->where('flag','!=','H')
+            ->where('status_trans','success')
+            ->orderBy('tran_no','desc')
             ->get();
         }
 
@@ -150,6 +153,8 @@ $monthTotals = $monthlySales->pluck('total');
             ->where('tran_date',date('Y-m-d'))
             ->where('flag','!=','D')
             ->where('flag','!=','H')
+            ->where('status_trans','success')
+            ->orderBy('tran_no','desc')
             ->get();
             
             $order_arr = array();
@@ -218,8 +223,10 @@ $monthTotals = $monthlySales->pluck('total');
         $orders = DB::table('order_hd')
         // ->where('order_hd.status_trans','pending')
         ->where('tran_date',date('Y-m-d'))
+        ->where('status_trans','success')
         ->where('flag','!=','D')
         ->where('flag','!=','H')
+        ->orderBy('tran_no','desc')
         ->get();
 
         $admin = Auth::guard('admin')->user();
@@ -255,8 +262,10 @@ $monthTotals = $monthlySales->pluck('total');
    
         $orders = DB::table('order_hd')
         ->where('tran_date',date('Y-m-d'))
+        ->where('status_trans','success')
         ->where('flag','!=','D')
         ->where('flag','!=','H')
+        ->orderBy('tran_no','desc')
         ->get();
         
         $order_arr = array();
@@ -444,10 +453,22 @@ public function updateOrderItem(Request $request)
             ->get();
     
         session()->forget('cart');
+
+        $fullNumber = $hd_data->invoice_no;
+
+        // Convert to string to safely extract substrings
+        $fullStr = str_pad($fullNumber, 10, '0', STR_PAD_LEFT); // ensures full 10 digits
+
+        $prefix = substr($fullStr, 0, 2);     // '25'
+        $branch = substr($fullStr, 2, 2);     // '26'
+        $serial = (int)substr($fullStr, 4);   // converts '0000005' to integer 5
+
+        $invoiceNo = $prefix.'-'.$branch.'/'.$serial;
+
     
         // Return HTML(s) based on type
         if ($type === 'bill') {
-            $html = view('items.bill2', compact('dt_data', 'hd_data', 'rest_data'))->render();
+            $html = view('items.bill2', compact('dt_data', 'hd_data', 'rest_data','invoiceNo'))->render();
             return response()->json(['html' => $html]);
         } elseif ($type === 'token') {
             $html = view('items.bill', compact('dt_data', 'hd_data', 'rest_data'))->render(); // You must create this view
@@ -515,8 +536,31 @@ public function updateOrderItem(Request $request)
     public function initiatePayment(Request $request)
     {
         $order_id = "ORD" . time(); // You can save this in DB if needed
-          $amount = $request->amount;
+        $carts = session()->get('cart');
+
           $returnUrl = route('payment.status');
+
+          $group_code = Session::get('group_code');
+          $rest_code = Session::get('rest_code');
+          $paymode_mode = Session::get('paymode_mode');
+          $confirm_order = Session::get('confirm_order');
+  
+          $taxes = $itemWiseAmt = 0; 
+  
+          foreach($carts as $cart){
+  
+              $item_gst = DB::table('item_master')->where('group_code',$group_code)->where('rest_code',$rest_code)
+              ->where('item_code',$cart['item_code'])->value('item_gst');
+  
+               $itemWiseAmt += $cart['quantity']*$cart['price'];
+               $taxes += ($item_gst*$itemWiseAmt/100);
+  
+          }
+
+
+          $amount = $itemWiseAmt;
+
+        //   echo $itemWiseAmt;die;
 
 
         $response = Http::withHeaders([
@@ -545,26 +589,9 @@ public function updateOrderItem(Request $request)
         
         session(['last_order_id' =>$data['id']]); // $order_id should be your actual order ID
     // $orderId = session('last_order_id');
-        $carts = session()->get('cart');
+       
   
-        $amount = $request->amount;
-
-        $group_code = Session::get('group_code');
-        $rest_code = Session::get('rest_code');
-        $paymode_mode = Session::get('paymode_mode');
-        $confirm_order = Session::get('confirm_order');
-
-        $taxes = $itemWiseAmt = 0; 
-
-        foreach($carts as $cart){
-
-            $item_gst = DB::table('item_master')->where('group_code',$group_code)->where('rest_code',$rest_code)
-            ->where('item_code',$cart['item_code'])->value('item_gst');
-
-             $itemWiseAmt += $cart['quantity']*$cart['price'];
-             $taxes += ($item_gst*$itemWiseAmt/100);
-
-        }
+      
 
         $convin_amt = 0;
 
@@ -587,7 +614,7 @@ public function updateOrderItem(Request $request)
         
         $mobile =  Session::get('phone');
 
-        $trans_no =  DB::table('order_hd')->where(['rest_code' => $rest_code,'tran_date'=>date('Y-m-d')])->orderby('tran_no','desc')->value('tran_no');
+        $trans_no =  DB::table('temp_order_hd')->where(['rest_code' => $rest_code,'tran_date'=>date('Y-m-d')])->orderby('tran_no','desc')->value('tran_no');
 
         if($trans_no){
             $trans_no = $trans_no + 1;
@@ -614,14 +641,14 @@ public function updateOrderItem(Request $request)
             'flag' => 'S', 
             'confirm_order' => $confirm_order, 
             'transaction_no' =>$transactionNumber, 
-            'payment_mode' =>$paymode_mode, 
+            'payment_mode' =>'O', 
         ];
 
-        DB::table('order_hd')->insertGetId($order_hd);
+        DB::table('temp_order_hd')->insertGetId($order_hd);
 
     //    echo $trans_no;die;
 
-       DB::table('order_hd')
+       DB::table('temp_order_hd')
         ->where('tran_no', $trans_no)
         ->where('tran_date',date('Y-m-d'))
         ->update(['invoice_no' => $trans_no]);
@@ -642,7 +669,7 @@ public function updateOrderItem(Request $request)
             $item_gst_amt = $reverseamt['gst'];
 
 
-            DB::table('order_dt')->insert([
+            DB::table('temp_order_dt')->insert([
                 'group_code' => $group_code,
                 'rest_code' => $rest_code,
                 'tran_no' => $trans_no,
@@ -699,15 +726,89 @@ public function updateOrderItem(Request $request)
     ]);
 
     $result = $response->json();
+    
+    // echo"<pre>";print_r($result);die;
 
     $order_id = $result['order_id'];
     $amount = $result['amount'];
     $status = $result['status'];
 
-    $data = DB::table('order_hd')->where('order_id',$order_id)->where('tran_date',date('Y-m-d'))->where('status_trans','pending')->first();
+    $data = DB::table('temp_order_hd')->where('order_id',$order_id)->where('tran_date',date('Y-m-d'))->where('status_trans','pending')->first();
 
-    if(!empty($data) && $data->paid_amt == $amount){
-        DB::table('order_hd')->where('order_id',$order_id)->where('tran_date',date('Y-m-d'))->where('status_trans','pending')->update(['status_trans'=>'success']);
+    if(!empty($data) && $data->paid_amt == $amount && $status == 'CHARGED'){
+
+        DB::table('temp_order_hd')->where('order_id',$order_id)->where('tran_date',date('Y-m-d'))->where('status_trans','pending')->update(['status_trans'=>'success','reponce_data'=>$result['payment_gateway_response']]);
+
+
+        $temp_data = DB::table('temp_order_hd')->where('order_id',$order_id)->where('tran_date',date('Y-m-d'))->where('status_trans','success')->first();
+
+        $lastInvoice = DB::table('order_hd')->orderBy('invoice_no', 'desc')->first();
+
+        // if ($lastInvoice) {
+        //     $newInvoiceNumber = $lastInvoice->invoice_no + 1;
+        // } else {
+        //     // First invoice number
+        //     $newInvoiceNumber = 20252600000000;
+        // }
+
+    
+        $tran_no =  DB::table('order_hd')->where(['rest_code'=>$temp_data->rest_code,'tran_date'=>date('Y-m-d')])->orderby('tran_no','desc')->value('tran_no');
+
+        if($tran_no){
+            $tran_no = $tran_no + 1;
+        }else{
+            $tran_no = 1;
+        }
+        
+        $order_hd = [
+            'group_code' => $temp_data->group_code,
+            'rest_code' => $temp_data->rest_code,
+            'tran_no' => $tran_no,
+            'net_amt' => $temp_data->net_amt, 
+            'cgst_amt' => $temp_data->cgst_amt, 
+            'sgst_amt' => $temp_data->sgst_amt, 
+            'gross_amt' =>$temp_data->gross_amt, 
+            'paid_amt' => round($temp_data->paid_amt), 
+            'order_id' =>$temp_data->order_id, 
+            'cust_mobile' =>$temp_data->cust_mobile, 
+            'service_charge'=>$temp_data->service_charge, 
+            'service_cgst' =>$temp_data->service_cgst, 
+            'service_sgst' =>$temp_data->service_sgst,
+            'email' =>$temp_data->email, 
+            'status_trans' =>$temp_data->status_trans, 
+            'flag' => 'S', 
+            'confirm_order' => $temp_data->confirm_order, 
+            'transaction_no' =>$temp_data->transaction_no, 
+            'reponce_data' =>$temp_data->reponce_data, 
+            'payment_mode' =>'O', 
+        ];
+
+        DB::table('order_hd')->insertGetId($order_hd);
+
+
+        $carts = DB::table('temp_order_dt')->where('group_code',$temp_data->group_code)->where('rest_code',$temp_data->rest_code)->where('tran_no', $temp_data->tran_no)->where('tran_date',date('Y-m-d'))->get();
+
+        foreach($carts as $cart){
+            // echo"<pre>";print_r($cart);die;
+
+
+            DB::table('order_dt')->insert([
+                'group_code' => $cart->group_code,
+                'rest_code' => $cart->rest_code,
+                'tran_no' => $tran_no,
+                'item_code' =>$cart->item_code,
+                'item_qty' => $cart->item_qty,
+                'customise_flag' => 'S',
+                'amount' =>$cart->amount,
+                'item_gst' =>$cart->item_gst,
+            ]);
+        }
+
+
+
+
+
+
 
         $hd_data =   DB::table('order_hd')->where('order_id',$order_id)->where('tran_date',date('Y-m-d'))->where('status_trans','success')->first();
 
@@ -732,6 +833,11 @@ public function updateOrderItem(Request $request)
         
         
          return view('items.bill', compact('dt_data', 'hd_data', 'rest_data'));
+    }else{
+        DB::table('order_hd')->where('order_id',$order_id)->where('tran_date',date('Y-m-d'))->where('status_trans','pending')->update(['status_trans'=>'failure']);
+        
+        return redirect()->route('items.index')->with('error', 'Payment failed. Please try again.');
+
     }
 
 
