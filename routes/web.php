@@ -10,6 +10,7 @@ use App\Http\Controllers\Auth\AdminAuthController;
 use App\Http\Controllers\Auth\UserAuthController;
 use App\Http\Controllers\CashfreeController;
 use App\Http\Controllers\ReportController;
+use App\Http\Controllers\CustomerMasterController;
 
 
 Route::prefix('admin')->group(function () {
@@ -24,12 +25,22 @@ Route::prefix('admin')->group(function () {
 
     Route::post('/update-item-status', [OrderController::class, 'updateStatus'])->name('update.item.status');
 
-
     Route::get('/order-detail/{id}', [OrderController::class, 'OrderDetail'])->name('order.detail');
     Route::post('/orders/deliver', [OrderController::class, 'deliver'])->name('orders.deliver');
     Route::post('/orders/makePayment', [OrderController::class, 'makePayment'])->name('orders.makePayment');
     Route::post('/orders/flag', [OrderController::class, 'updateFlag'])->name('orders.flag');
     Route::post('/orders/hold', [OrderController::class, 'hold'])->name('orders.hold');
+
+    // customer master
+
+    Route::get('/cust-mast', [CustomerMasterController::class, 'cust_mast_form'])->name('cust_mast');
+    Route::post('/cust-save', [CustomerMasterController::class, 'store'])->name('cust_save');
+    Route::get('/cust-edit/{id}', [CustomerMasterController::class, 'edit']);
+    Route::get('/cust-delete/{id}', [CustomerMasterController::class, 'destroy'])->name('cust.delete');
+
+    //discount setting 
+    Route::get('/dis-set', [CustomerMasterController::class, 'disc_set_form'])->name('disc_set_form');
+    Route::post('/dis-set-update', [CustomerMasterController::class, 'updateDiscSet'])->name('disc_update');
 
     //reports 
     //item wise

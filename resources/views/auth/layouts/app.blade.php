@@ -137,8 +137,14 @@ $admin = Auth::guard('admin')->user();
                     <a class="nav-link {{ request()->routeIs('dashboard') ? 'active' : '' }}" href="{{ route('dashboard') }}">
                         <i class="bi bi-bag-fill me-2"></i><span>Dashboard</span>
                     </a>
+                    <a class="nav-link {{ request()->routeIs('cust-mast') ? 'active' : '' }}" href="{{ route('cust_mast') }}">
+                        <i class="bi bi-bag-fill me-2"></i><span>Customer Master</span>
+                    </a>
                     <a class="nav-link {{ request()->routeIs('create.order') ? 'active' : '' }}" href="{{ route('create.order') }}">
                         <i class="bi bi-bag-fill me-2"></i><span>Create Order</span>
+                    </a>
+                    <a class="nav-link {{ request()->routeIs('dis-set') ? 'active' : '' }}" href="{{ route('disc_set_form') }}">
+                        <i class="bi bi-bag-fill me-2"></i><span>Discount Setting</span>
                     </a>
                     <a class="nav-link {{ request()->routeIs('orders.delivered') ? 'active' : '' }}" href="{{ route('orders.delivered') }}">
                         <i class="bi bi-bag-fill me-2"></i><span>Delivered Order</span>
