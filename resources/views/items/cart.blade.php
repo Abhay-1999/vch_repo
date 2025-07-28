@@ -146,9 +146,12 @@
   
           <span class="text-dark font-weight-bolder"> ₹ </span><span class="totalamt text-dark font-weight-bolder"> 0.00</span>
           <br>
-          <button type="submit" class="btn btn-primary btn-sm mt-2" id="payNowBtn" style="font-size: 0.8rem; padding: 4px 12px;">
-              Pay Now
-          </button>
+          <h1 class="text-black font-weight-bold mb-1" style="font-size: 0.85rem;">
+          Once you proceed with payment, it cannot be reversed.
+        </h1>
+        <button type="submit" class="btn btn-primary btn-sm mt-2" id="payNowBtn" style="font-size: 0.8rem; padding: 4px 12px;">
+            Pay Now
+        </button>
       </form>
 
 

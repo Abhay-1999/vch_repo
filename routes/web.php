@@ -110,7 +110,13 @@ Route::get('/home', [App\Http\Controllers\HomeController::class, 'index'])->name
 
 Route::post('/order/item-update', [OrderController::class, 'updateOrderItem'])->name('order.item.update');
 Route::post('/order/complete', [OrderController::class, 'markOrderComplete'])->name('order.complete');
+
+
+Route::post('/change/paymentMode', [OrderController::class, 'UpdatePaymode'])->name('change.paymentMode');
+
 Route::get('/dashboard', [OrderController::class, 'dashboard'])->name('dashboard');
+
+Route::get('/change-order', [OrderController::class, 'ChangeOrder'])->name('change.order');
 
 
 Route::post('/print-content', [OrderController::class, 'printContent'])->name('print.content');

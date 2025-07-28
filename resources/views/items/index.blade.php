@@ -184,7 +184,7 @@ button.decrease-quantity {
                     ?>
                     <!-- Container for positioning the overlay icon -->
                     <div class="position-relative">
-                        <img src="data:{{ $image->item_image_type }};base64,{{ base64_encode($image->item_image) }}" class="card-img-top" alt="{{ $item->name }}">
+                        <img src="data:{{ $image->item_image_type }};base64,{{ base64_encode(@$image->item_image) }}" class="card-img-top" alt="{{ @$item->name }}">
                         <div class="veg-nonveg-icon position-absolute" style="top: 8px; left: 8px; width: 40px; height: 40px;">
                             @if($item->veg_nonveg == 'V')
                                 <img src="{{ asset('images/veg.png') }}" alt="Veg" style="width: 100%; height: auto;">
