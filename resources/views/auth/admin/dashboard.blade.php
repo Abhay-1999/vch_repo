@@ -20,10 +20,10 @@
     ->where('flag','D')
     ->sum('paid_amt');
     @endphp
-        <div class="topbar">
+        <!-- <div class="topbar">
                 <h5 class="mb-0">Dashboard</h5>
                 <span class="text-muted">Admin: {{ Auth::guard('admin')->user()->name ?? 'Admin' }}</span>
-            </div>
+            </div> -->
 
             <div class="container mt-4">
                 <div class="row">

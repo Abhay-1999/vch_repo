@@ -1,5 +1,7 @@
 
 @foreach($orders as $k => $order)
+<meta name="csrf-token" content="{{ csrf_token() }}">
+
                 <div class="dd-dashboard-right-box dd-dash-redBox">
                     <div class="dd-timer-head">
                        <div class="dd-timer-sec-left">
