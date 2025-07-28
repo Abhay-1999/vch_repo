@@ -58,6 +58,9 @@
         h2{
             margin-bottom:0;
         }
+        .printHead{
+            padding-left:50px;
+        }
     }
     @page {
             font-size:12px;
@@ -80,24 +83,34 @@
             text-align:right;
         }
 </style>
-<table style="width: 100%; border-collapse: collapse;" id="firstTable">
+<table id="firstTable" style="width: 100%; border-collapse: collapse; margin-bottom: 10px;">
     <tr>
-        <td>
-            <h2>ITEM WISE RECORD</h2>
+        <td style="width: 100px;">
+            <img src="{{ asset('images/vijaychat.webp') }}" alt="Logo" style="max-height: 50px;">
+        </td>
+        <td style="padding-left: 30px; vertical-align: middle;">
+            <h2 style="margin: 0;" class="printHead">
+                {{ $rest_data->rest_name }} - GSTIN: {{ $rest_data->rest_gstin }}
+            </h2>
         </td>
         <td style="text-align: right;">
-            <button id="exportButton" onclick="exportToExcel()" class="btn btn-info btn-sm">EXCEL</button>
-        </td>
-    </tr>
-    <tr>
-        <td>
-            <p class="printDate">FROM : {{ \Carbon\Carbon::parse($startDate)->format('d-m-Y') }} to {{ \Carbon\Carbon::parse($endDate)->format('d-m-Y') }}</p>
-        </td>
-        <td style="text-align: right;">
+            <button id="exportButton" onclick="exportToExcel()" class="btn btn-info btn-sm mb-1">EXCEL</button><br>
             <button id="printButton" onclick="printContent()" class="btn btn-primary btn-sm">PRINT</button>
         </td>
     </tr>
+</table>
 
+<table style="width: 100%; border-collapse: collapse; margin-top: 20px;" id="firstTable">
+    <tr>
+        <td style="text-align: left; vertical-align: top;">
+            <h4 style="margin: 0;">ITEM WISE SALE SUMMARY</h4>
+        </td>
+        <td style="text-align: right; vertical-align: top;">
+            <p class="printDate" style="margin: 0;">
+                FROM : {{ \Carbon\Carbon::parse($startDate)->format('d-m-Y') }} to {{ \Carbon\Carbon::parse($endDate)->format('d-m-Y') }}
+            </p>
+        </td>
+    </tr>
 </table>
 
 <table class="table table-bordered mt-3" id="myTable">
@@ -106,55 +119,40 @@
             <th class="text-left">S.NO</th>
             <th class="text-left">ITEM NAME</th>
             <th class="text-left">CATEGORY</th>
-            <th class="text-left">QTY SOLD</th>
-            <th class="text-right">PRICE</th>
-            <th class="text-right">CGST</th>
-            <th class="text-right">SGST</th>
-            <th class="text-right">TOTAL GST</th>
-            <th class="text-right">TOTAL SALE</th>
+            <th class="text-center">QTY SOLD</th>
         </tr>
     </thead>
     <tbody>
-    @php
-        $totAmt = 0;
-        $amtCGST = 0;
-        $amtSGST = 0;
-        $totGST = 0;
-        $totSale = 0;
-    @endphp
-    @foreach($data as $index => $d)
-    <tr>
-        <td class="text-center">{{ ++$index }}</td>
-        <td>{{ $d->item_desc }}</td>
-        <td>{{ $d->item_grpdesc }}</td>
-        <td class="text-center">{{ $d->total_qty }}</td>
-        <td class="text-right">{{ number_format($d->total_amount, 2) }}</td>
-        <td class="text-right">{{ number_format($d->total_gst / 2, 2) }}</td>
-        <td class="text-right">{{ number_format($d->total_gst / 2, 2) }}</td>
-        <td class="text-right">{{ number_format($d->total_gst, 2) }}</td>
-        <td class="text-right">{{ number_format($d->total_amount + $d->total_gst, 2) }}</td>
-    </tr>
-    @php
-        $totAmt += $d->total_amount;
-        $amtCGST += $d->total_gst / 2;
-        $amtSGST += $d->total_gst / 2;
-        $totGST += $d->total_gst;
-        $totSale += ($d->total_amount + $d->total_gst);
-    @endphp
-    @endforeach
-</tbody>
-<tfoot>
-    <tr>
-        <td colspan="4" class="text-right"><strong>Total</strong></td>
-        <td class="text-right"><strong>{{ number_format($totAmt, 2) }}</strong></td>
-        <td class="text-right"><strong>{{ number_format($amtCGST, 2) }}</strong></td>
-        <td class="text-right"><strong>{{ number_format($amtSGST, 2) }}</strong></td>
-        <td class="text-right"><strong>{{ number_format($totGST, 2) }}</strong></td>
-        <td class="text-right"><strong>{{ number_format($totSale, 2) }}</strong></td>
-    </tr>
-</tfoot>
+        @php
+            $totQty = 0;
+        @endphp
+        @foreach($data as $index => $d)
+        <tr>
+            <td class="text-center">{{ ++$index }}</td>
+            <td>{{ $d->item_desc }}</td>
+            <td>{{ $d->item_grpdesc }}</td>
+            <td class="text-center">
+                @if($d->total_qty > 0)
+                    {{ $d->total_qty }}
+                @elseif($d->total_gm_qty > 0)
+                    {{ $d->total_gm_qty }} Kg
+                @else
+                    0
+                @endif
+            </td>
 
-
+        </tr>
+        @php
+            $totQty += $d->total_qty;
+        @endphp
+        @endforeach
+    </tbody>
+    <tfoot>
+        <tr>
+            <td colspan="3" class="text-right"><strong>Total</strong></td>
+            <td class="text-center"><strong>{{ $totQty }}</strong></td>
+        </tr>
+    </tfoot>
 </table>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.4/xlsx.full.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
@@ -164,7 +162,6 @@
         
         for (var i = 1; i < table.rows.length; i++) { 
             var dateCell = table.rows[i].cells[2]; // Assuming date is in the 2nd column
-            dateCell.textContent = formatDate(dateCell.textContent);
         }
 
         var wb = XLSX.utils.table_to_book(table, {sheet: "Sheet JS"});
@@ -177,7 +174,7 @@
             return buf;
         }
 
-        var fileName = prompt("Enter file name:", "item_wise_report.xlsx");
+        var fileName = prompt("Enter file name:", "item_wise_sale_report.xlsx");
         if (fileName === null) {
             return; 
         }
@@ -188,15 +185,6 @@
 
         var blob = new Blob([s2ab(wbout)], {type:"application/octet-stream"});
         saveAs(blob, fileName);
-    }
-
-    // Helper function to format dates in d-m-Y format
-    function formatDate(dateStr) {
-        var parts = dateStr.split('-');
-        if (parts.length === 3) {
-            return parts[1] + '-' + parts[0] + '-' + parts[2]; // Convert to m-d-Y
-        }
-        return dateStr;
     }
 
     function printContent() {

@@ -50,6 +50,9 @@
         h2{
             margin-bottom:0;
         }
+        .printHead{
+            padding-left:50px;
+        }
     }
     @page {
             font-size:12px;
@@ -72,43 +75,57 @@
             text-align:right;
         }
 </style>
-<table style="width: 100%; border-collapse: collapse;" id="firstTable">
+<table id="firstTable" style="width: 100%; border-collapse: collapse; margin-bottom: 10px;">
     <tr>
-        <td>
-            <h2>TOTAL SALE RECORD</h2>
+        <td style="width: 100px;">
+            <img src="{{ asset('images/vijaychat.webp') }}" alt="Logo" style="max-height: 50px;">
+        </td>
+        <td style="padding-left: 30px; vertical-align: middle;">
+            <h2 style="margin: 0;" class="printHead">
+                {{ $rest_data->rest_name }} - GSTIN: {{ $rest_data->rest_gstin }}
+            </h2>
         </td>
         <td style="text-align: right;">
-            <button id="exportButton" onclick="exportToExcel()" class="btn btn-info btn-sm">EXCEL</button>
-        </td>
-    </tr>
-    <tr>
-        <td>
-            <p class="printDate">FROM : {{ \Carbon\Carbon::parse($startDate)->format('d-m-Y') }} to {{ \Carbon\Carbon::parse($endDate)->format('d-m-Y') }}</p>
-        </td>
-        <td style="text-align: right;">
+            <button id="exportButton" onclick="exportToExcel()" class="btn btn-info btn-sm mb-1">EXCEL</button><br>
             <button id="printButton" onclick="printContent()" class="btn btn-primary btn-sm">PRINT</button>
         </td>
     </tr>
+</table>
 
+<table style="width: 100%; border-collapse: collapse; margin-top: 20px;" id="firstTable">
+    <tr>
+        <td style="text-align: left; vertical-align: top;">
+            <h4 style="margin: 0;">GST SUMMARY</h4>
+        </td>
+        <td style="text-align: right; vertical-align: top;">
+            <p class="printDate" style="margin: 0;">
+                FROM : {{ \Carbon\Carbon::parse($startDate)->format('d-m-Y') }} to {{ \Carbon\Carbon::parse($endDate)->format('d-m-Y') }}
+            </p>
+        </td>
+    </tr>
 </table>
 
 <table class="table table-bordered mt-3" id="myTable">
     <thead>
         <tr>
             <th class="text-left">S.NO</th>
-            <th class="text-left">GST %</th>
-            <th class="text-right">TAXABLE AMT</th>
-            <th class="text-right">GST AMT</th>
             <th class="text-right">AMT INCLUSIVE GST</th>
+            <th class="text-right">AMT EXCLUSIVE GST</th>
+            <th class="text-right"> 2.5% CGST</th>
+            <th class="text-right"> 2.5% SGST</th>
+            <th class="text-right">TOTAL GST AMT</th>
+            
         </tr>
     </thead>
     <tbody>
         <tr>
             <td class="text-left">1</td>
-            <td>5</td>
-            <td class="text-right">{{ $data->base_amt }}</td>
-            <td class="text-right">{{ $data->total_gst }}</td>
             <td class="text-right">{{ number_format($data->net_amt_incl_gst,2) }}</td>
+            <td class="text-right">{{ number_format($data->base_amt,2) }}</td>
+            <td class="text-right">{{ number_format($data->total_gst/2,2) }}</td>
+            <td class="text-right">{{ number_format($data->total_gst/2,2) }}</td>
+            <td class="text-right">{{ number_format($data->total_gst,2) }}</td>
+            
         </tr>
     </tbody>
 </table>
@@ -133,7 +150,7 @@
             return buf;
         }
 
-        var fileName = prompt("Enter file name:", "total_sale_report.xlsx");
+        var fileName = prompt("Enter file name:", "gst_summary.xlsx");
         if (fileName === null) {
             return; 
         }

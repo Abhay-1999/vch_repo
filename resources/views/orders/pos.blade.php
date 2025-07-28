@@ -176,16 +176,15 @@ html += `
     }, function (response) {
         if (response.success) {
             Swal.fire({
-    title: 'Order Saved!',
-    showConfirmButton: true,
-    allowOutsideClick: true,
-});
+                title: 'Order Saved!',
+                showConfirmButton: true,
+                allowOutsideClick: true,
+            });
 
             $('#manual-print-token').removeAttr('disabled');
             $('#manual-print-bill').removeAttr('disabled');
 
-            lastOrderId = response.order_id; // 👈 store it here
-           // showPrintOptions(response.order_id); // still show Swal if needed
+            lastOrderId = response.order_id; 
         } else {
             Swal.fire("Error", "Failed to save order", "error");
         }

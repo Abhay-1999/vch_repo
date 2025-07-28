@@ -6,7 +6,7 @@
         <div class="col-md-6 offset-md-3">
             <div class="card text-center">
                 <div class="card-body" style="background-color: aliceblue;">
-                    <h3 class="card-title mb-4">ITEM WISE RECORD</h3>
+                    <h3 class="card-title mb-4">ITEM WISE SALE</h3>
                     <form id="cashbookForm" action="{{ route('item_ws_data') }}" method="post">
                         @csrf
                         <div class="row">

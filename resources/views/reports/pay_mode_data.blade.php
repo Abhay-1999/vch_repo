@@ -58,6 +58,9 @@
         h2{
             margin-bottom:0;
         }
+        .printHead{
+            padding-left:50px;
+        }
     }
     @page {
             font-size:12px;
@@ -80,24 +83,34 @@
             text-align:right;
         }
 </style>
-<table style="width: 100%; border-collapse: collapse;" id="firstTable">
+<table id="firstTable" style="width: 100%; border-collapse: collapse; margin-bottom: 10px;">
     <tr>
-        <td>
-            <h2 class="">MODE WISE PAYMENT RECORD</h2>
+        <td style="width: 100px;">
+            <img src="{{ asset('images/vijaychat.webp') }}" alt="Logo" style="max-height: 50px;">
+        </td>
+        <td style="padding-left: 30px; vertical-align: middle;">
+            <h2 style="margin: 0;" class="printHead">
+                {{ $rest_data->rest_name }} - GSTIN: {{ $rest_data->rest_gstin }}
+            </h2>
         </td>
         <td style="text-align: right;">
-            <button id="exportButton" onclick="exportToExcel()" class="btn btn-info btn-sm">EXCEL</button>
-        </td>
-    </tr>
-    <tr>
-        <td>
-            <p class="printDate">FROM : {{ \Carbon\Carbon::parse($startDate)->format('d-m-Y') }} to {{ \Carbon\Carbon::parse($endDate)->format('d-m-Y') }}</p>
-        </td>
-        <td style="text-align: right;">
+            <button id="exportButton" onclick="exportToExcel()" class="btn btn-info btn-sm mb-1">EXCEL</button><br>
             <button id="printButton" onclick="printContent()" class="btn btn-primary btn-sm">PRINT</button>
         </td>
     </tr>
+</table>
 
+<table style="width: 100%; border-collapse: collapse; margin-top: 20px;" id="firstTable">
+    <tr>
+        <td style="text-align: left; vertical-align: top;">
+            <h4 style="margin: 0;">DATE WISE SALES SUMMARY</h4>
+        </td>
+        <td style="text-align: right; vertical-align: top;">
+            <p class="printDate" style="margin: 0;">
+                FROM : {{ \Carbon\Carbon::parse($startDate)->format('d-m-Y') }} to {{ \Carbon\Carbon::parse($endDate)->format('d-m-Y') }}
+            </p>
+        </td>
+    </tr>
 </table>
 
 <table class="table table-bordered mt-3" id="myTable">
@@ -106,26 +119,37 @@
             <th class="text-left">S.No</th>
             <th class="text-left">Date</th>
             <th class="text-right">Cash</th>
+            <th class="text-right">Online</th>
             <th class="text-right">UPI</th>
+            <th class="text-right">Zomato</th>
+            <th class="text-right">Swiggy</th>
         </tr>
     </thead>
     <tbody>
     @php 
         $i = 1; 
-        $grandTotalCash = 0; // Initialize grand total for cash
-        $grandTotalUPI = 0;   // Initialize grand total for UPI
+        $grandTotalCash = 0; 
+        $grandTotalOnline = 0;   
+        $grandTotalUPI = 0;   
+        $grandTotalZomato = 0;
+        $grandTotalSwiggy = 0;
     @endphp
     @foreach ($totals as $date => $amounts)
     <tr>
         <td class="text-left">{{ $i++ }}</td>
         <td class="text-left">{{ $date }}</td>
         <td class="text-right">{{ number_format($amounts['cash'], 2) }}</td>
-        <td class="text-right">{{ number_format($amounts['upi'], 2) }}</td>
+        <td class="text-right">{{ number_format($amounts['Online'], 2) }}</td>
+        <td class="text-right">{{ number_format($amounts['UPI'], 2) }}</td>
+        <td class="text-right">{{ number_format($amounts['Zomato'], 2) }}</td>
+        <td class="text-right">{{ number_format($amounts['Swiggy'], 2) }}</td>
     </tr>
     @php
-        // Add to grand totals
         $grandTotalCash += $amounts['cash'];
-        $grandTotalUPI += $amounts['upi'];
+        $grandTotalOnline += $amounts['Online'];
+        $grandTotalUPI += $amounts['UPI'];
+        $grandTotalZomato += $amounts['Zomato'];
+        $grandTotalSwiggy += $amounts['Swiggy'];
     @endphp
     @endforeach
 </tbody>
@@ -133,7 +157,10 @@
     <tr>
         <td colspan="2" class="text-right"><strong>Total</strong></td>
         <td class="text-right"><strong>{{ number_format($grandTotalCash, 2) }}</strong></td>
+        <td class="text-right"><strong>{{ number_format($grandTotalOnline, 2) }}</strong></td>
         <td class="text-right"><strong>{{ number_format($grandTotalUPI, 2) }}</strong></td>
+        <td class="text-right"><strong>{{ number_format($grandTotalZomato, 2) }}</strong></td>
+        <td class="text-right"><strong>{{ number_format($grandTotalSwiggy, 2) }}</strong></td>
     </tr>
 </tfoot>
 </table>
@@ -158,7 +185,7 @@
             return buf;
         }
 
-        var fileName = prompt("Enter file name:", "payment_mode_report.xlsx");
+        var fileName = prompt("Enter file name:", "date_wise_sale_summary.xlsx");
         if (fileName === null) {
             return; 
         }
