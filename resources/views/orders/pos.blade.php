@@ -77,7 +77,7 @@
 
         <!-- Right Side: Item List -->
         <div class="col-md-5">
-            <div class="card shadow">
+            <div class="card shadow" id="itemCard">
                 <div class="card-header bg-warning">
                     <h5 class="mb-0">📋 Item List</h5>
                 </div>
@@ -159,6 +159,14 @@ html += `
     $('#save-order').click(function () {
     if (cart.length === 0) return alert("Cart is empty!");
 
+    // Disable Save button and item card
+    const $saveBtn = $(this);
+    $saveBtn.prop('disabled', true);
+    $('#itemCard').css({
+        'pointer-events': 'none',
+        'opacity': '0.5'
+    });
+
     const paymode = $('#order_type').val();
     const mobile = $('#mobile').val();
     const order_id = $('#order_id').val();
@@ -184,12 +192,27 @@ html += `
             $('#manual-print-token').removeAttr('disabled');
             $('#manual-print-bill').removeAttr('disabled');
 
-            lastOrderId = response.order_id; 
+
+            lastOrderId = response.order_id;
         } else {
             Swal.fire("Error", "Failed to save order", "error");
+
+            // Re-enable on failure
+            $saveBtn.prop('disabled', false);
+            $('#itemCard').css({
+                'pointer-events': 'auto',
+                'opacity': '1'
+            });
         }
     }).fail(function () {
         Swal.fire("Error", "Something went wrong while saving order", "error");
+
+        // Re-enable on failure
+        $saveBtn.prop('disabled', false);
+        $('#itemCard').css({
+            'pointer-events': 'auto',
+            'opacity': '1'
+        });
     });
 });
 

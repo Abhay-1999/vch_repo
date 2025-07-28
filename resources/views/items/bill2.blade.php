@@ -85,7 +85,7 @@
   <!-- Right side: Token No and Order ID -->
   <div class="text-end ps-3" style="flex: 1;">
     <p>Token No: <strong>{{ $hd_data->tran_no }}</strong></p>
-    @if($hd_data->order_id)
+    @if($hd_data->order_id && $hd_data->payment_mode == 'Z' || $hd_data->payment_mode == 'S')
       <p>Zomato/Swiggy Order Id: <strong>{{ $hd_data->order_id }}</strong></p>
     @endif
   </div>

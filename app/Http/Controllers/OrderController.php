@@ -413,8 +413,8 @@ public function updateOrderItem(Request $request)
         $type = $request->input('type'); // 'token', 'bill', or 'both'
         $date = $request->input('date'); // 'token', 'bill', or 'both'
     
-        $group_code = Session::get('group_code');
-        $rest_code = Session::get('rest_code');
+        $group_code = '01';
+        $rest_code = '01';
 
 
         if(!$request->input('date')){
@@ -533,17 +533,17 @@ public function updateOrderItem(Request $request)
     
 
      
-    public function initiatePayment(Request $request)
+   public function initiatePayment(Request $request)
     {
         $order_id = "ORD" . time(); // You can save this in DB if needed
         $carts = session()->get('cart');
 
           $returnUrl = route('payment.status');
 
-          $group_code = Session::get('group_code');
-          $rest_code = Session::get('rest_code');
-          $paymode_mode = Session::get('paymode_mode');
-          $confirm_order = Session::get('confirm_order');
+          $group_code = '01';
+          $rest_code = '01';
+          $paymode_mode = 'O';
+          $confirm_order = 'Y';
   
           $taxes = $itemWiseAmt = 0; 
   

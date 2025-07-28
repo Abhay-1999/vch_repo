@@ -139,10 +139,10 @@ class ItemController extends Controller
         $total_amount = Session::get('total_amount');
         // echo"<pre>";print_r($total_amount);die;
         $amount = $total_amount;
-        $group_code = Session::get('group_code');
-        $rest_code = Session::get('rest_code');
-        $paymode_mode = Session::get('paymode_mode');
-        $confirm_order = Session::get('confirm_order');
+        $group_code = '01';
+        $rest_code = '01';
+        $paymode_mode = 'O';
+        $confirm_order = 'Y';;
 
         $taxes = $itemWiseAmt = 0; 
 
@@ -458,8 +458,8 @@ class ItemController extends Controller
 
         
 
-        $group_code = Session::get('group_code');
-        $rest_code = Session::get('rest_code');
+        $group_code = '01';
+        $rest_code = '01';
 
         
         $items = $query->where('group_code',$group_code)->where('rest_code',$rest_code)->get();
@@ -488,8 +488,8 @@ class ItemController extends Controller
         $finalAmt = $request->ft; // C / Z / S / O
         $discount = $request->dsc; // C / Z / S / O
 
-        $group_code = Session::get('group_code');
-        $rest_code = Session::get('rest_code');
+        $group_code = '01';
+        $rest_code ='01';
         $confirm_order = 'Y';
        /// $mobile = Session::get('phone', '');
 
@@ -553,7 +553,7 @@ class ItemController extends Controller
             'cgst_amt' => $cgst,
             'sgst_amt' => $cgst,
             'gross_amt' => $amount,
-            'paid_amt' => round($paid_amt),
+            'paid_amt' => $paid_amt,
             'order_id' =>$order_id,
             'cust_mobile' => $mobile,
             'service_charge' => $convin_amt,
@@ -651,8 +651,8 @@ public function generateBillImage($trans_no,$toPhoneNumber)
 
     $total_amaount = Session::get('total_amaount');
     $amount = $total_amaount;
-    $group_code = Session::get('group_code');
-    $rest_code = Session::get('rest_code');
+    $group_code = '01';
+    $rest_code = '01';
 
     $hd_data =   DB::table('order_hd')->where('tran_no',$trans_no)->where('tran_date',date('Y-m-d'))->where('status_trans','success')->first();
 
