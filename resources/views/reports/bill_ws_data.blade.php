@@ -58,6 +58,15 @@
         h2{
             margin-bottom:0;
         }
+        /* table#firstTable, 
+        table#firstTable tr,
+        table#firstTable td,
+        table#firstTable th {
+            border: none !important;
+        } */
+        .printHead{
+            padding-left:50px;
+        }
     }
     @page {
             font-size:12px;
@@ -80,55 +89,72 @@
             text-align:right;
         }
 </style>
-<table style="width: 100%; border-collapse: collapse;" id="firstTable">
+<table id="firstTable" style="width: 100%; border-collapse: collapse; margin-bottom: 10px;">
     <tr>
-        <td>
-            <h2>BILL WISE RECORD</h2>
+        <td style="width: 100px;">
+            <img src="{{ asset('images/vijaychat.webp') }}" alt="Logo" style="max-height: 50px;">
+        </td>
+        <td style="padding-left: 30px; vertical-align: middle;">
+            <h2 style="margin: 0;" class="printHead">
+                {{ $rest_data->rest_name }} - GSTIN: {{ $rest_data->rest_gstin }}
+            </h2>
         </td>
         <td style="text-align: right;">
-            <button id="exportButton" onclick="exportToExcel()" class="btn btn-info btn-sm">EXCEL</button>
-        </td>
-    </tr>
-    <tr>
-        <td>
-            <p class="printDate">FROM : {{ \Carbon\Carbon::parse($startDate)->format('d-m-Y') }} to {{ \Carbon\Carbon::parse($endDate)->format('d-m-Y') }}</p>
-        </td>
-        <td style="text-align: right;">
+            <button id="exportButton" onclick="exportToExcel()" class="btn btn-info btn-sm mb-1">EXCEL</button><br>
             <button id="printButton" onclick="printContent()" class="btn btn-primary btn-sm">PRINT</button>
         </td>
     </tr>
+</table>
 
+<table style="width: 100%; border-collapse: collapse; margin-top: 20px;" id="firstTable">
+    <tr>
+        <td style="text-align: left; vertical-align: top;">
+            <h4 style="margin: 0;">SALES REGISTER</h4>
+        </td>
+        <td style="text-align: right; vertical-align: top;">
+            <p class="printDate" style="margin: 0;">
+                FROM : {{ \Carbon\Carbon::parse($startDate)->format('d-m-Y') }} to {{ \Carbon\Carbon::parse($endDate)->format('d-m-Y') }}
+            </p>
+        </td>
+    </tr>
 </table>
 
 <table class="table table-bordered mt-3" id="myTable">
     <thead>
         <tr>
             <th class="text-left">S.NO</th>
-            <th class="text-left">DATE</th>
             <th class="text-left">BILL NO</th>
+            <th class="text-left">DATE</th>
             <th class="text-left">TOKEN NO</th>
             <th class="text-left">PAYMENT MODE</th>
-            <th class="text-right">RATE</th>
+            <th class="text-right">NET AMT</th>
             <th class="text-right">CGST</th>
             <th class="text-right">SGST</th>
-            <th class="text-right">TOTAL</th>
-            <th class="text-right">NET AMT</th>
+            <th class="text-right">TOTAL GST</th>
+            <th class="text-right">GROSS AMT</th>
         </tr>
     </thead>
     <tbody>
-    @php
-        $amtGross = 0;
-        $amtCGST = 0;
-        $amtSGST = 0;
-        $paidAmt = 0;
-        $netAmt = 0;
-    @endphp
+        @php
+            $amtGross = 0;
+            $amtCGST = 0;
+            $amtSGST = 0;
+            $paidAmt = 0;
+            $netAmt = 0;
+        @endphp
 
-    @forelse($data as $index => $d)
+        @forelse($data as $index => $d)
+        @php
+            $fullStr = str_pad($d->invoice_no, 10, '0', STR_PAD_LEFT);
+            $prefix = substr($fullStr, 0, 2);
+            $branch = substr($fullStr, 2, 2);
+            $serial = (int)substr($fullStr, 4);
+            $formattedInvoiceNo = $prefix . '-' . $branch . '/' . $serial;
+        @endphp
         <tr>
             <td class="text-center">{{ ++$index }}</td>
+            <td>{{ $formattedInvoiceNo  }}</td>
             <td>{{ date('d-m-Y', strtotime($d->tran_date)) ?? '' }}</td>
-            <td>{{ $d->tran_no }}</td>
             <td>{{ $d->tran_no }}</td>
             <td>
                 @if($d->payment_mode == 'C')
@@ -176,7 +202,6 @@
     </tr>
 </tfoot>
 
-
 </table>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.4/xlsx.full.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
@@ -185,7 +210,7 @@
         var table = document.getElementById('myTable');
         
         for (var i = 1; i < table.rows.length; i++) { 
-            var dateCell = table.rows[i].cells[1]; // Assuming date is in the 2nd column
+            var dateCell = table.rows[i].cells[2]; // Assuming date is in the 2nd column
             dateCell.textContent = formatDate(dateCell.textContent);
         }
 
@@ -199,7 +224,7 @@
             return buf;
         }
 
-        var fileName = prompt("Enter file name:", "bill_wise_report.xlsx");
+        var fileName = prompt("Enter file name:", "sale_register_report.xlsx");
         if (fileName === null) {
             return; 
         }

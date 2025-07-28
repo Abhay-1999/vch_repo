@@ -6,7 +6,7 @@
         <div class="col-md-6 offset-md-3">
             <div class="card text-center">
                 <div class="card-body" style="background-color: aliceblue;">
-                    <h3 class="card-title mb-4">PAYMENT MODE RECORD</h3>
+                    <h3 class="card-title mb-4">DATE WISE SALE SUMMARY</h3>
                     <form id="cashbookForm" action="{{ route('mode_pay_data') }}" method="post">
                         @csrf
                         <div class="row">

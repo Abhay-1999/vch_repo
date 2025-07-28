@@ -20,6 +20,8 @@
                                              Zomato
                                         @elseif($order->payment_mode=="S")
                                             Swiggy
+                                        @elseif($order->payment_mode=="U")
+                                           Counter UPI 
                                         @else
                                             Cash
                                        @endif

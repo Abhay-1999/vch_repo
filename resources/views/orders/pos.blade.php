@@ -192,6 +192,7 @@ html += `
             $('#manual-print-token').removeAttr('disabled');
             $('#manual-print-bill').removeAttr('disabled');
 
+
             lastOrderId = response.order_id;
         } else {
             Swal.fire("Error", "Failed to save order", "error");

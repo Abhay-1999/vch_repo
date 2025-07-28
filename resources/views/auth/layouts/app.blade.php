@@ -155,11 +155,10 @@ $admin = Auth::guard('admin')->user();
                             <span><i class="bi bi-graph-up-arrow me-2"></i><span>Reports</span></span>
                         </a>
                         <ul class="dropdown-menu" aria-labelledby="dropdownReports">
-                            <li><a class="dropdown-item" href="{{ route('bill_ws_form') }}"><i class="bi bi-file-earmark-bar-graph me-2"></i>Bill Wise</a></li>
-                            <li><a class="dropdown-item" href="{{ route('bill_item_form') }}"><i class="bi bi-file-earmark-bar-graph me-2"></i>Bill-Item Wise</a></li>
-                            <li><a class="dropdown-item" href="{{ route('item_ws_form') }}"><i class="bi bi-file-earmark-text me-2"></i>Item Wise</a></li>
-                            <li><a class="dropdown-item" href="{{ route('mode_pay_form') }}"><i class="bi bi-file-earmark-bar-graph me-2"></i>Mode Wise Payment</a></li>
-                            <li><a class="dropdown-item" href="{{ route('sale_form') }}"><i class="bi bi-file-earmark-bar-graph me-2"></i>Total Sale</a></li>
+                            <li><a class="dropdown-item" href="{{ route('bill_ws_form') }}"><i class="bi bi-file-earmark-bar-graph me-2"></i>Sale Register</a></li>
+                            <li><a class="dropdown-item" href="{{ route('item_ws_form') }}"><i class="bi bi-file-earmark-text me-2"></i>Item Wise Sale</a></li>
+                            <li><a class="dropdown-item" href="{{ route('mode_pay_form') }}"><i class="bi bi-file-earmark-bar-graph me-2"></i>Date Wise Sale</a></li>
+                            <li><a class="dropdown-item" href="{{ route('sale_form') }}"><i class="bi bi-file-earmark-bar-graph me-2"></i>GST Summary</a></li>
                         </ul>
                     </li>
                 @else

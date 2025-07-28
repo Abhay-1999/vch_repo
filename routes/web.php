@@ -41,12 +41,8 @@ Route::prefix('admin')->group(function () {
     Route::post("bill-data",[ReportController::class,'bill_wise_data'])->name('bill_ws_data');
 
     //mode wise payment
-    Route::get('pay-mode-form',[ReportController::class,'pay_mode_form'])->name('mode_pay_form');
-    Route::post('pay-mode-data',[ReportController::class,'pay_mode_data'])->name('mode_pay_data');
-
-    // bill item wise
-    Route::get('/bill-item-form',[ReportController::class,'bill_item_wise_form'])->name('bill_item_form');
-    Route::post('/bill-item-data',[ReportController::class,'bill_item_wise_data'])->name('bill_item_data');
+    Route::get('dt-sale-form',[ReportController::class,'pay_mode_form'])->name('mode_pay_form');
+    Route::post('dt-sale-data',[ReportController::class,'pay_mode_data'])->name('mode_pay_data');
     
     //total sale
     Route::get('/sale-form',[ReportController::class,'total_sale_form'])->name('sale_form');
