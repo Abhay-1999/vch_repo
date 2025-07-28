@@ -23,9 +23,9 @@
                             </select>
                         </div>
 
-                        <div class="mb-3" id="mobile_field">
-                            <label class="form-label">Mobile Number</label>
-                            <input type="text" class="form-control" id="mobile" placeholder="Enter mobile number">
+                        <div class="mb-3" id="mobile_field" style="display: none;">
+                            <label class="form-label">Otp</label>
+                            <input type="text" class="form-control" id="mobile" placeholder="Enter Otp Here">
                         </div>
 
                         <div class="mb-3" id="orderid_field" style="display: none;">
@@ -65,10 +65,12 @@
                         </div>
 
                         <div class="d-flex justify-content-between align-items-center mt-3 flex-wrap gap-2">
-                            <button class="btn btn-success" id="save-order">✅ Save Order</button>
+                        <button class="btn btn-success" id="save-order">✅ Save&Print </button>
+                            <!-- <button class="btn btn-success" id="save-order">✅ Save </button>
                             <button class="btn btn-primary" id="new-order">🆕 New Order</button>
                             <button class="btn btn-warning" id="manual-print-token" disabled>🎟️ Print Token</button>
-                            <button class="btn btn-info" id="manual-print-bill" disabled>🧾 Print Bill</button>
+                            <button class="btn btn-info" id="manual-print-bill" disabled>🧾 Print Bill</button> -->
+                            <button class="btn btn-info" id="print-last-bill">🧾Last Print Bill</button>
                         </div>
 
                     </div>
@@ -114,9 +116,10 @@ function updateDiscountDisplay() {
         $('.final_total').val(finalAmount.toFixed(2));
     }
 
+
     $('#order_type').on('change', function () {
         const val = $(this).val();
-        $('#mobile_field').show();
+        $('#mobile_field').toggle(val !== 'C' && val !== 'U');
         $('#orderid_field').toggle(val !== 'C' && val !== 'U');
         updateDiscountDisplay();
     }).trigger('change');
@@ -159,7 +162,6 @@ html += `
     $('#save-order').click(function () {
     if (cart.length === 0) return alert("Cart is empty!");
 
-    // Disable Save button and item card
     const $saveBtn = $(this);
     $saveBtn.prop('disabled', true);
     $('#itemCard').css({
@@ -183,21 +185,28 @@ html += `
         order_id: order_id
     }, function (response) {
         if (response.success) {
+            localStorage.setItem('lastOrderId', response.order_id); // ✅ Store it here
             Swal.fire({
                 title: 'Order Saved!',
-                showConfirmButton: true,
-                allowOutsideClick: true,
+                showConfirmButton: false,
+                timer: 1000
+            }).then(() => {
+                // Automatically print the bill/token
+                if (typeof handlePrint === 'function') {
+                    handlePrint(response.order_id, 'token');
+                }
+
+                // Refresh after 2 seconds (adjust if needed)
+                setTimeout(() => {
+                    location.reload();
+                }, 2000);
             });
 
             $('#manual-print-token').removeAttr('disabled');
             $('#manual-print-bill').removeAttr('disabled');
-
-
             lastOrderId = response.order_id;
         } else {
             Swal.fire("Error", "Failed to save order", "error");
-
-            // Re-enable on failure
             $saveBtn.prop('disabled', false);
             $('#itemCard').css({
                 'pointer-events': 'auto',
@@ -206,8 +215,6 @@ html += `
         }
     }).fail(function () {
         Swal.fire("Error", "Something went wrong while saving order", "error");
-
-        // Re-enable on failure
         $saveBtn.prop('disabled', false);
         $('#itemCard').css({
             'pointer-events': 'auto',
@@ -215,7 +222,6 @@ html += `
         });
     });
 });
-
 
     function showPrintOptions(orderId) {
     Swal.fire({
@@ -247,6 +253,21 @@ $('#manual-print-bill').click(() => {
     if (!lastOrderId) return alert('No order to print!');
     handlePrint(lastOrderId, 'bill');
 });
+
+
+$('#print-last-bill').click(() => {
+    const storedOrderId = localStorage.getItem('lastOrderId');
+    if (!storedOrderId) {
+        alert('No recent order found to print!');
+        return;
+    }
+
+    handlePrint(storedOrderId, 'bill'); // or 'token' if that’s your print type
+    localStorage.removeItem('lastOrderId');
+
+});
+
+
 
 
 
@@ -370,9 +391,10 @@ function renderCart() {
                     <input type="number" class="form-control form-control-sm amount-input" 
                         data-id="${item.id}" style="width: 70px;" 
                         placeholder="₹ Amt" step="0.01" value="${item.amount?.toFixed(2) || ''}">
+
                     <input type="text" class="form-control form-control-sm grams-input" 
-                        style="width: 70px;" disabled
-                        value="${item.grams?.toFixed(2) || ''}">
+                        data-id="${item.id}" style="width: 70px;"
+                        placeholder="Gram" value="${item.grams?.toFixed(2) || ''}">
                 </div>`;
         } else {
             html += `
@@ -407,12 +429,25 @@ function renderCart() {
 
 
 function bindAmountEvents() {
+
     $('.amount-input').off().on('blur keydown', function (e) {
-        if (e.type === 'blur' || e.key === 'Enter' || e.key === 'Tab') {
-            updateAmountAndLock($(this).data('id'), this.value);
-            updateFinalTotal();
-        }
-    });
+    if (e.type === 'blur' || e.key === 'Enter' || e.key === 'Tab') {
+        const id = $(this).data('id');
+        const value = this.value;
+        updateAmountAndLock(id, value);
+        updateFinalTotal();
+    }
+});
+
+$('.grams-input').off().on('blur keydown', function (e) {
+    if (e.type === 'blur' || e.key === 'Enter' || e.key === 'Tab') {
+        const id = $(this).data('id');
+        const value = this.value;
+        updateGramAndLock(id, value);
+        updateFinalTotal();
+    }
+});
+
 
     $('.qty-direct-input').off().on('change blur keydown', function (e) {
         if (e.type === 'blur' || e.key === 'Enter' || e.key === 'Tab') {
@@ -437,10 +472,24 @@ function updateAmountAndLock(id, value) {
     if (isNaN(amount) || amount <= 0) return;
 
     item.amount = parseFloat(amount.toFixed(2));
-    item.grams = (amount / item.price) * 100;
+    item.grams = parseFloat(((amount / item.price) * 100).toFixed(2)); // price per 100g
 
     updateRow(id);
 }
+
+function updateGramAndLock(id, value) {
+    const item = cart.find(i => i.id === id);
+    if (!item) return;
+
+    const grams = parseFloat(value);
+    if (isNaN(grams) || grams <= 0) return;
+
+    item.grams = parseFloat(grams.toFixed(2));
+    item.amount = parseFloat(((grams / 100) * item.price).toFixed(2)); // price per 100g
+
+    updateRow(id);
+}
+
 
 
 
@@ -498,24 +547,32 @@ function updateRow(id) {
 
     const $row = $(`#cart-table tbody tr[data-id="${id}"]`);
 
-    // Gram based
-    $row.find('.amount-input').val(item.amount?.toFixed(2));
-    $row.find('.grams-input').val(item.grams?.toFixed(2));
-    $row.find('.qty-input').val(item.qty?.toFixed(0));
+    // Update inputs for gram-based items
+    if ('amount' in item && 'grams' in item) {
+        $row.find('.amount-input').val(item.amount?.toFixed(2) || '');
+        $row.find('.grams-input').val(item.grams?.toFixed(2) || '');
+    }
 
-    // Non-gram based
-    $row.find('.qty-direct-input').val(item.qty);
+    // Update inputs for qty-based items (non-gram items)
+    if ('qty' in item) {
+        $row.find('.qty-input').val(item.qty?.toFixed(0) || '');
+        $row.find('.qty-direct-input').val(item.qty || '');
+    }
 
+    // Calculate line total
     const total = item.amount || (item.qty * item.price);
     $row.find('.line-total').text('₹' + total.toFixed(2));
 
-    // Update grand total
+    // Recalculate and update overall total
     let fullTotal = 0;
     cart.forEach(i => {
-        fullTotal += i.amount || (i.qty * i.price);
+        const lineTotal = i.amount || (i.qty * i.price);
+        fullTotal += parseFloat(lineTotal || 0);
     });
+
     $('#total').text(fullTotal.toFixed(2));
 }
+
 
 
 

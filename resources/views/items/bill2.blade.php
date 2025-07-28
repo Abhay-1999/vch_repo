@@ -36,6 +36,35 @@
       page-break-before: always;
     }
 
+    @media print {
+      body {
+        margin: 0;
+        padding: 0;
+        background-color: #fff;
+      }
+
+      .invoice-box {
+        box-shadow: none;
+        border-radius: 0;
+        padding: 10px;
+        font-size: 12px;
+        width: 80mm;
+      }
+
+      .btn, .no-print {
+        display: none !important;
+      }
+
+      .table th, .table td {
+        padding: 4px !important;
+        font-size: 12px !important;
+      }
+
+      .invoice-header {
+        font-size: 16px;
+      }
+    }
+
     @media (max-width: 576px) {
       .invoice-header {
         font-size: 16px;
@@ -53,45 +82,39 @@
 </head>
 <body>
   <div class="container page-break">
-    <div class="invoice-box">
-    <div class="d-flex justify-content-between align-items-start mb-3" style="flex-wrap: nowrap;">
-  <!-- Left: Restaurant Address -->
-  <div style="min-width: 280px; max-width: 60%;">
-    <h4 class="invoice-header mb-1">
-      {{ $rest_data->rest_name }}
-    </h4>
-    <p class="mb-1">
-      {{ $rest_data->rest_add2 }} {{ $rest_data->rest_city }}<br>
-      Phone: 91 {{ $rest_data->rest_contact }}<br>
-      GSTIN: {{ $rest_data->rest_gstin }}<br>
-      FSSAI: {{ $rest_data->rest_fssai }}<br>
-      Website: {{ $rest_data->rest_website }}
-    </p>
-  </div>
+    <div class="invoice-box" id="invoiceContent">
+      <div class="d-flex justify-content-between align-items-start mb-3" style="flex-wrap: nowrap;">
+        <div style="min-width: 280px; max-width: 60%;">
+          <h4 class="invoice-header mb-1">{{ $rest_data->rest_name }}</h4>
+          <p class="mb-1">
+            {{ $rest_data->rest_add2 }} {{ $rest_data->rest_city }}<br>
+            Phone: 91 {{ $rest_data->rest_contact }}<br>
+            GSTIN: {{ $rest_data->rest_gstin }}<br>
+            FSSAI: {{ $rest_data->rest_fssai }}<br>
+            Website: {{ $rest_data->rest_website }}
+          </p>
+        </div>
+        <div class="text-end" style="min-width: 120px;">
+          <img src="{{ asset('images/vijaychat.webp') }}" alt="Logo" style="max-height: 80px;">
+        </div>
+      </div>
 
-  <!-- Right: Logo -->
-  <div class="text-end" style="min-width: 120px;">
-    <img src="{{ asset('images/vijaychat.webp') }}" alt="Logo" style="max-height: 80px;">
-  </div>
-</div>
       <h5 class="text-center">RETAIL INVOICE</h5>
+
       <div class="d-flex justify-content-between mb-3 flex-wrap">
-  <!-- Left side: Invoice No and Invoice Date -->
-  <div class="pe-3" style="flex: 1;">
-    <p>Invoice No: <strong>{{ $invoiceNo }}</strong></p>
-    <p>Invoice Date: <strong>{{ date('d F Y', strtotime($hd_data->invoice_date)) }}</strong></p>
-  </div>
-
-  <!-- Right side: Token No and Order ID -->
-  <div class="text-end ps-3" style="flex: 1;">
-    <p>Token No: <strong>{{ $hd_data->tran_no }}</strong></p>
-    @if($hd_data->order_id && $hd_data->payment_mode == 'Z' || $hd_data->payment_mode == 'S')
-      <p>Zomato/Swiggy Order Id: <strong>{{ $hd_data->order_id }}</strong></p>
-    @endif
-  </div>
-</div>
-
-
+        <div class="pe-3" style="flex: 1;">
+          <p>Payment Mode: <strong>{{ $paymentMode }}</strong></p>
+          <p>Invoice No: <strong>{{ $invoiceNo }}</strong></p>
+          <p>Invoice Date: <strong>{{ date('d F Y', strtotime($hd_data->invoice_date)) }}</strong></p>
+        </div>
+        <div class="text-end ps-3" style="flex: 1;">
+          <p>Token No: <strong>{{ $hd_data->tran_no }}</strong></p>
+          @if($hd_data->order_id && ($hd_data->payment_mode == 'Z' || $hd_data->payment_mode == 'S'))
+            <p>Zomato/Swiggy Order Id: <strong>{{ $hd_data->order_id }}</strong></p>
+            <p>Otp: <strong>{{ $hd_data->cust_mobile }}</strong></p>
+          @endif
+        </div>
+      </div>
 
       <div class="table-responsive">
         <table class="table table-bordered">
@@ -99,76 +122,73 @@
             <tr>
               <th>Item</th>
               <th>Qty/gram</th>
-              <th style="text-align: right;">Rate</th>
-              <th style="text-align: right;">Amt</th>
+              <th class="text-end">Rate</th>
+              <th class="text-end">Amt</th>
             </tr>
           </thead>
           <tbody>
             <?php 
-            $itemgst = $itemAmt = 0;
+              $itemgst = $itemAmt = 0;
             ?>
             @foreach($dt_data as $d_data)
-            <?php $itemgst += $d_data->item_gst; ?>
-            <?php $itemAmt += $d_data->amount; ?>
-            <tr>
-              <td>{{ $d_data->item_desc }}</td>
-              <td> 
-                @if($d_data->item_qty)
-                {{ $d_data->item_qty }}
-                @else
-                {{ $d_data->item_gm }} gram
-                @endif
-              <td style="text-align: right;">{{ number_format($d_data->item_rate,2) }} </td>
-              <td style="text-align: right;">
-                {{ $d_data->amount }}
+              <?php 
+                $itemgst += $d_data->item_gst;
+                $itemAmt += $d_data->amount;
+              ?>
+              <tr>
+                <td>{{ $d_data->item_desc }}</td>
+                <td>
+                  @if($d_data->item_qty)
+                    {{ $d_data->item_qty }}
+                  @else
+                    {{ $d_data->item_gm }} gram
+                  @endif
                 </td>
-            </tr>
+                <td class="text-end">{{ number_format($d_data->item_rate, 2) }}</td>
+                <td class="text-end">{{ number_format($d_data->amount, 2) }}</td>
+              </tr>
             @endforeach
           </tbody>
         </table>
       </div>
 
       <div class="row">
-      <br><small style="text-align: left;">HSN/SAC: 996331</small>
-      <div class="col-12 text-end">
+        <br><small style="text-align: left;">HSN/SAC: 996331</small>
+        <div class="col-12 text-end">
           <div class="total-box">
-             
-              @if($hd_data->discount)
-                  @php
-                      $discountAmount = ($hd_data->gross_amt * $hd_data->discount) / 100;
-                      $finalAmount = $hd_data->gross_amt - $discountAmount;
-                  @endphp
-                
-
-                  <p>Total Amount: <strong>₹{{ number_format($itemAmt,2) }}</strong></p>
-                  <p>SGST 2.50% <strong>₹{{ round($itemgst/2,2) }}</strong></p>
-                  <p>CGST 2.50% <strong>₹{{  round($itemgst/2,2) }}</strong></p>
-                  <p>Discount ({{ $hd_data->discount }}%): <strong>− ₹{{ number_format($discountAmount, 2) }}</strong></p>
-                  <p>Final Amount: <strong>₹{{ number_format($finalAmount, 2) }}</strong></p>
-                  <p>Paid (Rounded Off): <strong>₹</strong><strong class="paidAmt">{{ number_format(round($finalAmount), 2) }}</strong></p>
-
-              @else
-                  <p>Total Amount: <strong>₹{{ number_format($itemAmt,2) }}</strong></p>
-                  <p>SGST 2.50% <strong>₹{{ round($itemgst/2,2) }}</strong></p>
-                  <p>CGST 2.50% <strong>₹{{  round($itemgst/2,2) }}</strong></p>
-                  <p>Paid (Rounded Off): <strong>₹</strong> <strong class="paidAmt">{{ number_format(round($hd_data->paid_amt), 2) }}</strong></p>
-              @endif
-
-              <p class="mt-2"><em class="ptext"></em></p>
+            @if($hd_data->discount)
+              @php
+                $discountAmount = ($hd_data->gross_amt * $hd_data->discount) / 100;
+                $finalAmount = $hd_data->gross_amt - $discountAmount;
+              @endphp
+              <p>Total Amount: <strong>₹{{ number_format($itemAmt, 2) }}</strong></p>
+              <p>SGST 2.50% <strong>₹{{ round($itemgst/2, 2) }}</strong></p>
+              <p>CGST 2.50% <strong>₹{{ round($itemgst/2, 2) }}</strong></p>
+              <p>Discount ({{ $hd_data->discount }}%): <strong>− ₹{{ number_format($discountAmount, 2) }}</strong></p>
+              <p>Final Amount: <strong>₹{{ number_format($finalAmount, 2) }}</strong></p>
+              <p>Paid (Rounded Off): <strong class="paidAmt">₹{{ number_format($finalAmount, 2) }}</strong></p>
+            @else
+              <p>Total Amount: <strong>₹{{ number_format($itemAmt, 2) }}</strong></p>
+              <p>SGST 2.50% <strong>₹{{ round($itemgst/2, 2) }}</strong></p>
+              <p>CGST 2.50% <strong>₹{{ round($itemgst/2, 2) }}</strong></p>
+              <p>Paid (Rounded Off): <strong class="paidAmt">₹{{ number_format(round($hd_data->paid_amt), 2) }}</strong></p>
+            @endif
+            <p class="mt-2"><em class="ptext"></em></p>
           </div>
-      </div>
-
+        </div>
       </div>
 
       <div class="text-center mt-4">
         <p>Thanks for visiting <strong>{{ $rest_data->rest_name }}</strong><br>Have a nice Day!</p>
-        <!-- <p class="text-muted"><small>For any queries call {{ $rest_data->rest_tellno }}<br>Between 10:00 and 22:00</small></p> -->
       </div>
     </div>
   </div>
 
-  <!-- jQuery + Words -->
+
+
+  <!-- Scripts -->
   <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
   <script>
     function numberToWords(paidAmt) {
       const a = ['', 'One', 'Two', 'Three', 'Four', 'Five', 'Six', 'Seven', 'Eight', 'Nine', 'Ten',
@@ -191,8 +211,23 @@
       $('.ptext').text(wordsAmt);
     }
 
-    var paidAmt = $('.paidAmt').text().trim();
+    var paidAmt = $('.paidAmt').text().replace(/[₹,]/g, '').trim();
     numberToWords(paidAmt);
+
+    function saveInvoiceAsImage() {
+      html2canvas(document.getElementById("invoiceContent"), {
+        scale: 2,
+        useCORS: true,
+        allowTaint: false
+      }).then(canvas => {
+        const link = document.createElement('a');
+        link.href = canvas.toDataURL("image/png");
+        link.download = "tax_invoice.png";
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+      });
+    }
   </script>
 </body>
 </html>

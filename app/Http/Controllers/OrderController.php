@@ -391,17 +391,79 @@ public function updateOrderItem(Request $request)
         $itemCode = $request->input('item_code');
         $itemStatus = $request->input('item_status');
         $rest_code = $request->input('rest_code');
+        $minutes = $request->input('minutes');
+        $start_time = $request->input('start_time');
+        $end_time = $request->input('end_time');
 
         if($itemStatus=='A'){
             $status = 'D';
         }else{
             $status = 'A';
         }
-        // Example update logic (you should replace this with actual DB logic)
-        DB::table('item_master')
+
+        if($minutes!='none'){
+            if ($itemStatus === 'A') {
+                $minutes = (int) $minutes;
+    
+                // Get time after X minutes in IST (Asia/Kolkata)
+                $futureTime = now('Asia/Kolkata')->addMinutes($minutes)->format('H:i:s'); // 👈 Only time string
+                
+                // echo $futureTime;die;
+                DB::table('item_master')
+                    ->where('item_code', $itemCode)
+                    ->where('rest_code', $rest_code)
+                    ->update([
+                        'item_status' => 'D',
+                        'minutes' => $futureTime
+                    ]);
+            
+                return response()->json([
+                    'message' => 'Item deactivated and will auto-reactivate after ' . $minutes . ' minutes'
+                ]);
+            }
+            
+    
+            if ($itemStatus === 'D') {
+                $minutes = (int) $minutes;
+    
+                // Get time after X minutes in IST (Asia/Kolkata)
+                $futureTime = now('Asia/Kolkata')->addMinutes($minutes)->format('H:i:s'); // 👈 Only time string
+                
+                
+            
+                DB::table('item_master')
+                    ->where('item_code', $itemCode)
+                    ->where('rest_code', $rest_code)
+                    ->update([
+                        'item_status' => 'A',
+                        'minutes' => $futureTime // store future timestamp
+                    ]);
+            
+                return response()->json([
+                    'message' => 'Item Activated and will auto-deactivate after ' . $minutes . ' minutes'
+                ]);
+            }
+
+        }else{
+
+            DB::table('item_master')
             ->where('item_code', $itemCode)
             ->where('rest_code', $rest_code)
-            ->update(['item_status' => $status]); // or any custom logic
+            ->update([
+                'item_status' => 'A',
+                'start_time' => $start_time ,
+                'end_time' => $end_time
+            ]);
+
+            
+            return response()->json([
+                'message' => 'Item schedule has been updated successfully.'
+            ]);
+
+        }
+
+      
+        
 
         return response()->json(['message' => 'Status updated']);
     }
@@ -465,13 +527,25 @@ public function updateOrderItem(Request $request)
 
         $invoiceNo = $prefix.'-'.$branch.'/'.$serial;
 
+        if($hd_data->payment_mode=='O'){
+            $paymentMode = 'Online';
+        }elseif($hd_data->payment_mode=='C'){
+            $paymentMode = 'Cash';
+        }elseif($hd_data->payment_mode=='U'){
+            $paymentMode = 'Counter UPI';
+        }elseif($hd_data->payment_mode=='Z'){
+            $paymentMode = 'Zomato';
+        }elseif($hd_data->payment_mode=='S'){
+            $paymentMode = 'Swiggy';
+        }
+
     
         // Return HTML(s) based on type
         if ($type === 'bill') {
-            $html = view('items.bill2', compact('dt_data', 'hd_data', 'rest_data','invoiceNo'))->render();
+            $html = view('items.bill2', compact('dt_data', 'hd_data', 'rest_data','invoiceNo','paymentMode'))->render();
             return response()->json(['html' => $html]);
         } elseif ($type === 'token') {
-            $html = view('items.bill', compact('dt_data', 'hd_data', 'rest_data'))->render(); // You must create this view
+            $html = view('items.bill', compact('dt_data', 'hd_data', 'rest_data','paymentMode'))->render(); // You must create this view
             return response()->json(['html' => $html]);
         } elseif ($type === 'both') {
             $tokenHtml = view('items.both', compact('dt_data', 'hd_data', 'rest_data'))->render();
@@ -844,14 +918,78 @@ public function updateOrderItem(Request $request)
 
 }
 
-public function reverseGST($totalAmount, $gstRate) {
-    $baseAmount = ($totalAmount * 100) / (100 + $gstRate);
-    $gstAmount = $totalAmount - $baseAmount;
-    return [
-        'base' => round($baseAmount, 2),
-        'gst'  => round($gstAmount, 2)
-    ];
-}
+    public function reverseGST($totalAmount, $gstRate) {
+        $baseAmount = ($totalAmount * 100) / (100 + $gstRate);
+        $gstAmount = $totalAmount - $baseAmount;
+        return [
+            'base' => round($baseAmount, 2),
+            'gst'  => round($gstAmount, 2)
+        ];
+    }
+
+    public function ChangeOrder(){
+
+        $admin = Auth::guard('admin')->user();
+        $role = $admin->role;
+  
+        $orders = DB::table('order_hd')
+        ->where('tran_date',date('Y-m-d'))
+        ->where('flag','!=','H')
+        ->whereIn('payment_mode',['C','U'])
+        ->where('status_trans','success')
+        ->orderBy('tran_no','desc')
+        ->get();
+        
+
+        
+     
+        $order_arr = array();
+        $order_arr_item = array();
+        $order_arr_item_f = array();
+
+        foreach($orders as $order){
+
+                $details = DB::table('order_dt')->select('order_dt.item_qty','order_dt.customise_flag','order_dt.item_code','item_master.item_desc','order_hd.flag')
+                ->join('order_hd','order_dt.tran_no','=','order_hd.tran_no')
+                ->join('item_master','order_dt.item_code','=','item_master.item_code')
+                ->where('order_hd.tran_date',date('Y-m-d'))
+                ->where('order_dt.tran_date',date('Y-m-d'))
+                ->where('order_dt.tran_no',$order->tran_no)
+                ->get();
+
+                foreach($details as $detail){
+                    $order_arr[$order->tran_no][] = $detail->item_desc  . ' - ' . $detail->item_qty;
+                    $order_arr_item[$order->tran_no][] = $detail->item_code;
+                    $order_arr_item_f[$order->tran_no][$detail->item_code] = $detail->customise_flag;
+                }
+
+        }
+
+       
+        // echo"<pre>";print_r($order_arr_item_f);die;
+
+          return view('orders.changeorder', compact('orders','order_arr','role','order_arr_item','order_arr_item_f')); // Pass orders
+    }
+
+
+    public function UpdatePaymode(Request $request){
+
+        $tran_no = $request->tran_no;
+        $flag = $request->flag;
+
+        if($flag=='C'){
+            $status = 'U';
+        }else{
+            $status = 'C';
+        }
+
+        DB::table('order_hd')
+        ->where('tran_date',date('Y-m-d'))
+            ->where('tran_no', $tran_no)
+            ->update(['payment_mode' => $status]); // or some other flag
+
+        return response()->json(['success' => true]);
+    }
 
 
 }

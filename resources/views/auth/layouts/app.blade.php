@@ -149,6 +149,9 @@ $admin = Auth::guard('admin')->user();
                     <a class="nav-link {{ request()->routeIs('orders.indexp') ? 'active' : '' }}" href="{{ route('orders.indexp') }}">
                         <i class="bi bi-bag-fill me-2"></i><span>Pending Order</span>
                     </a>
+                    <a class="nav-link {{ request()->routeIs('change.order') ? 'active' : '' }}" href="{{ route('change.order') }}">
+                        <i class="bi bi-bag-fill me-2"></i><span>Change Order Type</span>
+                    </a>
                     <li class="nav-item dropdown">
                         <a class="nav-link dropdown-toggle d-flex justify-content-between align-items-center"
                         href="#" id="dropdownReports" role="button" data-bs-toggle="dropdown" aria-expanded="false">

@@ -19,7 +19,7 @@ class ItemController extends Controller
 
     public function all()
     {
-        $items = Item::select('item_desc','item_code','rest_code','item_rate','item_status')->orderBy('item_desc')->get();
+        $items = Item::select('item_desc','item_code','rest_code','item_rate','item_status','start_time','end_time')->orderBy('item_desc')->get();
 
 
     //    echo"<pre>";print_r($items->toArray());die;
@@ -63,7 +63,36 @@ class ItemController extends Controller
         Session::put('group_code',$group_code);
         Session::put('rest_code',$rest_code);
 
-        $items = Item::where('group_code',$group_code)->where('item_status','A')->where('rest_code',$rest_code)->get();
+        // $items = Item::where('group_code',$group_code)->where('item_status','A')->where('rest_code',$rest_code)->get();
+
+        // $now = now()->format('H:i:s');
+        $now = now('Asia/Kolkata')->format('H:i:s');
+
+        $items = DB::table('item_master')
+        ->where('group_code',$group_code)
+        ->where('item_status','A')
+        ->where('rest_code',$rest_code)
+        ->where(function ($query) use ($now) {
+        // Time-based items
+        $query->where(function ($q) use ($now) {
+            $q->whereRaw('start_time <= end_time')
+              ->where('start_time', '<=', $now)
+              ->where('end_time', '>=', $now);
+        })
+        // Midnight wrap items
+        ->orWhere(function ($q) use ($now) {
+            $q->whereRaw('start_time > end_time')
+              ->where(function ($q2) use ($now) {
+                  $q2->where('start_time', '<=', $now)
+                     ->orWhere('end_time', '>=', $now);
+              });
+        })
+        // Always visible items
+        ->orWhere(function ($q) {
+            $q->whereNull('start_time')->whereNull('end_time');
+        });
+    })
+    ->get();
 
 
         $item_grpcodes = Item::select('item_grpcode','item_grpdesc')->where('group_code',$group_code)->where('item_status','A')->where('rest_code',$rest_code)->groupBy('item_grpcode','item_grpdesc')->get();
@@ -82,7 +111,48 @@ class ItemController extends Controller
                 'message' => 'Item out of Stock!'
             ]);
         }
+
+        $now = now('Asia/Kolkata')->format('H:i:s');
+
+    $itemCheck = Item::where('item_code', $id)
+    ->where('item_status', 'A')
+    ->where('item_grpcode', $request->item_grpcode)
+    ->where(function ($query) use ($now) {
+        $query
+            // Case 1: Normal time range (start <= end)
+            ->where(function ($q) use ($now) {
+                $q->whereRaw('start_time <= end_time')
+                  ->where('start_time', '<=', $now)
+                  ->where('end_time', '>=', $now);
+            })
+            // Case 2: Midnight-wrap range (start > end)
+            ->orWhere(function ($q) use ($now) {
+                $q->whereRaw('start_time > end_time')
+                  ->where(function ($q2) use ($now) {
+                      $q2->where('start_time', '<=', $now)
+                         ->orWhere('end_time', '>=', $now);
+                  });
+            })
+            // Case 3: No time restriction (null start and end)
+            ->orWhere(function ($q) {
+                $q->whereNull('start_time')
+                  ->whereNull('end_time');
+            });
+    })
+    ->first();
+
+        if (!$itemCheck) {
+            return response()->json([
+                'success' => true,
+                'message' => 'Item is not in stock!'
+            ]);
+        }
+
+        
+
+
         $cart = session()->get('cart', []);
+        
 
         if (isset($cart[$id])) {
             // $cart[$id]['quantity']++;
@@ -285,6 +355,7 @@ class ItemController extends Controller
         $cart = session()->get('cart', []);
         $quantity = $request->input('quantity');
         $id = $request->id;
+
         $item = Item::where('item_code',$id)->where('item_status','A')->first();
 
         if(!$item){
@@ -293,6 +364,42 @@ class ItemController extends Controller
                 'message' => 'Item out of Stock!'
             ]);
         }
+
+        $now = now('Asia/Kolkata')->format('H:i:s');
+
+    $itemCheck = Item::where('item_code', $id)
+    ->where('item_status', 'A')
+    ->where(function ($query) use ($now) {
+        $query
+            // Case 1: Normal time range (start <= end)
+            ->where(function ($q) use ($now) {
+                $q->whereRaw('start_time <= end_time')
+                  ->where('start_time', '<=', $now)
+                  ->where('end_time', '>=', $now);
+            })
+            // Case 2: Midnight-wrap range (start > end)
+            ->orWhere(function ($q) use ($now) {
+                $q->whereRaw('start_time > end_time')
+                  ->where(function ($q2) use ($now) {
+                      $q2->where('start_time', '<=', $now)
+                         ->orWhere('end_time', '>=', $now);
+                  });
+            })
+            // Case 3: No time restriction (null start and end)
+            ->orWhere(function ($q) {
+                $q->whereNull('start_time')
+                  ->whereNull('end_time');
+            });
+    })
+    ->first();
+
+        if (!$itemCheck) {
+            return response()->json([
+                'success' => true,
+                'message' => 'Item is not in stock!'
+            ]);
+        }
+
         $cart = session()->get('cart', []);
 
         if (isset($cart[$id])) {
