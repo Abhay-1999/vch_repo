@@ -96,7 +96,7 @@
         </td>
         <td style="padding-left: 30px; vertical-align: middle;">
             <h2 style="margin: 0;" class="printHead">
-                {{ $rest_data->rest_name }} - GSTIN: {{ $rest_data->rest_gstin }}
+                VIJAY CHAT HOUSE - GSTIN: 23AAFFV8652G1Z0
             </h2>
         </td>
         <td style="text-align: right;">
@@ -151,13 +151,16 @@
             $serial = (int)substr($fullStr, 4);
             $formattedInvoiceNo = $prefix . '-' . $branch . '/' . $serial;
         @endphp
-        <tr>
+
+        <tr style="@if($d->net_amt_incl_gst == 0)  color: red; font-weight: normal; @endif">
             <td class="text-center">{{ ++$index }}</td>
-            <td>{{ $formattedInvoiceNo  }}</td>
+            <td>{{ $formattedInvoiceNo }}</td>
             <td>{{ date('d-m-Y', strtotime($d->tran_date)) ?? '' }}</td>
             <td>{{ $d->tran_no }}</td>
             <td>
-                @if($d->payment_mode == 'C')
+                @if($d->net_amt_incl_gst == 0)
+                    Void
+                @elseif($d->payment_mode == 'C')
                     Cash
                 @elseif($d->payment_mode == 'O')
                     Online
@@ -177,6 +180,7 @@
             <td class="text-right">{{ number_format($d->total_gst, 2) }}</td>
             <td class="text-right">{{ number_format($d->net_amt_incl_gst, 2) }}</td>
         </tr>
+
         @php
             $amtGross += $d->base_amt;
             $amtCGST += $d->cgst_amt;
@@ -184,23 +188,24 @@
             $paidAmt += $d->total_gst;
             $netAmt += $d->net_amt_incl_gst;
         @endphp
-    @empty
-        <tr>
-            <td colspan="10" class="text-center text-danger">No record found</td>
-        </tr>
-    @endforelse
-</tbody>
+        @empty
+            <tr>
+                <td colspan="10" class="text-center text-danger">No record found</td>
+            </tr>
+        @endforelse
 
-<tfoot>
-    <tr>
-        <td colspan="5" class="text-right"><strong>Total</strong></td>
-        <td class="text-right"><strong>{{ number_format($amtGross, 2) }}</strong></td>
-        <td class="text-right"><strong>{{ number_format($amtCGST, 2) }}</strong></td>
-        <td class="text-right"><strong>{{ number_format($amtSGST, 2) }}</strong></td>
-        <td class="text-right"><strong>{{ number_format($paidAmt, 2) }}</strong></td>
-        <td class="text-right"><strong>{{ number_format($netAmt, 2) }}</strong></td>
-    </tr>
-</tfoot>
+    </tbody>
+
+    <tfoot>
+        <tr>
+            <td colspan="5" class="text-right"><strong>Total</strong></td>
+            <td class="text-right"><strong>{{ number_format($amtGross, 2) }}</strong></td>
+            <td class="text-right"><strong>{{ number_format($amtCGST, 2) }}</strong></td>
+            <td class="text-right"><strong>{{ number_format($amtSGST, 2) }}</strong></td>
+            <td class="text-right"><strong>{{ number_format($paidAmt, 2) }}</strong></td>
+            <td class="text-right"><strong>{{ number_format($netAmt, 2) }}</strong></td>
+        </tr>
+    </tfoot>
 
 </table>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.4/xlsx.full.min.js"></script>

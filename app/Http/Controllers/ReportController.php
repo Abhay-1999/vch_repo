@@ -75,7 +75,7 @@ class ReportController extends Controller
             ->get()
             ->map(function ($d) {
                 $inclusiveAmount = $d->paid_amt;
-                $baseAmount = $inclusiveAmount / 1.05; // Remove 5% GST
+                $baseAmount = $inclusiveAmount / 1.05;
                 $cgst = $baseAmount * 0.025;
                 $sgst = $baseAmount * 0.025;
                 $totalGst = $cgst + $sgst;
@@ -139,37 +139,6 @@ class ReportController extends Controller
         // echo "<pre>";print_r($data->toArray());die;
 
         return view("reports.pay_mode_data",compact('startDate','endDate','totals','rest_data'));
-    }
-
-    public function bill_item_wise_form()
-    {
-        return view("reports.bill_item_form");
-    }
-
-    public function bill_item_wise_data(Request $request)
-    {
-        $startDate = $request->input('start_date');
-        $endDate = $request->input('end_date');
-
-        $data = DB::table('order_dt')
-            ->select(
-                'order_dt.*',
-                'order_hd.payment_mode',
-                'order_hd.invoice_no',
-                'item_master.item_desc'
-            )
-            ->leftJoin('order_hd', function($join) {
-                $join->on('order_dt.tran_no', '=', 'order_hd.tran_no')
-                    ->on('order_dt.tran_date', '=', 'order_hd.tran_date');
-            })
-            ->leftJoin('item_master', 'order_dt.item_code', '=', 'item_master.item_code')
-            ->whereBetween('order_dt.tran_date', [$startDate, $endDate])
-            ->where('order_hd.flag','!=','H')
-            ->orderBy('order_hd.tran_date')
-            ->orderBy('order_hd.invoice_no')
-            ->get();
-
-        return view("reports.bill_item_data",compact('startDate','endDate','data'));
     }
 
     public function total_sale_form()

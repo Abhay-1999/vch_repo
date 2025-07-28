@@ -90,7 +90,7 @@
         </td>
         <td style="padding-left: 30px; vertical-align: middle;">
             <h2 style="margin: 0;" class="printHead">
-                {{ $rest_data->rest_name }} - GSTIN: {{ $rest_data->rest_gstin }}
+                VIJAY CHAT HOUSE - GSTIN: 23AAFFV8652G1Z0
             </h2>
         </td>
         <td style="text-align: right;">
@@ -126,36 +126,82 @@
         </tr>
     </thead>
     <tbody>
-    @php 
-        $i = 1; 
-        $grandTotalCash = 0; 
-        $grandTotalOnline = 0;   
-        $grandTotalUPI = 0;   
-        $grandTotalZomato = 0;
-        $grandTotalSwiggy = 0;
-    @endphp
-    @foreach ($totals as $date => $amounts)
-    <tr>
-        <td class="text-left">{{ $i++ }}</td>
-        <td class="text-left">{{ $date }}</td>
-        <td class="text-right">{{ number_format($amounts['cash'], 2) }}</td>
-        <td class="text-right">{{ number_format($amounts['Online'], 2) }}</td>
-        <td class="text-right">{{ number_format($amounts['UPI'], 2) }}</td>
-        <td class="text-right">{{ number_format($amounts['Zomato'], 2) }}</td>
-        <td class="text-right">{{ number_format($amounts['Swiggy'], 2) }}</td>
-    </tr>
+        @php 
+            $i = 1; 
+            $grandTotalCash = 0; 
+            $grandTotalOnline = 0;   
+            $grandTotalUPI = 0;   
+            $grandTotalZomato = 0;
+            $grandTotalSwiggy = 0;
+        @endphp
+        @foreach ($totals as $date => $amounts)
+        <tr>
+            <td class="text-left">{{ $i++ }}</td>
+            <td class="text-left">{{ $date }}</td>
+            <td class="text-right">{{ number_format($amounts['cash'], 2) }}</td>
+            <td class="text-right">{{ number_format($amounts['Online'], 2) }}</td>
+            <td class="text-right">{{ number_format($amounts['UPI'], 2) }}</td>
+            <td class="text-right">{{ number_format($amounts['Zomato'], 2) }}</td>
+            <td class="text-right">{{ number_format($amounts['Swiggy'], 2) }}</td>
+        </tr>
+        @php
+            $grandTotalCash += $amounts['cash'];
+            $grandTotalOnline += $amounts['Online'];
+            $grandTotalUPI += $amounts['UPI'];
+            $grandTotalZomato += $amounts['Zomato'];
+            $grandTotalSwiggy += $amounts['Swiggy'];
+        @endphp
+        @endforeach
+    </tbody>
+    <tfoot>
+
     @php
-        $grandTotalCash += $amounts['cash'];
-        $grandTotalOnline += $amounts['Online'];
-        $grandTotalUPI += $amounts['UPI'];
-        $grandTotalZomato += $amounts['Zomato'];
-        $grandTotalSwiggy += $amounts['Swiggy'];
+        // GST Breakdown
+        $baseCash = $grandTotalCash / 1.05;
+        $baseOnline = $grandTotalOnline / 1.05;
+        $baseUPI = $grandTotalUPI / 1.05;
+        $baseZomato = $grandTotalZomato / 1.05;
+        $baseSwiggy = $grandTotalSwiggy / 1.05;
+
+        $cgstCash = $baseCash * 0.025;
+        $cgstOnline = $baseOnline * 0.025;
+        $cgstUPI = $baseUPI * 0.025;
+        $cgstZomato = $baseZomato * 0.025;
+        $cgstSwiggy = $baseSwiggy * 0.025;
+
+        $sgstCash = $cgstCash;
+        $sgstOnline = $cgstOnline;
+        $sgstUPI = $cgstUPI;
+        $sgstZomato = $cgstZomato;
+        $sgstSwiggy = $cgstSwiggy;
     @endphp
-    @endforeach
-</tbody>
-<tfoot>
+
     <tr>
-        <td colspan="2" class="text-right"><strong>Total</strong></td>
+        <td colspan="2" class="text-right"><strong>Total (Excl. GST)</strong></td>
+        <td class="text-right"><strong>{{ number_format($baseCash, 2) }}</strong></td>
+        <td class="text-right"><strong>{{ number_format($baseOnline, 2) }}</strong></td>
+        <td class="text-right"><strong>{{ number_format($baseUPI, 2) }}</strong></td>
+        <td class="text-right"><strong>{{ number_format($baseZomato, 2) }}</strong></td>
+        <td class="text-right"><strong>{{ number_format($baseSwiggy, 2) }}</strong></td>
+    </tr>
+    <tr>
+        <td colspan="2" class="text-right"><strong>CGST (2.5%)</strong></td>
+        <td class="text-right"><strong>{{ number_format($cgstCash, 2) }}</strong></td>
+        <td class="text-right"><strong>{{ number_format($cgstOnline, 2) }}</strong></td>
+        <td class="text-right"><strong>{{ number_format($cgstUPI, 2) }}</strong></td>
+        <td class="text-right"><strong>{{ number_format($cgstZomato, 2) }}</strong></td>
+        <td class="text-right"><strong>{{ number_format($cgstSwiggy, 2) }}</strong></td>
+    </tr>
+    <tr>
+        <td colspan="2" class="text-right"><strong>SGST (2.5%)</strong></td>
+        <td class="text-right"><strong>{{ number_format($sgstCash, 2) }}</strong></td>
+        <td class="text-right"><strong>{{ number_format($sgstOnline, 2) }}</strong></td>
+        <td class="text-right"><strong>{{ number_format($sgstUPI, 2) }}</strong></td>
+        <td class="text-right"><strong>{{ number_format($sgstZomato, 2) }}</strong></td>
+        <td class="text-right"><strong>{{ number_format($sgstSwiggy, 2) }}</strong></td>
+    </tr>
+    <tr>
+        <td colspan="2" class="text-right"><strong>Total (Inclusive GST)</strong></td>
         <td class="text-right"><strong>{{ number_format($grandTotalCash, 2) }}</strong></td>
         <td class="text-right"><strong>{{ number_format($grandTotalOnline, 2) }}</strong></td>
         <td class="text-right"><strong>{{ number_format($grandTotalUPI, 2) }}</strong></td>
@@ -163,6 +209,7 @@
         <td class="text-right"><strong>{{ number_format($grandTotalSwiggy, 2) }}</strong></td>
     </tr>
 </tfoot>
+
 </table>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.4/xlsx.full.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>

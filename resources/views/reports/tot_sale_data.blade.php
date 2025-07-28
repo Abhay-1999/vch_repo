@@ -82,7 +82,7 @@
         </td>
         <td style="padding-left: 30px; vertical-align: middle;">
             <h2 style="margin: 0;" class="printHead">
-                {{ $rest_data->rest_name }} - GSTIN: {{ $rest_data->rest_gstin }}
+                VIJAY CHAT HOUSE - GSTIN: 23AAFFV8652G1Z0
             </h2>
         </td>
         <td style="text-align: right;">
