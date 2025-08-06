@@ -1,93 +1,144 @@
 @extends('auth.layouts.app')
 
 @section('content')
+<style>
+    #cart-table tbody {
+  -webkit-overflow-scrolling: touch !important;
+  overflow-y: auto!important;
+}
+
+</style>
 <div class="fluid-container py-4">
     <div class="row g-4">
         <!-- Left Side: Cart -->
 
         <div class="col-md-7">
-                <div class="card shadow">
-                    <div class="card-header bg-primary text-white">
-                        <h5 class="mb-0">🛒 New Order</h5>
-                    </div>
-                    <meta name="csrf-token" content="{{ csrf_token() }}">
+    <div class="card shadow d-flex flex-column" style="height: 100vh;"> <!-- Full-page height -->
+        <div class="card-header bg-primary text-white">
+            <h5 class="mb-0">🛒 New Order</h5>
+        </div>
 
-                    <div class="card-body">
-                        <div class="mb-3">
-                            <label class="form-label">Order Type</label>
-                            <select id="order_type" class="form-select">
-                                <option value="C">Cash</option>
-                                <option value="Z">Zomato</option>
-                                <option value="S">Swiggy</option>
-                                <option value="U">Counter UPI</option>
-                            </select>
-                        </div>
+        <meta name="csrf-token" content="{{ csrf_token() }}">
 
-                        <div class="mb-3" id="mobile_field" style="display: none;">
-                            <label class="form-label">Otp</label>
-                            <input type="text" class="form-control" id="mobile" placeholder="Enter Otp Here">
-                        </div>
+        <!-- Make this section scrollable -->
+        <div class="card-body d-flex flex-column p-3" style="overflow-y: auto; flex: 1 1 auto;">
 
-                        <div class="mb-3" id="orderid_field" style="display: none;">
-                            <label class="form-label">Order ID</label>
-                            <input type="text" class="form-control" id="order_id" placeholder="Enter order ID">
-                        </div>
-
-                        <div class="table-responsive">
-                            <table class="table table-striped align-middle" id="cart-table">
-                                <thead class="table-dark">
-                                    <tr><th>Item</th><th>Qty/Gram</th><th>Price</th><th>Total</th><th>Action</th></tr>
-                                </thead>
-                                <tbody></tbody>
-
-                                <tfoot>
-                                    <tr>
-                                        <td colspan="3" style="text-align: right;">
-                                            <h5>Total: ₹<span id="total">0.00</span></h5>
-                                        </td>
-                                    </tr>
-                                    <tr id="discount_row" style="display: none;">
-                                        <td colspan="2" style="text-align: right;">
-                                            <label class="form-label">Discount (%)</label>
-                                        </td>
-                                        <td colspan="2">
-                                            <input type="number" id="discount_percent" name="discount_percent" class="form-control" value="0" min="0" max="100">
-                                        </td>
-                                    </tr>
-                                    <tr id="final_row" style="display: none;">
-                                        <td colspan="3" style="text-align: right;">
-                                            <h5>Final Amount: ₹<span id="final_total">0.00</span></h5>
-                                            <input type="hidden" class="final_total" name="final_total" value="">
-                                        </td>
-                                    </tr>
-                                </tfoot>
-                            </table>
-                        </div>
-
-                        <div class="d-flex justify-content-between align-items-center mt-3 flex-wrap gap-2">
-                        <button class="btn btn-success" id="save-order">✅ Save&Print </button>
-                            <!-- <button class="btn btn-success" id="save-order">✅ Save </button>
-                            <button class="btn btn-primary" id="new-order">🆕 New Order</button>
-                            <button class="btn btn-warning" id="manual-print-token" disabled>🎟️ Print Token</button>
-                            <button class="btn btn-info" id="manual-print-bill" disabled>🧾 Print Bill</button> -->
-                            <button class="btn btn-info" id="print-last-bill">🧾Last Print Bill</button>
-                        </div>
-
-                    </div>
-                </div>
+            <!-- Form Section -->
+            <div class="row">
+            <div class="col-md-6">
+            <div class="mb-3">
+                <label class="form-label">Select Customer</label>
+                <select id="customer_id" class="form-select">
+                    <option value="">Select</option>
+                    @foreach($customers as $customer)
+                        <option value="{{ $customer->id }}">{{ $customer->name }}</option>
+                    @endforeach
+                </select>
             </div>
+            </div>
+            <div class="col-6">
+            <div class="mb-3">
+                <label class="form-label">Order Type</label>
+                <select id="order_type" class="form-select">
+                    <option value="C">Cash</option>
+                    <option value="U">Counter UPI</option>
+                    <option value="Z">Zomato</option>
+                    <option value="S">Swiggy</option>
+                </select>
+            </div>
+            </div>
+           
+            <div class="col-6">
+            <div class="mb-3" id="orderid_field">
+                <label class="form-label">Order ID</label>
+                <input type="text" class="form-control" id="order_id" placeholder="Enter order ID">
+            </div>
+            </div>
+            <div class="col-6">
+            <div class="mb-3" id="mobile_field" style="display: none;">
+                <label class="form-label">Otp</label>
+                <input type="text" class="form-control" id="mobile" placeholder="Enter Otp Here">
+            </div>
+            </div>
+
+            </div>
+
+            <!-- Scrollable Items Table -->
+            <div class="table-responsive mb-3" id="cart-scroll-container" style="max-height: 300px; overflow-y: auto;">
+    <table class="table table-striped align-middle" id="cart-table">
+        <thead class="table-dark">
+            <tr><th>Item</th><th>Qty</th><th>Gram</th><th>Price</th><th>Total</th><th>Action</th></tr>
+        </thead>
+        <tbody>
+            <!-- items will be added here -->
+        </tbody>
+        <tfoot>
+            <tr>
+                <td colspan="3" class="text-end">
+                    <h5>Total: ₹<span id="total">0.00</span></h5>
+                </td>
+            </tr>
+            <tr id="discount_row" style="display: none;">
+                <td colspan="2" class="text-end">
+                    <label class="form-label">Discount (%)</label>
+                </td>
+                <td colspan="2">
+                    <input type="number" id="discount_percent" name="discount_percent" class="form-control" value="0" min="0" max="100" disabled>
+                </td>
+            </tr>
+            <tr id="final_row" style="display: none;">
+                <td colspan="3" class="text-end">
+                    <h5>Final Amount: ₹<span id="final_total">0.00</span></h5>
+                    <input type="hidden" class="final_total" name="final_total" value="">
+                </td>
+            </tr>
+        </tfoot>
+    </table>
+</div>
+
+
+        </div>
+
+        <!-- Fixed Bottom Buttons -->
+        <div class="p-3 border-top bg-white" style="position: sticky; bottom: 0; z-index: 100;">
+            <div class="d-flex justify-content-between gap-2 flex-wrap">
+                <button class="btn btn-warning flex-fill" id="token-view">🧾 Token View</button>
+                <button class="btn btn-primary flex-fill" id="bill-view">🧾 Bill View</button>
+                <button class="btn btn-danger flex-fill" id="save-order-only">✅ Save</button>
+                <button class="btn btn-info flex-fill" id="print-last-bill">🧾 Last Print</button>
+                <button class="btn btn-success flex-fill"  id="save-order">✅ Save & Print</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+
 
         <!-- Right Side: Item List -->
         <div class="col-md-5">
-            <div class="card shadow" id="itemCard">
-                <div class="card-header bg-warning">
-                    <h5 class="mb-0">📋 Item List</h5>
-                </div>
-                <div class="card-body">
-                    <div id="items" class="d-flex flex-wrap gap-2 justify-content-start"></div>
-                </div>
+    <div class="card shadow" id="itemCard" style="height: 90vh;">
+        <div class="card-header bg-warning text-center">
+            <h5 class="mb-0">📋 Item List</h5>
+        </div>
+
+        <div class="card-body p-0 d-flex" style="height: calc(100% - 56px); overflow: hidden;">
+            <!-- Category List -->
+            <div id="categories"
+                 class="list-group bg-primary text-white flex-shrink-0"
+                 style="width: 140px; overflow-y: auto; padding: 5px;">
+                <!-- Category buttons load here -->
+            </div>
+
+            <!-- Items List -->
+            <div id="items"
+                 class="bg-light flex-grow-1 d-flex flex-wrap p-2 gap-2 justify-content-start align-content-start"
+                 style="overflow-y: auto; scroll-behavior: smooth;">
+                <!-- Items load here -->
             </div>
         </div>
+    </div>
+</div>
+
     </div>
 </div>
 <iframe id="print-frame" style="display:none;"></iframe>
@@ -97,6 +148,58 @@
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
 <script>
+function scrollCartToBottom() {
+    const container = document.querySelector("#cart-scroll-container");
+    if (container) {
+        setTimeout(() => {
+            container.scrollTop = container.scrollHeight;
+        }, 50); // delay ensures DOM has updated
+    }
+}
+
+
+
+$('#order_type').change(function () {
+    const type = $(this).val();
+    const original = parseFloat($('#total').text());
+    const val = $(this).val();
+
+    // Toggle optional fields
+    $('#mobile_field').toggle(val !== 'C' && val !== 'U');
+    // $('#orderid_field').toggle(val !== 'C' && val !== 'U');
+
+ 
+
+    if (type === 'Z' || type === 'S') {
+        $.ajax({
+            url: '{{ route("get.discount") }}',
+            method: 'POST',
+            data: {
+                _token: '{{ csrf_token() }}',
+                order_type: type
+            },
+            success: function (response) {
+                const percent = parseFloat(response.discount_percent || 0);
+             
+                // Update fields
+                $('#discount_percent').val(percent);
+
+                updateDiscountDisplay(); // keep this if needed
+
+              
+            },
+            error: function () {
+                alert('Failed to fetch discount.');
+            }
+        });
+    } else {
+        $('#discount_percent').val(0);
+        $('#discount_amount').val('0.00');
+        $('#final_amount').val(original.toFixed(2));
+    }
+});
+
+
 
 let cart = [];
 
@@ -112,17 +215,18 @@ function updateDiscountDisplay() {
         const discountPercent = parseFloat($('#discount_percent').val()) || 0;
         const discountAmount = (total * discountPercent) / 100;
         const finalAmount = total - discountAmount;
+
         $('#final_total').text(finalAmount.toFixed(2));
         $('.final_total').val(finalAmount.toFixed(2));
     }
 
 
-    $('#order_type').on('change', function () {
-        const val = $(this).val();
-        $('#mobile_field').toggle(val !== 'C' && val !== 'U');
-        $('#orderid_field').toggle(val !== 'C' && val !== 'U');
-        updateDiscountDisplay();
-    }).trigger('change');
+    // $('#order_type').on('change', function () {
+    //     const val = $(this).val();
+    //     $('#mobile_field').toggle(val !== 'C' && val !== 'U');
+    //     $('#orderid_field').toggle(val !== 'C' && val !== 'U');
+    //     updateDiscountDisplay();
+    // }).trigger('change');
 
     $('#discount_percent').on('input', updateFinalTotal);
 
@@ -134,26 +238,64 @@ $('#new-order').click(function () {
 
 $(document).ready(function () {
     // Load item buttons
-    $.get('/all-items', function (res) {
+    // Load all categories and default items
+$.get('/all-items', function (res) {
+    let categoryHtml = '';
+    let firstCategory = null;
+
+    // Build Category List
+    res.categories.forEach((cat, index) => {
+        const activeClass = index === 0 ? 'active bg-info text-dark' : '';
+        if (index === 0) firstCategory = cat.item_grpcode;
+
+        categoryHtml += `
+            <a href="#" class="list-group-item list-group-item-action ${activeClass}" 
+               data-code="${cat.item_grpcode}">
+                ${cat.item_grpdesc}
+            </a>`;
+    });
+
+    $('#categories').html(categoryHtml);
+
+    // Set click event for categories
+    $('#categories').on('click', '.list-group-item', function (e) {
+        e.preventDefault();
+        const catCode = $(this).data('code');
+
+        // Toggle active class
+        $('#categories .list-group-item').removeClass('active bg-info text-dark');
+        $(this).addClass('active bg-info text-dark');
+
+        // Load selected category items
+        loadItems(catCode);
+    });
+
+    // Auto load first category items
+    if (firstCategory) {
+        loadItems(firstCategory);
+    }
+});
+
+// Load items by category
+function loadItems(categoryCode) {
+    $.get('/items-by-category/' + categoryCode, function (res) {
         let html = '';
+
         res.items.forEach(item => {
-            
-            let btnClass = ''; // default
+            const isDisabled = item.item_status === 'D' ? 'disabled' : '';
 
-if (item.item_status === 'A') {
-    btnClass = ''; // Active
-} else if (item.item_status === 'D') {
-    btnClass = 'disabled'; // Disabled style
-}
-
-html += `
-    <button class="btn btn-outline-dark ${btnClass}" style="min-width:100px;" 
-        onclick="addItem('${item.item_code}', '${item.item_desc}', ${item.item_rate})">
-        <strong>${item.item_desc}</strong><br><small>₹${item.item_rate}</small>
-    </button>`;
+            html += `
+                <button class="btn btn-outline-dark ${isDisabled}" 
+                        style="min-width: 110px; height: 60px;"
+                        onclick="addItem('${item.item_code}', '${item.item_desc}', ${item.item_rate})">
+                    <strong>${item.item_desc}</strong><br>
+                    <small>₹${item.item_rate}</small>
+                </button>`;
         });
+
         $('#items').html(html);
     });
+}
 
     // Handle order type change
    
@@ -174,6 +316,7 @@ html += `
     const order_id = $('#order_id').val();
     const dsc = $('#discount_percent').val();
     const ft = $('.final_total').val();
+    const custId = $('#customer_id').val();
 
     $.post('{{ route("order.save") }}', {
         _token: '{{ csrf_token() }}',
@@ -182,6 +325,7 @@ html += `
         mobile: mobile,
         dsc: dsc,
         ft: ft,
+        custId: custId,
         order_id: order_id
     }, function (response) {
         if (response.success) {
@@ -223,6 +367,76 @@ html += `
     });
 });
 
+
+$('#save-order-only').click(function () {
+    if (cart.length === 0) return alert("Cart is empty!");
+
+    const $saveBtn = $(this);
+    $saveBtn.prop('disabled', true);
+    $('#itemCard').css({
+        'pointer-events': 'none',
+        'opacity': '0.5'
+    });
+
+    const paymode = $('#order_type').val();
+    const mobile = $('#mobile').val();
+    const order_id = $('#order_id').val();
+    const dsc = $('#discount_percent').val();
+    const ft = $('.final_total').val();
+    const custId = $('#customer_id').val();
+
+    $.post('{{ route("order.save") }}', {
+        _token: '{{ csrf_token() }}',
+        cart: cart,
+        paymode: paymode,
+        mobile: mobile,
+        dsc: dsc,
+        ft: ft,
+        custId: custId,
+        order_id: order_id
+    }, function (response) {
+        if (response.success) {
+            localStorage.setItem('lastOrderId', response.order_id); // ✅ Store it here
+            Swal.fire({
+                title: 'Order Saved!',
+                showConfirmButton: false,
+                timer: 1000
+            }).then(() => {
+                // Automatically print the bill/token
+                // if (typeof handlePrint === 'function') {
+                //     handlePrint(response.order_id, 'token');
+                // }
+
+                // Refresh after 2 seconds (adjust if needed)
+                setTimeout(() => {
+                    location.reload();
+                }, 2000);
+            });
+
+            $('#manual-print-token').removeAttr('disabled');
+            $('#manual-print-bill').removeAttr('disabled');
+            lastOrderId = response.order_id;
+        } else {
+            Swal.fire("Error", "Failed to save order", "error");
+            $saveBtn.prop('disabled', false);
+            $('#itemCard').css({
+                'pointer-events': 'auto',
+                'opacity': '1'
+            });
+        }
+    }).fail(function () {
+        Swal.fire("Error", "Something went wrong while saving order", "error");
+        $saveBtn.prop('disabled', false);
+        $('#itemCard').css({
+            'pointer-events': 'auto',
+            'opacity': '1'
+        });
+    });
+});
+
+
+
+
     function showPrintOptions(orderId) {
     Swal.fire({
         title: 'Order Saved!',
@@ -263,9 +477,37 @@ $('#print-last-bill').click(() => {
     }
 
     handlePrint(storedOrderId, 'bill'); // or 'token' if that’s your print type
-    localStorage.removeItem('lastOrderId');
+    // localStorage.removeItem('lastOrderId');
 
 });
+
+
+$('#token-view').click(() => {
+    const storedOrderId = localStorage.getItem('lastOrderId');
+    if (!storedOrderId) {
+        alert('No recent order found to print!');
+        return;
+    }
+
+    handlePrintView(storedOrderId, 'token'); // or 'token' if that’s your print type
+    // localStorage.removeItem('lastOrderId');
+
+});
+
+
+$('#bill-view').click(() => {
+    const storedOrderId = localStorage.getItem('lastOrderId');
+    if (!storedOrderId) {
+        alert('No recent order found to print!');
+        return;
+    }
+
+    handlePrintView(storedOrderId, 'bill'); // or 'token' if that’s your print type
+    // localStorage.removeItem('lastOrderId');
+
+});
+
+
 
 
 
@@ -282,7 +524,7 @@ function handlePrint(orderId, type) {
         console.log(res); //
         if (res.html) {
           
-                printHtml(res.html);
+            sendToPrinter(res.html);
             
         } else {
             alert('No HTML returned.');
@@ -291,6 +533,30 @@ function handlePrint(orderId, type) {
         alert('Print failed due to server error.');
     });
 }
+
+
+function handlePrintView(orderId, type) {
+    Swal.close();
+
+    $.post('/print-content', {
+        _token: $('meta[name="csrf-token"]').attr('content'),
+        trans_no: orderId,
+        type: type
+    }, function(res) {
+        console.log(res); //
+        if (res.html) {
+          
+            printHtml(res.html);
+            
+        } else {
+            alert('No HTML returned.');
+        }
+    }).fail(function() {
+        alert('Print failed due to server error.');
+    });
+}
+
+
 
 
 function printHtml(html) {
@@ -310,29 +576,51 @@ function printHtml(html) {
 }
 
 
+function sendToPrinter(html) {
+    fetch("http://127.0.0.1:3000/print", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify({ html: html })
+    })
+    .then(res => res.json())
+    .then(data => console.log("✅ Print response:", data))
+    .catch(err => console.error("❌ Print error:", err));
+}
+
+
 
 
 
 });
 
 
-const gramBasedItems = ['012', '007', '008', '009', '010', '015'];
+const gramBasedItems = ['012', '007', '008', '009', '010', '015','025','026','031'];
+
 
 function addItem(id, name, price) {
     let existing = cart.find(i => i.id === id);
+
     if (existing) {
         if (!gramBasedItems.includes(id)) {
             existing.qty++;
         }
     } else {
-        if (gramBasedItems.includes(id)) {
+        if (id === '017') { // Gulab Jamun ID
+            // default 4 qty
+            cart.push({ id, name, price, qty: 4 });
+        } else if (gramBasedItems.includes(id)) {
             cart.push({ id, name, price, amount: 0, grams: 0 });
         } else {
             cart.push({ id, name, price, qty: 1 });
         }
     }
+
     renderCart();
+    scrollCartToBottom();
 }
+
 
 function changeQty(id, delta) {
     let item = cart.find(i => i.id === id);
@@ -382,31 +670,32 @@ function renderCart() {
         total += lineTotal;
 
         html += `<tr data-id="${item.id}">
-            <td>${item.name}</td>
-            <td>`;
+            <td>${item.name}</td>`;
 
         if (isGramItem) {
-            html += `
-                <div class="d-flex flex-wrap gap-1">
-                    <input type="number" class="form-control form-control-sm amount-input" 
-                        data-id="${item.id}" style="width: 70px;" 
-                        placeholder="₹ Amt" step="0.01" value="${item.amount?.toFixed(2) || ''}">
-
-                    <input type="text" class="form-control form-control-sm grams-input" 
-                        data-id="${item.id}" style="width: 70px;"
-                        placeholder="Gram" value="${item.grams?.toFixed(2) || ''}">
-                </div>`;
+            html += `   <td style="padding: 0;">
+      <input type="number" class="form-control form-control-sm amount-input" 
+             data-id="${item.id}" style="width: 70px; margin: 0;" 
+             placeholder="₹ Amt" step="0.01" value="${item.amount?.toFixed(2) || ''}">
+    </td>
+    <td style="padding: 0;">
+      <input type="text" class="form-control form-control-sm grams-input" 
+             data-id="${item.id}" style="width: 70px; margin: 0;" 
+             placeholder="Gram" value="${item.grams?.toFixed(2) || ''}">
+    </td>`;
         } else {
-            html += `
-                <div class="input-group input-group-sm" style="max-width: 160px;">
-                    <button class="btn btn-outline-secondary" onclick="changeQty('${item.id}', -1)">-</button>
-                    <input type="number" class="form-control text-center qty-direct-input" 
-                           data-id="${item.id}" value="${item.qty}" min="0">
-                    <button class="btn btn-outline-secondary" onclick="changeQty('${item.id}', 1)">+</button>
-                </div>`;
+            html += `<td style="padding: 0;">
+  <div class="input-group input-group-sm" style="max-width: 120px; margin: 0;">
+    <button class="btn btn-outline-secondary px-2 py-1" onclick="changeQty('${item.id}', -1)">-</button>
+    <input type="number" class="form-control text-center qty-direct-input" 
+           data-id="${item.id}" value="${item.qty}" min="0" style="margin: 0;">
+    <button class="btn btn-outline-secondary px-2 py-1" onclick="changeQty('${item.id}', 1)">+</button>
+  </div>
+</td><td></td>
+`;
         }
 
-        html += `</td>
+        html += `
             <td>₹${item.price}</td>
             <td class="line-total">₹${lineTotal.toFixed(2)}</td>
             <td>
@@ -570,7 +859,16 @@ function updateRow(id) {
         fullTotal += parseFloat(lineTotal || 0);
     });
 
-    $('#total').text(fullTotal.toFixed(2));
+    const paymode = $('#order_type').val();
+
+    if (paymode.trim().toUpperCase() === 'C' || paymode.trim().toUpperCase() === 'U') {
+        let roundedAmount = Math.round(fullTotal);
+        $('#total').text(roundedAmount);
+    } else {
+        $('#total').text(fullTotal.toFixed(2));
+    }
+  
+    // $('#total').text(fullTotal.toFixed(2));
 }
 
 

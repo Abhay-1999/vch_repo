@@ -11,13 +11,50 @@ use App\Http\Controllers\Auth\UserAuthController;
 use App\Http\Controllers\CashfreeController;
 use App\Http\Controllers\ReportController;
 use App\Http\Controllers\CustomerMasterController;
+use Illuminate\Support\Facades\DB;
+
+
+// About Page
+Route::get('/about', function () {
+    return view('items.about');
+})->name('about');
+
+// Contact Page
+Route::get('/contact', function () {
+    return view('items.contact');
+})->name('contact');
+
+// Privacy Policy Page
+Route::get('/privacy', function () {
+    return view('items.privacy');
+})->name('privacy');
+
+// Refund Policy Page
+Route::get('/refund', function () {
+    return view('items.refund');
+})->name('refund');
+
+// FSSAI License Page
+Route::get('/fssai', function () {
+    return view('items.fassai');
+})->name('fssai');
 
 
 Route::prefix('admin')->group(function () {
     Route::get('login', [AdminAuthController::class, 'showLoginForm'])->name('admin.login');
+    Route::post('/send-otp-login', [AdminAuthController::class, 'sendOtp']);
+    Route::post('/verify-otp-login', [AdminAuthController::class, 'otpSubmit']);
+
     Route::post('login/submitt', [AdminAuthController::class, 'submit']);
     Route::post('logout', [AdminAuthController::class, 'logout'])->name('admin.logout');
-    Route::get('/orders', [OrderController::class, 'index'])->name('orders.index');
+
+
+    Route::get('/orders-all', [OrderController::class, 'index'])->name('orders.index');
+    Route::get('/orders-cash-upi', [OrderController::class, 'indexCash'])->name('orders.indexc');
+    Route::get('/orders-zomato-swiggy', [OrderController::class, 'indexZomato'])->name('orders.indexz');
+    Route::get('/orders-online', [OrderController::class, 'indexOnline'])->name('orders.indexo');
+
+
     Route::get('/ordersp', [OrderController::class, 'indexp'])->name('orders.indexp');
     Route::get('/delivered', [OrderController::class, 'delivered'])->name('orders.delivered');
     Route::get('/items', [OrderController::class, 'items'])->name('items');
@@ -59,11 +96,12 @@ Route::prefix('admin')->group(function () {
     Route::get('/sale-form',[ReportController::class,'total_sale_form'])->name('sale_form');
     Route::post('/sale-data',[ReportController::class,'total_sale_data'])->name('tot_sale_data');
 
-    //cancel token
+
     Route::get('/cncl-token',[ReportController::class,'cancel_token_form'])->name('cancel_form');
     Route::post('/cncl-data',[ReportController::class,'cncl_token_data'])->name('cancel_data');
 
     Route::get('/orders/refresh', [OrderController::class, 'refresh'])->name('orders.refresh');
+
     Route::get('/ordersp/refresh', [OrderController::class, 'refreshp'])->name('ordersp.refresh');
     Route::get('/ordersp/refreshdelivered', [OrderController::class, 'refreshdelivered'])->name('orders.refreshdelivered');
 
@@ -88,7 +126,17 @@ Route::get('/checkout', [ItemController::class, 'checkout'])->name('items.checko
 Route::post('/add-to-cart-item', [ItemController::class, 'addToCartitem'])->name('items.addToCartitem');
 Route::post('/order-save', [ItemController::class, 'save'])->name('order.save');
 
+Route::get('/all-items-status', [ItemController::class, 'allItems']);
 Route::get('/all-items', [ItemController::class, 'all']);
+
+Route::get('/items-by-category/{category}', function ($category) {
+    $items = DB::table('item_master')->select('item_desc', 'item_code', 'rest_code', 'item_rate', 'item_status', 'start_time', 'end_time')
+                ->where('item_grpcode', $category)
+                ->orderBy('item_desc')
+                ->get();
+
+    return response()->json(['items' => $items], 200, [], JSON_UNESCAPED_UNICODE);
+});
 
 
 Route::post('/send-otp', [ItemController::class, 'sendOtp'])->name('send.otp');
@@ -126,6 +174,7 @@ Route::get('/home', [App\Http\Controllers\HomeController::class, 'index'])->name
 Route::post('/order/item-update', [OrderController::class, 'updateOrderItem'])->name('order.item.update');
 Route::post('/order/complete', [OrderController::class, 'markOrderComplete'])->name('order.complete');
 
+Route::post('/get-discount', [OrderController::class, 'getDiscount'])->name('get.discount');
 
 Route::post('/change/paymentMode', [OrderController::class, 'UpdatePaymode'])->name('change.paymentMode');
 

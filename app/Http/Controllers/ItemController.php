@@ -12,18 +12,51 @@ use Twilio\Rest\Client;
 use Illuminate\Support\Facades\Storage;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Spatie\PdfToImage\Pdf as PdfToImage;
+use Illuminate\Support\Facades\Auth;
 
 
 class ItemController extends Controller
 {
 
+
+    public function allItems()
+    {
+   
+        // Get items for the first category
+        $items = Item::select('item_desc', 'item_code', 'rest_code', 'item_rate', 'item_status', 'start_time', 'end_time')
+                    ->orderBy('item_desc')
+                    ->get();
+    
+        return response()->json([
+            'items' => $items
+        ], 200, [], JSON_UNESCAPED_UNICODE);
+    }
+    
+
     public function all()
     {
-        $items = Item::select('item_desc','item_code','rest_code','item_rate','item_status','start_time','end_time')->orderBy('item_desc')->get();
+        // Get distinct categories from items
+        $categories = Item::select('item_grpcode', 'item_grpdesc')
+        ->whereNotNull('item_grpcode')
+        ->distinct()
+        ->orderBy('item_grpcode')
+        ->get();
 
-
-    //    echo"<pre>";print_r($items->toArray());die;
-        return response()->json(['items' => $items], 200, [], JSON_UNESCAPED_UNICODE);
+                       // echo"<pre>";print_r($categories);die;
+    
+        $firstCategory = $categories->first();
+    
+        // Get items for the first category
+        $items = Item::select('item_desc', 'item_code', 'rest_code', 'item_rate', 'item_status', 'start_time', 'end_time')
+                    ->where('item_grpcode', $firstCategory)
+                    ->orderBy('item_desc')
+                    ->get();
+    
+        return response()->json([
+            'categories' => $categories,
+            'first_category' => $firstCategory,
+            'items' => $items
+        ], 200, [], JSON_UNESCAPED_UNICODE);
     }
     
     
@@ -268,7 +301,6 @@ class ItemController extends Controller
             'gross_amt' => $amount, 
             'paid_amt' => round($amount), 
             'order_id' =>rand(1111,9999), 
-            'cust_mobile' =>$mobile, 
             'service_charge'=>$convin_amt, 
             'service_cgst' =>$convin_amt_gst/2, 
             'service_sgst' =>$convin_amt_gst/2, 
@@ -587,6 +619,9 @@ class ItemController extends Controller
     public function save(Request $request)
     {
 
+        $admin = Auth::guard('admin')->user();
+        $id = $admin->id;
+
         $cart = $request->cart; // From POST
         // echo"<pre>";print_r($cart);die;
         $paymode_mode = $request->paymode; // C / Z / S / O
@@ -594,6 +629,7 @@ class ItemController extends Controller
         $mobile = $request->mobile; // C / Z / S / O
         $finalAmt = $request->ft; // C / Z / S / O
         $discount = $request->dsc; // C / Z / S / O
+        $custId = $request->custId; // C / Z / S / O
 
         $group_code = '01';
         $rest_code ='01';
@@ -655,6 +691,7 @@ class ItemController extends Controller
             'group_code' => $group_code,
             'rest_code' => $rest_code,
             'tran_no' => $trans_no,
+            'user_id' => $id,
             'discount' => $discount,
             'net_amt' => $amount,
             'cgst_amt' => $cgst,
@@ -662,7 +699,8 @@ class ItemController extends Controller
             'gross_amt' => $amount,
             'paid_amt' => $paid_amt,
             'order_id' =>$order_id,
-            'cust_mobile' => $mobile,
+            'customer_id' =>$custId,
+            'otp' =>$mobile,
             'service_charge' => $convin_amt,
             'service_cgst' => $convin_amt_gst / 2,
             'service_sgst' => $convin_amt_gst / 2,

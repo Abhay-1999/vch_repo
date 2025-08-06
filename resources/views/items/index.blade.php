@@ -49,8 +49,9 @@
             border-radius: 10px;
         }
         .card-img-top {
-            height: 200px;
-            object-fit: cover;
+            width:100%;
+            height: 350px;
+            object-fit: cover; /* Or 'cover' if you want to fill */
             border-top-left-radius: 10px;
             border-top-right-radius: 10px;
         }
@@ -122,6 +123,27 @@ button.decrease-quantity {
 }
 
     </style>
+    <style>
+    .footer-nav {
+        background-color: #000;
+        color: #fff;
+        z-index: 9999;
+        font-size: 14px;
+        box-shadow: 0 -2px 5px rgba(0,0,0,0.2);
+    }
+    .footer-nav a {
+        color: #f8f9fa;
+        padding: 10px 12px;
+        text-align: center;
+        text-decoration: none;
+        flex: 1;
+        transition: background 0.3s;
+    }
+    .footer-nav a:hover {
+        background-color: #333;
+        color: #ffc107;
+    }
+</style>
 </head>
 <body>
 <div id="page-loader">
@@ -217,18 +239,87 @@ button.decrease-quantity {
 <div class="footer d-none d-md-block">
     <p>&copy; 2025 Kscinfotech. All rights reserved.</p>
 </div>
-<div class="mobile-cart-footer px-3 py-2 text-center">
-    <a href="{{ route('items.cart') }}" 
-       class="btn btn-danger position-relative mx-auto d-inline-flex justify-content-center align-items-center"
-       style="max-width: 200px;">
-        
-        <span>Check Your Tray</span>
-        <img src="images/cart_logo.png" alt="Cart" style="width: 55px; margin-left: 5px;">
-        
-        <span class="cart-quantity-mobile position-absolute top-0 start-100 translate-middle badge rounded-pill bg-dark">
-            {{ session('cart') ? array_sum(array_column(session('cart'), 'quantity')) : 0 }}
-        </span>
-    </a>
+<!-- Fixed Cart Tray -->
+<!-- ✅ Fixed Cart Tray Footer -->
+<!-- ✅ Combined Tray & Menu Footer -->
+<!-- ✅ Combined Tray & Menu Footer -->
+<style>
+    .footer-links {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 10px 20px; /* Row gap: 10px, column gap: 20px */
+        font-size: 13px;
+        margin-top: 8px;
+    }
+    .footer-links a {
+        color: #f8f9fa;
+        text-decoration: none;
+        padding: 2px 8px;
+        transition: color 0.3s;
+    }
+    .footer-links a:hover {
+        color: #ffc107;
+    }
+</style>
+<div class="mobile-cart-footer px-3 py-2 text-center" style="position: fixed; bottom: 0; width: 100%; background: rgba(0, 0, 0, 0.95); z-index: 1051;">
+    <!-- Tray Button -->
+    <div class="mb-2">
+        <a href="{{ route('items.cart') }}" 
+           class="btn btn-danger position-relative mx-auto d-inline-flex justify-content-center align-items-center"
+           style="max-width: 220px;">
+            <span>Check Your Tray</span>
+            <img src="images/cart_logo.png" alt="Cart" style="width: 50px; margin-left: 5px;">
+            <span class="cart-quantity-mobile position-absolute top-0 start-100 translate-middle badge rounded-pill bg-dark">
+                {{ session('cart') ? array_sum(array_column(session('cart'), 'quantity')) : 0 }}
+            </span>
+        </a>
+    </div>
+
+    <!-- Navigation Links -->
+    <div class="footer-links">
+    <a href="/">🏠 Home</a>
+    <a href="/about">ℹ️ About</a>
+    <a href="/contact">📞 Contact</a>
+    <a href="/privacy">🔒 Privacy</a>
+    <a href="/refund">💸 Refund</a>
+</div>
+</div>
+
+<!-- Push content up so it's not hidden -->
+<div style="height: 120px;"></div>
+
+
+<!-- ✅ Footer Navigation Bar (scrolls normally below tray) -->
+<style>
+    .footer-nav {
+        background-color: #000;
+        color: #fff;
+        font-size: 14px;
+        box-shadow: 0 -2px 5px rgba(0,0,0,0.2);
+        margin-top: 10px;
+        padding: 10px 0;
+    }
+    .footer-nav a {
+        color: #f8f9fa;
+        padding: 10px 12px;
+        text-align: center;
+        text-decoration: none;
+        flex: 1;
+        transition: background 0.3s;
+    }
+    .footer-nav a:hover {
+        background-color: #333;
+        color: #ffc107;
+    }
+</style>
+
+<div class="footer-nav d-flex justify-content-around">
+    <a href="/">🏠 Home</a>
+    <a href="/about">ℹ️ About</a>
+    <a href="/contact">📞 Contact</a>
+    <a href="/privacy">🔒 Privacy</a>
+    <a href="/refund">💸 Refund</a>
 </div>
 
 

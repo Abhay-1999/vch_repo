@@ -150,7 +150,7 @@ $admin = Auth::guard('admin')->user();
                         <i class="bi bi-bag-fill me-2"></i><span>Delivered Order</span>
                     </a>
                     <a class="nav-link {{ request()->routeIs('items') ? 'active' : '' }}" href="{{ route('items') }}">
-                        <i class="bi bi-bag-fill me-2"></i><span>Items</span>
+                        <i class="bi bi-bag-fill me-2"></i><span>Items Active/InActive</span>
                     </a>
                     <a class="nav-link {{ request()->routeIs('orders.indexp') ? 'active' : '' }}" href="{{ route('orders.indexp') }}">
                         <i class="bi bi-bag-fill me-2"></i><span>Pending Order</span>
@@ -173,7 +173,16 @@ $admin = Auth::guard('admin')->user();
                     </li>
                 @else
                     <a class="nav-link {{ request()->routeIs('orders.index') ? 'active' : '' }}" href="{{ route('orders.index') }}">
-                        <i class="bi bi-bag-fill me-2"></i><span>Orders</span>
+                        <i class="bi bi-bag-fill me-2"></i><span>All Orders</span>
+                    </a>
+                    <a class="nav-link {{ request()->routeIs('orders.indexc') ? 'active' : '' }}" href="{{ route('orders.indexc') }}">
+                        <i class="bi bi-bag-fill me-2"></i><span>Cash/Upi Orders</span>
+                    </a>
+                    <a class="nav-link {{ request()->routeIs('orders.indexz') ? 'active' : '' }}" href="{{ route('orders.indexz') }}">
+                        <i class="bi bi-bag-fill me-2"></i><span>Zomato/Swiggy Orders</span>
+                    </a>
+                    <a class="nav-link {{ request()->routeIs('orders.indexo') ? 'active' : '' }}" href="{{ route('orders.indexo') }}">
+                        <i class="bi bi-bag-fill me-2"></i><span>Online Orders</span>
                     </a>
                 @endif
             </li>

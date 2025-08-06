@@ -3,92 +3,91 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Invoice</title>
+  <title>Store-wise Tokens</title>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+
   <style>
-    body {
-      background-color: #f8f9fa;
-      padding: 20px;
-    }
-
-    .invoice-box {
+    html, body {
+      margin: 0;
+      padding: 0;
       background: #fff;
-      padding: 20px;
-      border-radius: 10px;
-      box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
+      font-size: 14px;
+      text-align: center;
     }
 
-    .invoice-header {
+    .token-wrapper {
+      width: 80mm;
+      margin: 0 auto;
+      padding: 4mm 0;
+      border-bottom: 1px dashed #aaa;
+    }
+
+    .token-box {
       font-size: 20px;
       font-weight: bold;
+      border: 2px dashed #000;
+      display: inline-block;
+      padding: 4px 12px;
+      margin-bottom: 10px;
     }
 
-    .total-amount {
-      font-size: 18px;
-      font-weight: bold;
+    .table td, .table th {
+      font-size: 13px;
+      padding: 6px 4px;
     }
 
     @media print {
-      body {
-        background-color: #fff;
+      * {
+        box-sizing: border-box;
+      }
+
+      html, body {
+        margin: 0 !important;
+        padding: 0 !important;
+        background: #fff !important;
+        width: 80mm;
+      }
+
+      .token-wrapper {
+        page-break-inside: avoid;
+        border-bottom: none;
+      }
+
+      .no-print {
+        display: none !important;
+      }
+
+      @page {
+        size: 80mm auto;
         margin: 0;
-        padding: 0;
-      }
-
-      .invoice-box {
-        box-shadow: none;
-        border-radius: 0;
-        padding: 10px;
-        font-size: 12px;
-        width: 80mm; /* for thermal printer */
-      }
-
-      .btn {
-        display: none;
-      }
-
-      .table th, .table td {
-        padding: 4px;
-      }
-
-      .total-amount {
-        font-size: 14px;
-      }
-    }
-
-    @media (max-width: 576px) {
-      .invoice-box {
-        padding: 15px;
-      }
-
-      .invoice-header {
-        font-size: 18px;
-      }
-
-      .total-amount {
-        font-size: 16px;
       }
     }
   </style>
 </head>
 <body>
 
-  <div class="container page-break" id="invoiceContent">
-    <div class="invoice-box p-4">
-      <div class="row mb-3 align-items-center">
-        <div class="col-6 d-flex align-items-center">
-          <img src="{{ asset('images/vijaychat.webp') }}" alt="Logo" style="height: 40px; margin-right: 10px;">
-          <h5 class="invoice-header mb-0">Vijay Chaat House</h5>
-        </div>
-        <div class="col-6 text-end">
-          <p>Token No: <strong>{{ $hd_data->tran_no }}</strong></p>
-          <p>Payment Mode: <strong>{{ $paymentMode }}</strong></p>
-          <p>Order Time: <strong>{{ date('d M Y, h:i A', strtotime($hd_data->created_at)) }}</strong></p>
-        </div>
+  @php
+  $itemsGroupedByStore = $dt_data->groupBy('store')->sortKeys();
+  @endphp
+  @foreach($itemsGroupedByStore as $storeId => $storeItems)
+    <div class="token-wrapper" id="token-{{ $storeId }}">
+      <div class="token-box">Token No: {{ $hd_data->tran_no }}</div>
+
+      <div class="mt-1 mb-2">
+        <div>Store: <strong>{{ $storeId }}</strong></div>
+        <div>Payment Mode: <strong>{{ $paymentMode }}</strong></div>
+        <div>Time: <strong>{{ date('d M Y, h:i A', strtotime($hd_data->created_at)) }}</strong></div>
+
+        @if($hd_data->order_id)
+          <div>Order ID: <strong>{{ $hd_data->order_id }}</strong></div>
+        @endif
+        @if($hd_data->otp)
+          <div>OTP: <strong>{{ $hd_data->otp }}</strong></div>
+        @endif
       </div>
 
       <table class="table table-bordered">
-        <thead class="table-dark">
+        <thead class="table-light">
           <tr>
             <th>Item</th>
             <th>Qty</th>
@@ -97,56 +96,54 @@
           </tr>
         </thead>
         <tbody>
-          @foreach($dt_data as $d_data)
-          <tr>
-            <?php $itemAmt = $d_data->amount + $d_data->item_gst; ?>
-            <td>{{ $d_data->item_desc }}</td>
-            <td>{{ $d_data->item_qty ?: $d_data->item_gm . ' gm' }}</td>
-            <td class="text-end">{{ number_format($d_data->item_rate, 2) }}</td>
-            <td class="text-end">{{ number_format($itemAmt, 2) }}</td>
-          </tr>
+          @php $storeTotal = 0; @endphp
+          @foreach($storeItems as $item)
+            @php
+              $itemAmt = $item->amount + $item->item_gst;
+              $storeTotal += $itemAmt;
+            @endphp
+            <tr>
+              <td>{{ $item->item_hdesc }}</td>
+              <td>{{ $item->item_qty ?: $item->item_gm . ' gm' }}</td>
+              <td class="text-end">{{ number_format($item->item_rate, 2) }}</td>
+              <td class="text-end">{{ number_format($itemAmt, 2) }}</td>
+            </tr>
           @endforeach
         </tbody>
       </table>
 
-      <div class="text-end">
-        @if($hd_data->discount)
-          @php
-              $discountAmount = ($hd_data->gross_amt * $hd_data->discount) / 100;
-              $finalAmount = $hd_data->gross_amt - $discountAmount;
-          @endphp
-          <p class="total-amount">Gross: ₹{{ number_format($hd_data->gross_amt, 2) }}</p>
-          <p class="total-amount">Discount ({{ $hd_data->discount }}%): − ₹{{ number_format($discountAmount, 2) }}</p>
-          <p class="total-amount fw-bold">Final: ₹{{ number_format($finalAmount, 2) }}</p>
-        @else
-          <p class="total-amount">Total: ₹{{ number_format(round($hd_data->paid_amt), 2) }}</p>
-        @endif
+      <div class="text-end mt-2">
+        <strong>Store Total: ₹{{ number_format($storeTotal, 2) }}</strong>
       </div>
     </div>
+  @endforeach
+
+  <div class="text-center mt-3 no-print">
+    <button class="btn btn-primary" onclick="window.print()">🖨️ Print</button>
   </div>
 
-  <!-- Buttons -->
-  <div class="text-center mt-4">
-    <button class="btn btn-success" onclick="saveInvoiceAsImage()">Save as Image</button>
-  </div>
+
+
 
   <!-- html2canvas script -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
   <script>
-    function saveInvoiceAsImage() {
-      const element = document.getElementById("invoiceContent");
-      html2canvas(element, {
-        scale: 2,
-        useCORS: true,
-        allowTaint: false
-      }).then(canvas => {
-        const imgData = canvas.toDataURL("image/png");
-        const link = document.createElement('a');
-        link.href = imgData;
-        link.download = 'invoice_{{ $hd_data->tran_no }}.png';
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
+    function saveAllInvoices() {
+      const invoiceDivs = document.querySelectorAll('[id^=invoiceContent-]');
+      invoiceDivs.forEach((div, index) => {
+        html2canvas(div, {
+          scale: 2,
+          useCORS: true,
+          allowTaint: false
+        }).then(canvas => {
+          const imgData = canvas.toDataURL("image/png");
+          const link = document.createElement('a');
+          link.href = imgData;
+          link.download = `invoice_store_${index + 1}.png`;
+          document.body.appendChild(link);
+          link.click();
+          document.body.removeChild(link);
+        });
       });
     }
   </script>

@@ -88,7 +88,7 @@
 <script>
 $(document).ready(function () {
     // Load item buttons
-    $.get('/all-items', function (res) {
+    $.get('/all-items-status', function (res) {
         let html = '';
         res.items.forEach(item => {
             let btnClass = 'btn-outline-dark'; // default
