@@ -20,7 +20,7 @@
         cursor: not-allowed;
     }
 </style>
-    <h1 class="text-center">Change Orders</h1>
+    <h1 class="text-center">Change Amount Mode</h1>
     <meta name="csrf-token" content="{{ csrf_token() }}">
 
     <div style="overflow-y: auto; max-height: calc(100vh - 100px); padding-bottom: 50px;">
@@ -67,15 +67,7 @@
                                 @endphp
                                 @foreach($items as $index => $item)
                                     <li style="font-weight: bold; margin-bottom: 4px;">
-                                        <input type="checkbox"
-                                            class="item-checkbox"
-                                            data-tran="{{ $order->tran_no }}"
-                                            data-item_code="{{ $order_arr_item[$order->tran_no][$index] }}"
-                                            data-index="{{ $index }}"
-                                            data-total="{{ count($items) }}"
-
-                                            @if($order_arr_item_f[$order->tran_no][$order_arr_item[$order->tran_no][$index]]=='D') checked disabled @else  @endif
-                                        >
+                                       
                                         {{ $item }}
                                     </li>
                                 @endforeach
