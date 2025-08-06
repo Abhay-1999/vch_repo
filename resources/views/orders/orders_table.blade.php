@@ -4,11 +4,13 @@
 
                 <div class="dd-dashboard-right-box dd-dash-redBox">
                     <div class="dd-timer-head">
-                       <div class="dd-timer-sec-left">
-                            <div class="dd-no d-flex">
-                                <h1>Token No:-{{ $order->tran_no }}</h1>
-                            </div>
-                       </div>
+                    <div class="dd-timer-sec-left">
+                        <div class="dd-no d-flex flex-column">
+                            <h1>TokenNo:{{ $order->tran_no }} </h1>
+                        </div>
+                    
+                    </div>
+
                        <div class="dd-timer-sec-right">
                             <ul>
                           
@@ -25,7 +27,16 @@
                                         @else
                                             Cash
                                        @endif
+                                    
+                                    </span><br>
+                                    
+                                    @if($order->otp)
+                                    
+                                    <span class="badge bg-warning font-weight-bolder">
+                                                 Otp-{{ $order->otp }}   
+                                    
                                     </span>
+                                    @endif
                                 </li>
                                
                             </ul>

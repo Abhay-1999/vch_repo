@@ -20,11 +20,11 @@
         cursor: not-allowed;
     }
 </style>
-    <h1 class="text-center">Orders</h1>
+    <h1 class="text-center">Zomato/Swiggy Orders</h1>
     <meta name="csrf-token" content="{{ csrf_token() }}">
+    <input type="hidden" id="orderType" value="Z">
 
     <div style="overflow-y: auto; max-height: calc(100vh - 100px); padding-bottom: 50px;">
-    <input type="hidden" id="orderType" value="A">
 
     <div class="dd-dashboard-right-flex" id="orderTable">
 

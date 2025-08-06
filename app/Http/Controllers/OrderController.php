@@ -121,6 +121,174 @@ $monthTotals = $monthlySales->pluck('total');
         return view('orders.index', compact('orders','order_arr','role','order_arr_item','order_arr_item_f')); // Pass orders to the view
     }
 
+    public function indexCash()
+    {
+      
+
+        $admin = Auth::guard('admin')->user();
+        $role = $admin->role;
+        if($role=='2'){
+            $orders = DB::table('order_hd')
+            ->where('tran_date',date('Y-m-d'))
+            ->where('status_trans','success')
+            ->where('flag','!=','D')
+            ->where('flag','!=','H')
+            ->whereIn('payment_mode',['C','U'])
+            ->orderBy('tran_no','desc')
+            ->get();
+        }else{
+            $orders = DB::table('order_hd')
+            ->where('tran_date',date('Y-m-d'))
+            ->where('flag','!=','D')
+            ->where('flag','!=','H')
+            ->where('status_trans','success')
+            ->whereIn('payment_mode',['C','U'])
+            ->orderBy('tran_no','desc')
+            ->get();
+        }
+
+        
+     
+        $order_arr = array();
+        $order_arr_item = array();
+        $order_arr_item_f = array();
+
+        foreach($orders as $order){
+
+                $details = DB::table('order_dt')->select('order_dt.item_qty','order_dt.customise_flag','order_dt.item_code','item_master.item_desc','order_hd.flag')
+                ->join('order_hd','order_dt.tran_no','=','order_hd.tran_no')
+                ->join('item_master','order_dt.item_code','=','item_master.item_code')
+                ->where('order_hd.tran_date',date('Y-m-d'))
+                ->where('order_dt.tran_date',date('Y-m-d'))
+                ->where('order_dt.tran_no',$order->tran_no)
+                ->get();
+
+                foreach($details as $detail){
+                    $order_arr[$order->tran_no][] = $detail->item_desc  . ' - ' . $detail->item_qty;
+                    $order_arr_item[$order->tran_no][] = $detail->item_code;
+                    $order_arr_item_f[$order->tran_no][$detail->item_code] = $detail->customise_flag;
+                }
+
+        }
+
+       
+        // echo"<pre>";print_r($order_arr_item_f);die;
+
+        return view('orders.index_cash', compact('orders','order_arr','role','order_arr_item','order_arr_item_f')); // Pass orders to the view
+    }
+
+    public function indexZomato()
+    {
+      
+
+        $admin = Auth::guard('admin')->user();
+        $role = $admin->role;
+        if($role=='2'){
+            $orders = DB::table('order_hd')
+            ->where('tran_date',date('Y-m-d'))
+            ->where('status_trans','success')
+            ->where('flag','!=','D')
+            ->where('flag','!=','H')
+            ->whereIn('payment_mode',['Z','S'])
+            ->orderBy('tran_no','desc')
+            ->get();
+        }else{
+            $orders = DB::table('order_hd')
+            ->where('tran_date',date('Y-m-d'))
+            ->where('flag','!=','D')
+            ->where('flag','!=','H')
+            ->where('status_trans','success')
+            ->whereIn('payment_mode',['Z','S'])
+            ->orderBy('tran_no','desc')
+            ->get();
+        }
+
+        
+     
+        $order_arr = array();
+        $order_arr_item = array();
+        $order_arr_item_f = array();
+
+        foreach($orders as $order){
+
+                $details = DB::table('order_dt')->select('order_dt.item_qty','order_dt.customise_flag','order_dt.item_code','item_master.item_desc','order_hd.flag')
+                ->join('order_hd','order_dt.tran_no','=','order_hd.tran_no')
+                ->join('item_master','order_dt.item_code','=','item_master.item_code')
+                ->where('order_hd.tran_date',date('Y-m-d'))
+                ->where('order_dt.tran_date',date('Y-m-d'))
+                ->where('order_dt.tran_no',$order->tran_no)
+                ->get();
+
+                foreach($details as $detail){
+                    $order_arr[$order->tran_no][] = $detail->item_desc  . ' - ' . $detail->item_qty;
+                    $order_arr_item[$order->tran_no][] = $detail->item_code;
+                    $order_arr_item_f[$order->tran_no][$detail->item_code] = $detail->customise_flag;
+                }
+
+        }
+
+       
+        // echo"<pre>";print_r($order_arr_item_f);die;
+
+        return view('orders.index_zomato', compact('orders','order_arr','role','order_arr_item','order_arr_item_f')); // Pass orders to the view
+    }
+
+    public function indexOnline()
+    {
+      
+
+        $admin = Auth::guard('admin')->user();
+        $role = $admin->role;
+        if($role=='2'){
+            $orders = DB::table('order_hd')
+            ->where('tran_date',date('Y-m-d'))
+            ->where('status_trans','success')
+            ->where('flag','!=','D')
+            ->where('flag','!=','H')
+            ->where('payment_mode','O')
+            ->orderBy('tran_no','desc')
+            ->get();
+        }else{
+            $orders = DB::table('order_hd')
+            ->where('tran_date',date('Y-m-d'))
+            ->where('flag','!=','D')
+            ->where('flag','!=','H')
+            ->where('status_trans','success')
+            ->where('payment_mode','O')
+            ->orderBy('tran_no','desc')
+            ->get();
+        }
+
+        
+     
+        $order_arr = array();
+        $order_arr_item = array();
+        $order_arr_item_f = array();
+
+        foreach($orders as $order){
+
+                $details = DB::table('order_dt')->select('order_dt.item_qty','order_dt.customise_flag','order_dt.item_code','item_master.item_desc','order_hd.flag')
+                ->join('order_hd','order_dt.tran_no','=','order_hd.tran_no')
+                ->join('item_master','order_dt.item_code','=','item_master.item_code')
+                ->where('order_hd.tran_date',date('Y-m-d'))
+                ->where('order_dt.tran_date',date('Y-m-d'))
+                ->where('order_dt.tran_no',$order->tran_no)
+                ->get();
+
+                foreach($details as $detail){
+                    $order_arr[$order->tran_no][] = $detail->item_desc  . ' - ' . $detail->item_qty;
+                    $order_arr_item[$order->tran_no][] = $detail->item_code;
+                    $order_arr_item_f[$order->tran_no][$detail->item_code] = $detail->customise_flag;
+                }
+
+        }
+
+       
+        // echo"<pre>";print_r($order_arr_item_f);die;
+
+        return view('orders.index_online', compact('orders','order_arr','role','order_arr_item','order_arr_item_f')); // Pass orders to the view
+    }
+
     public function OrderDetail($trans_no)
     {
         $orders = DB::table('order_dt')->select('order_dt.*','item_master.item_desc')
@@ -146,16 +314,46 @@ $monthTotals = $monthlySales->pluck('total');
         }
 
         // Refresh latest orders and return blade partial
-        public function refresh()
+        public function refresh(Request $request)
         {
-       
-            $orders = DB::table('order_hd')
-            ->where('tran_date',date('Y-m-d'))
-            ->where('flag','!=','D')
-            ->where('flag','!=','H')
-            ->where('status_trans','success')
-            ->orderBy('tran_no','desc')
-            ->get();
+            if($request->orderType=='A'){
+
+                $orders = DB::table('order_hd')
+                ->where('tran_date',date('Y-m-d'))
+                ->where('flag','!=','D')
+                ->where('flag','!=','H')
+                ->where('status_trans','success')
+                ->orderBy('tran_no','desc')
+                ->get();
+
+            }else if($request->orderType=='C'){
+                $orders = DB::table('order_hd')
+                ->where('tran_date',date('Y-m-d'))
+                ->where('flag','!=','D')
+                ->where('flag','!=','H')
+                ->where('status_trans','success')
+                ->whereIn('payment_mode',['C','U'])
+                ->orderBy('tran_no','desc')
+                ->get();
+            }else if($request->orderType=='Z'){
+                $orders = DB::table('order_hd')
+                ->where('tran_date',date('Y-m-d'))
+                ->where('flag','!=','D')
+                ->where('flag','!=','H')
+                ->where('status_trans','success')
+                ->whereIn('payment_mode',['Z','S'])
+                ->orderBy('tran_no','desc')
+                ->get();
+            }else if($request->orderType=='O'){
+                $orders = DB::table('order_hd')
+                ->where('tran_date',date('Y-m-d'))
+                ->where('flag','!=','D')
+                ->where('flag','!=','H')
+                ->where('status_trans','success')
+                ->whereIn('payment_mode',['O'])
+                ->orderBy('tran_no','desc')
+                ->get();
+            }
             
             $order_arr = array();
 
@@ -307,8 +505,10 @@ $monthTotals = $monthlySales->pluck('total');
     }
 
     function create_order(){
+
+        $customers = DB::table('customer_masters')->get();
         
-        return view('orders.pos');
+        return view('orders.pos',compact('customers'));
     }
 
     
@@ -450,7 +650,7 @@ public function updateOrderItem(Request $request)
             ->where('item_code', $itemCode)
             ->where('rest_code', $rest_code)
             ->update([
-                'item_status' => 'A',
+                'item_status' =>  $status,
                 'start_time' => $start_time ,
                 'end_time' => $end_time
             ]);
@@ -491,6 +691,16 @@ public function updateOrderItem(Request $request)
             ->where('tran_date', $date)
             ->where('status_trans', 'success')
             ->first();
+
+
+        $cust_hd_data = DB::table('order_hd')
+        ->join('customer_masters', 'order_hd.customer_id', '=', 'customer_masters.id')
+        ->where('tran_no', $trans_no)
+        ->where('tran_date', $date)
+        ->where('status_trans', 'success')
+        ->select('customer_masters.*') // Or whichever fields you need
+        ->first();
+        
     
         // if (!$hd_data) {
         //     return response()->json(['error' => 'Order not found.'], 404);
@@ -504,7 +714,7 @@ public function updateOrderItem(Request $request)
     
         // Detail data
         $dt_data = DB::table('order_dt')
-            ->select('order_dt.*', 'item_master.item_desc', 'item_master.item_gst as igst','item_master.item_rate')
+            ->select('order_dt.*', 'item_master.item_desc', 'item_master.item_hdesc', 'item_master.item_gst as igst','item_master.item_rate','item_master.store')
             ->join('item_master', 'order_dt.item_code', '=', 'item_master.item_code')
             ->join('order_hd', 'order_dt.tran_no', '=', 'order_hd.tran_no')
             ->where('order_hd.tran_no', $trans_no)
@@ -542,7 +752,7 @@ public function updateOrderItem(Request $request)
     
         // Return HTML(s) based on type
         if ($type === 'bill') {
-            $html = view('items.bill2', compact('dt_data', 'hd_data', 'rest_data','invoiceNo','paymentMode'))->render();
+            $html = view('items.bill2', compact('dt_data', 'hd_data', 'rest_data','invoiceNo','paymentMode','cust_hd_data'))->render();
             return response()->json(['html' => $html]);
         } elseif ($type === 'token') {
             $html = view('items.bill', compact('dt_data', 'hd_data', 'rest_data','paymentMode'))->render(); // You must create this view
@@ -706,7 +916,6 @@ public function updateOrderItem(Request $request)
             'gross_amt' => $amount, 
             'paid_amt' => round($amount), 
             'order_id' =>$order_id, 
-            'cust_mobile' =>$mobile, 
             'service_charge'=>$convin_amt, 
             'service_cgst' =>$convin_amt_gst/2, 
             'service_sgst' =>$convin_amt_gst/2, 
@@ -844,7 +1053,6 @@ public function updateOrderItem(Request $request)
             'gross_amt' =>$temp_data->gross_amt, 
             'paid_amt' => round($temp_data->paid_amt), 
             'order_id' =>$temp_data->order_id, 
-            'cust_mobile' =>$temp_data->cust_mobile, 
             'service_charge'=>$temp_data->service_charge, 
             'service_cgst' =>$temp_data->service_cgst, 
             'service_sgst' =>$temp_data->service_sgst,
@@ -989,6 +1197,32 @@ public function updateOrderItem(Request $request)
             ->update(['payment_mode' => $status]); // or some other flag
 
         return response()->json(['success' => true]);
+    }
+
+
+    public function getDiscount(Request $request)
+    {
+        $orderType = $request->input('order_type');
+      
+
+        if ($orderType=='Z') {
+            $discount = DB::table('chain_master')->first();
+            return response()->json([
+                'success' => true,
+                'discount_percent' => $discount->zomato
+            ]);
+        }elseif($orderType=='S'){
+            $discount = DB::table('chain_master')->first();
+            return response()->json([
+                'success' => true,
+                'discount_percent' => $discount->swiggy
+            ]);
+        } else {
+            return response()->json([
+                'success' => false,
+                'discount_percent' => 0
+            ]);
+        }
     }
 
 
