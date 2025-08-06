@@ -180,4 +180,25 @@ class ReportController extends Controller
 
         return view("reports.tot_sale_data",compact('startDate','endDate','data','rest_data'));
     }
+
+    public function cancel_token_form()
+    {
+        return view("reports.cancel_form");
+    }
+
+    public function cncl_token_data(Request $request)
+    {
+        $startDate = $request->input('start_date');
+        $endDate = $request->input('end_date');
+        $paymentMode = $request->input('payment_mode');
+
+        $data = DB::table('order_hd')
+            ->select('order_hd.*')
+            ->whereBetween('tran_date', [$startDate, $endDate])
+            ->where('paid_amt','=','0')
+            ->where('payment_mode',$paymentMode)
+            ->get();
+
+        return view("reports.cancel_data", compact('startDate', 'endDate', 'data'));
+    }
 }

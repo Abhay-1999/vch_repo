@@ -16,20 +16,29 @@ class CustomerMasterController extends Controller
 
     public function store(Request $request)
     {
-        $validated = $request->validate([
-            'name'       => 'required|string|max:255',
-            'address'    => 'required|string|max:255',
+        $validator = Validator::make($request->all(), [
+            'name'       => 'required|string|max:100',
+            'address'    => 'required|string|max:100',
             'mob_no'     => 'required',
             'gst_no'     => 'nullable|string|max:15',
-            'comp_name'  => 'nullable|string|max:255',
+            'comp_name'  => 'nullable|string|max:50',
         ]);
+
+        if ($validator->fails()) {
+            return response()->json(['errors' => $validator->errors()], 422);
+        }
+
+        $action = $request->id ? 'updated' : 'created';
 
         CustomerMaster::updateOrCreate(
             ['id' => $request->id],
-            $validated
+            $validator->validated()
         );
 
-        return redirect()->route('cust_mast')->with('success', 'Customer saved successfully!');
+        return response()->json([
+            'success' => true,
+            'message' => "Customer $action successfully."
+        ]);
     }
 
     public function edit($id)

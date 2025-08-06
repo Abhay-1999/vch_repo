@@ -96,7 +96,12 @@ Route::prefix('admin')->group(function () {
     Route::get('/sale-form',[ReportController::class,'total_sale_form'])->name('sale_form');
     Route::post('/sale-data',[ReportController::class,'total_sale_data'])->name('tot_sale_data');
 
-    Route::post('/orders/refresh', [OrderController::class, 'refresh'])->name('orders.refresh');
+
+    Route::get('/cncl-token',[ReportController::class,'cancel_token_form'])->name('cancel_form');
+    Route::post('/cncl-data',[ReportController::class,'cncl_token_data'])->name('cancel_data');
+
+    Route::get('/orders/refresh', [OrderController::class, 'refresh'])->name('orders.refresh');
+
     Route::get('/ordersp/refresh', [OrderController::class, 'refreshp'])->name('ordersp.refresh');
     Route::get('/ordersp/refreshdelivered', [OrderController::class, 'refreshdelivered'])->name('orders.refreshdelivered');
 

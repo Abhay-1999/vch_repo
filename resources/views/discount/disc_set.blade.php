@@ -13,19 +13,18 @@
                     @endif
                     <h3 class="card-title mb-4">DISCOUNT</h3>
                     <form id="cashbookForm" action="{{ route('disc_update') }}" method="post">
-                    @csrf
+                        @csrf
                         <div class="row">
                             <div class="col-md-6 mb-3">
                                 <label for="zomato">Zomato</label>
-                                <input type="text" id="zomato" name="zomato" class="form-control mt-2 numbers" value="{{ $chainMaster->zomato }}">
+                                <input type="text" id="zomato" name="zomato" class="form-control mt-2 numbers" value="{{ $chainMaster->zomato }}" maxlength=5>
                             </div>
                             <div class="col-md-6">
                                 <label for="swiggy">Swiggy</label>
-                                <input type="text" id="swiggy" name="swiggy" class="form-control mt-2 numbers" value="{{ $chainMaster->swiggy }}">
+                                <input type="text" id="swiggy" name="swiggy" class="form-control mt-2 numbers" value="{{ $chainMaster->swiggy }}" maxlength=5>
                             </div>
                         </div>
                         <input type="submit" value="Update" class="btn btn-primary w-25 mt-3 btn-sm" id="updDisc">
-                        </div>
                     </form>
                 </div>
             </div>
