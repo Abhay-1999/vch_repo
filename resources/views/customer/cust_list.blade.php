@@ -1,8 +1,6 @@
 @extends('auth.layouts.app')
-
 @section('content')
 <div class="container" id="print-content">
-    {{-- Print-specific styles --}}
     <style>
         @media print {
             #printButton {
@@ -49,14 +47,17 @@
         .text-right {
             text-align: right;
         }
+        .modal-header button{
+            background:red;
+            padding:0;
+        }
+        button.close{
+            font-size:30px;
+        }
+        label{
+            padding-bottom:5px;
+        }
     </style>
-
-    {{-- Success message --}}
-    @if(session('success'))
-        <div class="alert alert-success alert-dismissible fade show" role="alert" id="successMsg">
-            {{ session('success') }}
-        </div>
-    @endif
 
     <div class="row">
         <div class="col-6">
@@ -66,6 +67,11 @@
             <button class="btn btn-primary mb-3" id="addCustomerBtn">Add Customer</button>
         </div>
     </div>
+    @if(session('success'))
+        <div class="alert alert-success alert-dismissible fade show" role="alert" id="successMsg1">
+            {{ session('success') }}
+        </div>
+    @endif
     <table class="table table-bordered" id="myTable">
         <thead>
             <tr>
@@ -101,7 +107,6 @@
     </table>
 </div>
 
-{{-- Customer Modal --}}
 <div class="modal fade" id="customerModal" tabindex="-1" role="dialog">
     <div class="modal-dialog" role="document">
         <form id="customerForm" method="POST" action="{{ route('cust_save') }}">
@@ -117,37 +122,38 @@
                 <div class="modal-body">
                     <div class="form-group mb-2">
                         <label>Name</label>
-                        <input type="text" id="cust_name" name="name" class="form-control" value="{{ old('name') }}">
-                        @error('name') <small class="text-danger">{{ $message }}</small> @enderror
+                        <input type="text" id="cust_name" name="name" class="form-control">
+                        <small class="text-danger"></small>
                     </div>
 
                     <div class="form-group mb-2">
                         <label>Address</label>
-                        <input type="text" id="cust_address" name="address" class="form-control" value="{{ old('address') }}">
-                        @error('address') <small class="text-danger">{{ $message }}</small> @enderror
+                        <input type="text" id="cust_address" name="address" class="form-control">
+                        <small class="text-danger"></small>
                     </div>
 
                     <div class="form-group mb-2">
                         <label>Mobile</label>
-                        <input type="text" id="cust_mob" name="mob_no" class="form-control numbers" maxlength="10" value="{{ old('mob_no') }}">
-                        @error('mob_no') <small class="text-danger">{{ $message }}</small> @enderror
+                        <input type="text" id="cust_mob" name="mob_no" class="form-control numbers" maxlength="10">
+                        <small class="text-danger"></small>
                     </div>
 
                     <div class="form-group mb-2">
                         <label>GST No</label>
-                        <input type="text" id="cust_gst" name="gst_no" class="form-control" maxlength="15" value="{{ old('gst_no') }}">
-                        @error('gst_no') <small class="text-danger">{{ $message }}</small> @enderror
+                        <input type="text" id="cust_gst" name="gst_no" class="form-control" maxlength="15">
+                        <small class="text-danger"></small>
                     </div>
 
                     <div class="form-group mb-2">
                         <label>Business Name</label>
-                        <input type="text" id="cust_comp" name="comp_name" class="form-control" value="{{ old('comp_name') }}">
-                        @error('comp_name') <small class="text-danger">{{ $message }}</small> @enderror
+                        <input type="text" id="cust_comp" name="comp_name" class="form-control">
+                        <small class="text-danger"></small>
                     </div>
+
                 </div>
 
                 <div class="modal-footer">
-                    <button type="submit" class="btn btn-success">Save</button>
+                    <button type="submit" class="btn btn-success" id="updVal">Save</button>
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
                 </div>
             </div>
@@ -155,28 +161,67 @@
     </div>
 </div>
 
-{{-- Scripts --}}
-<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-
+@push('scripts')
 <script>
+    setTimeout(() => {$('#successMsg1').fadeOut('slow', function () {
+                        $(this).remove();
+                    });
+                }, 3000);
+
     document.addEventListener('input', function(event) {
         const target = event.target;
         if (target.classList.contains('numbers')) {
-            // Remove non-numeric characters
             target.value = target.value.replace(/[^0-9.]/g, '').replace(/(\..*?)\..*/g, '$1');
         }
     });
-    // Hide success message after 3 seconds
-    setTimeout(() => {
-        $('#successMsg').fadeOut('slow');
-    }, 3000);
+
+    $('#customerForm').submit(function (e) {
+        e.preventDefault();
+
+        document.getElementById('loader-overlay').style.display = 'flex';
+        $('.text-danger').text('');
+        let formData = $(this).serialize();
+
+        $.ajax({
+            type: "POST",
+            url: "{{ route('cust_save') }}",
+            data: formData,
+            success: function (response) {
+                document.getElementById('loader-overlay').style.display = 'none';
+
+                if (response.success) {
+                    $('#customerModal').modal('hide');
+                    $('#print-content').prepend(`
+                        <div class="alert alert-success alert-dismissible fade show" role="alert" id="successMsg">
+                            ${response.message}
+                        </div>
+                    `);
+
+                    setTimeout(() => {
+                        location.reload();
+                    }, 3000);
+                }
+            },
+            error: function (xhr) {
+                document.getElementById('loader-overlay').style.display = 'none';
+
+                if (xhr.status === 422) {
+                    let errors = xhr.responseJSON.errors;
+                    for (let key in errors) {
+                        $(`[name="${key}"]`).next('.text-danger').text(errors[key][0]);
+                    }
+
+                } else {
+                    alert('An unexpected error occurred.');
+                }
+            }
+        });
+    });
 
     $(document).ready(function () {
         $('#addCustomerBtn').click(function () {
             $('#customerForm')[0].reset();
-            $('#modalTitle').text('Add Customer');
+            $('#modalTitle').text('ADD CUSTOMER');
             $('#cust_id').val('');
             $('.text-danger').text('');
             $('#customerModal').modal('show');
@@ -186,7 +231,8 @@
             let id = $(this).data('id');
             $.get("{{ url('admin/cust-edit') }}/" + id, function (response) {
                 let c = response.customer;
-                $('#modalTitle').text('Edit Customer');
+                $('#modalTitle').text('UPDATE CUSTOMER');
+                $('#updVal').text('Update');
                 $('#cust_id').val(c.id);
                 $('#cust_name').val(c.name);
                 $('#cust_address').val(c.address);
@@ -202,4 +248,6 @@
         @endif
     });
 </script>
+
+@endpush
 @endsection

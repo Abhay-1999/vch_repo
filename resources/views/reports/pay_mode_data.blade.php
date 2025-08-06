@@ -39,10 +39,10 @@
             text-align:left;
         }
         th{
-            font-size:12px
+            font-size:13px
         }
         td{
-            font-size:10px
+            font-size:11px
         }
         tfoot {
             border-top: 1px solid black;
@@ -64,8 +64,10 @@
     }
     @page {
             font-size:12px;
+            margin-top:0px;
             @bottom-center {
                 content: "Page " counter(page) " of " counter(pages);
+                margin-top:-50px;
             }
         }
 
@@ -254,18 +256,29 @@
         return dateStr;
     }
 
-    function printContent() {
-        var printWindow = window.open('', '_blank');
-        printWindow.document.write('<html><head><title>Print</title>');
-        printWindow.document.write('<style>');
-        printWindow.document.write('body { font-family: Arial, sans-serif; }');
-        printWindow.document.write('@media print { #printButtonDiv { display: none; } }');
-        printWindow.document.write('</style>');
-        printWindow.document.write('</head><body>');
-        printWindow.document.write(document.getElementById('print-content').innerHTML);
-        printWindow.document.close();
+   function printContent() {
+    var printWindow = window.open('', '_blank');
+    printWindow.document.write('<html><head><title>Print</title>');
+    printWindow.document.write('<style>');
+    printWindow.document.write('body { font-family: Arial, sans-serif; }');
+    printWindow.document.write('@media print {');
+    printWindow.document.write('  @page { size: landscape; }'); // 👈 Forces landscape orientation
+    printWindow.document.write('  #printButtonDiv { display: none; }');
+    printWindow.document.write('}');
+    printWindow.document.write('</style>');
+    printWindow.document.write('</head><body>');
+    printWindow.document.write(document.getElementById('print-content').innerHTML);
+    printWindow.document.write('</body></html>');
+    printWindow.document.close();
+    
+    // Wait for content to load before printing
+    printWindow.onload = function() {
+        printWindow.focus();
         printWindow.print();
-    }
+        printWindow.close();
+    };
+}
+
 </script>
 </div>
 @endsection
