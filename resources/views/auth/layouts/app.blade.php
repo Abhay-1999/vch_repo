@@ -258,6 +258,7 @@ $admin = Auth::guard('admin')->user();
     }
   });
 </script>
+
 @stack('scripts')
 
 </body>

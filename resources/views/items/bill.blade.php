@@ -14,13 +14,13 @@
       font-size: 14px;
       text-align: center;
     }
-
     .token-wrapper {
-      width: 80mm;
-      margin: 0 auto;
-      padding: 4mm 0;
-      border-bottom: 1px dashed #aaa;
-    }
+    width: 80mm;
+    margin: 0 auto;
+    padding: 4mm 0;
+    border-bottom: 1px dashed #aaa;
+    page-break-after: always; /* ← ADD THIS LINE */
+  }
 
     .token-box {
       font-size: 20px;
@@ -49,7 +49,7 @@
       }
 
       .token-wrapper {
-        page-break-inside: avoid;
+        page-break-after: always; /* ← ADD THIS LINE */
         border-bottom: none;
       }
 
@@ -65,8 +65,9 @@
   </style>
 </head>
 <body>
+@if(!in_array($paymentMode, ['Zomato', 'Swiggy']))
 
-  @php
+    @php
   $itemsGroupedByStore = $dt_data->groupBy('store')->sortKeys();
   @endphp
   @foreach($itemsGroupedByStore as $storeId => $storeItems)
@@ -121,6 +122,61 @@
   <div class="text-center mt-3 no-print">
     <button class="btn btn-primary" onclick="window.print()">🖨️ Print</button>
   </div>
+    @else
+
+
+    <div class="token-wrapper" >
+      <div class="token-box">Token No: {{ $hd_data->tran_no }}</div>
+
+      <div class="mt-1 mb-2">
+        <div>Payment Mode: <strong>{{ $paymentMode }}</strong></div>
+        <div>Time: <strong>{{ date('d M Y, h:i A', strtotime($hd_data->created_at)) }}</strong></div>
+
+        @if($hd_data->order_id)
+          <div>Order ID: <strong>{{ $hd_data->order_id }}</strong></div>
+        @endif
+        @if($hd_data->otp)
+          <div>OTP: <strong>{{ $hd_data->otp }}</strong></div>
+        @endif
+      </div>
+
+      <table class="table table-bordered">
+        <thead class="table-dark">
+          <tr>
+            <th>Item</th>
+            <th>Qty</th>
+            <th class="text-end">Rate</th>
+            <th class="text-end">Amount</th>
+          </tr>
+        </thead>
+        <tbody>
+          @foreach($dt_data as $d_data)
+          <tr>
+          @php 
+          $itemAmt1 = 0;
+           @endphp
+          @php
+              $itemAmt1 = $d_data->amount + $d_data->item_gst;
+            @endphp
+            <td>{{ $d_data->item_hdesc }}</td>
+            <td>{{ $d_data->item_qty ?: $d_data->item_gm . ' gm' }}</td>
+            <td class="text-end">{{ number_format($d_data->item_rate, 2) }}</td>
+            <td class="text-end">{{ number_format($itemAmt1, 2) }}</td>
+          </tr>
+          @endforeach
+        </tbody>
+      </table>
+
+      <div class="text-end mt-2">
+        <strong> Total: ₹{{ number_format($hd_data->paid_amt, 2) }}</strong>
+      </div>
+    </div>
+
+  <div class="text-center mt-3 no-print">
+    <button class="btn btn-primary" onclick="window.print()">🖨️ Print</button>
+  </div>
+    @endif
+ 
 
 
 

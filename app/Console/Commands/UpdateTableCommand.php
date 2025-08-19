@@ -3,19 +3,20 @@
 namespace App\Console\Commands;
 
 use Illuminate\Console\Command;
-use Illuminate\Support\Facades\DB;
+use DB;
 use Illuminate\Support\Facades\Log;
 use Carbon\Carbon;
 
 
-class ItemAutoReactivate extends Command
+class UpdateTableCommand extends Command
 {
-    protected $signature = 'item:auto-reactivate';
-    protected $description = 'Reactivates deactivated items after set time';
+    protected $signature = 'update:table';  // This is your command name
+    protected $description = 'Update specific table in database daily';
 
-    public function handle(): void
+    public function handle()
     {
-        $now = Carbon::now('Asia/Kolkata')->format('H:i:s');
+        // Example: update all rows in `orders` table where status is 'pending' to 'expired'
+         $now = Carbon::now('Asia/Kolkata')->format('H:i:s');
 
 
         // 1. Reactivate items if current time passed 'minutes'
@@ -37,7 +38,7 @@ class ItemAutoReactivate extends Command
             'minutes' => null
         ]);
 
-        Log::info('✅ Item reactivated via cron at ' . now('Asia/Kolkata'));
+
+        $this->info('Table updated successfully.');
     }
 }
-

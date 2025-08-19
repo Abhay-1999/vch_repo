@@ -6,7 +6,15 @@
                     <div class="dd-timer-head">
                     <div class="dd-timer-sec-left">
                         <div class="dd-no d-flex flex-column">
-                            <h1>TokenNo:{{ $order->tran_no }} </h1>
+                            <h1>Token No:{{ $order->tran_no }} </h1>
+                            <br>
+                                    
+                                    @if($order->order_id)
+                                    <span class="badge bg-dark font-weight-bolder mt-3">
+                                                 OrderID-{{ $order->order_id }}   
+                                    
+                                    </span>
+                                    @endif
                         </div>
                     
                     </div>
@@ -31,8 +39,7 @@
                                     </span><br>
                                     
                                     @if($order->otp)
-                                    
-                                    <span class="badge bg-warning font-weight-bolder">
+                                    <span class="badge bg-danger font-weight-bolder mt-3">
                                                  Otp-{{ $order->otp }}   
                                     
                                     </span>

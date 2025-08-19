@@ -4,86 +4,13 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Your Cart</title>
-  <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet" />
-  <link href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css" rel="stylesheet"/>
+  <link href="{{ asset('assets/css/bootstrap.min.css') }}" rel="stylesheet">
+  <link href="{{ asset('assets/css/toastr.min.css') }}" rel="stylesheet">
+  <link href="{{ asset('assets/css/custom.css') }}" rel="stylesheet">
+
 
 <!-- Toastr JS -->
-  <style>
-    body {
-      background-color:#f38534; !important;
-      background-size: cover;
-      background-position: center;
-      color: #fff;
-      margin: 0;
-      padding: 0;
-      height: 100vh;
-      overflow: hidden;
-    }
-
-    .header, .footer {
-      background-color:rgb(0 0 0 / 0%);
-      text-align: center;
-      padding: 15px;
-      position: fixed;
-      left: 0;
-      right: 0;
-      z-index: 1000;
-    }
-
-    .header {
-      top: 0;
-    }
-
-    .footer {
-      bottom: 0;
-    }
-
-    .content {
-      padding-top: 150px;
-      padding-bottom: 70px;
-      overflow-y: auto;
-      height:calc(100vh - 100px)
-    }
-
-    .table-container {
-      display: none;
-    }
-
-    .card-item {
-      background-color: rgba(255, 255, 255, 0.9);
-      padding: 15px;
-      margin-bottom: 15px;
-      border-radius: 10px;
-      color: #000;
-    }
-
-    .card-item .d-flex {
-      justify-content: space-between;
-      align-items: center;
-    }
-
-    @media (min-width: 768px) {
-      .table-container {
-        display: block;
-      }
-      h1{
-        font-size:15px !important;
-      }
-      .mobile-cart {
-        display: none;
-      }
-      .content {
-      padding-top: 800px !important;
-     }
-  }
-
-  @media (min-width: 320px) {
-      
-      .content {
-      padding-top: 200px !important;
-     }
-  }
-  </style>
+  
 </head>
 <body>
   <div class="header">
@@ -170,8 +97,8 @@
     <p>&copy; 2025 Kscinfotech. All rights reserved.</p>
   </div>
 
-  <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
+  <script src="{{ asset('assets/js/jquery-3.6.0.js') }}"></script>
+  <script src="{{ asset('assets/js/toastr.min.js') }}"></script>
 
   <script>
     document.getElementById("sendOtpBtn").addEventListener("click", function () {

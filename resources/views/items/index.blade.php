@@ -4,151 +4,12 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Restaurant Items</title>
-    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
-    <style>
-         #page-loader {
-            position: fixed;
-            z-index: 9999;
-            background: #fff;
-            top: 0; left: 0; right: 0; bottom: 0;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-        }
-
-        body {
-            /* background-image: url('images/directdine.png'); */
-            background-color:#f38534; !important;
-            background-size: cover;
-            background-position: center;
-            color: #fff;
-            margin: 0;
-            padding: 0;
-            height: 100vh;
-            overflow: hidden;
-        }
-        .header, .footer {
-            background-color:rgb(0 0 0 / 0%);;
-            padding: 15px;
-            text-align: center;
-            position: fixed;
-            left: 0;
-            right: 0;
-            z-index: 1000;
-        }
-        .header { top: 0; }
-        .footer { bottom: 0; }
-        .content {
-            padding-top: 100px;
-            padding-bottom: 70px;
-            overflow-y: auto;
-            height: calc(100vh - 100px);
-        }
-        .card {
-            background-color: rgba(255, 255, 255, 0.9);
-            border-radius: 10px;
-        }
-        .card-img-top {
-            width:100%;
-            height: 350px;
-            object-fit: cover; /* Or 'cover' if you want to fill */
-            border-top-left-radius: 10px;
-            border-top-right-radius: 10px;
-        }
-        .card-title, .card-text { color: #000; }
-        .added {
-            background-color: #28a745;
-            color: white;
-        }
-        button.btn.btn-primary.add-to-cart-button {
-            background-color: #ed323d !important;
-            border-color: #eb3240 !important;
-        }
-        .cart-icon img { width: 50px; }
-        .cart-quantity {
-            position: absolute;
-            top: -8px;
-            right: -10px;
-            background: red;
-            color: white;
-            border-radius: 50%;
-            padding: 2px 6px;
-            font-size: 12px;
-        }
-        .mobile-cart-footer {
-            position: fixed;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            background: rgba(0, 0, 0, 0.85);
-            padding: 10px;
-            z-index: 1050;
-        }
-        .mobile-cart-footer a.btn {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 16px;
-        }
-        .cart-quantity-mobile {
-            top: -5px;
-            right: 20px;
-            background: red;
-            color: white;
-            border-radius: 50%;
-            padding: 2px 6px;
-            font-size: 12px;
-        }
-        /* @media (max-width: 768px) {
-            .header, .footer { padding: 10px; }
-            .logo img { width: 100px; }
-            .card-title { font-size: 1.1rem; }
-            .card-text { font-size: 0.95rem; }
-            .card-img-top { height: 150px; }
-        }
-        @media (max-width: 576px) {
-            .col-md-4 {
-                flex: 0 0 100%;
-                max-width: 100%;
-            }
-        } */
-
-        button.increase-quantity,
-button.decrease-quantity {
-    font-size: 24px;
-    padding: 12px;
-    line-height: 1;
-    min-width: 60px;
-    min-height: 60px;
-}
-
-    </style>
-    <style>
-    .footer-nav {
-        background-color: #000;
-        color: #fff;
-        z-index: 9999;
-        font-size: 14px;
-        box-shadow: 0 -2px 5px rgba(0,0,0,0.2);
-    }
-    .footer-nav a {
-        color: #f8f9fa;
-        padding: 10px 12px;
-        text-align: center;
-        text-decoration: none;
-        flex: 1;
-        transition: background 0.3s;
-    }
-    .footer-nav a:hover {
-        background-color: #333;
-        color: #ffc107;
-    }
-</style>
+    <link href="{{ asset('assets/css/bootstrap.min.css') }}" rel="stylesheet">
+    <link href="{{ asset('assets/css/custom.css') }}" rel="stylesheet">
 </head>
 <body>
 <div id="page-loader">
     <div class="spinner-border text-danger" role="status" style="width: 4rem; height: 4rem;">
-        <span class="sr-only">Loading...</span>
     </div>
 </div>
 <div class="header d-flex justify-content-between align-items-center px-3">
@@ -166,7 +27,7 @@ button.decrease-quantity {
 </div>
 <div class="content">
     <div class="container">
-        <h1 class="text-center mb-3">Welcome To Vijay Chaat House</h1>
+        <h2 class="text-center mb-3">Welcome To Vijay Chaat House</h2>
         <!-- <h2 class="text-center mb-4">Menu</h2> -->
 
         <!-- 🔽 Filter Form Start -->
@@ -244,23 +105,7 @@ button.decrease-quantity {
 <!-- ✅ Combined Tray & Menu Footer -->
 <!-- ✅ Combined Tray & Menu Footer -->
 <style>
-    .footer-links {
-        display: flex;
-        flex-wrap: wrap;
-        justify-content: center;
-        gap: 10px 20px; /* Row gap: 10px, column gap: 20px */
-        font-size: 13px;
-        margin-top: 8px;
-    }
-    .footer-links a {
-        color: #f8f9fa;
-        text-decoration: none;
-        padding: 2px 8px;
-        transition: color 0.3s;
-    }
-    .footer-links a:hover {
-        color: #ffc107;
-    }
+  
 </style>
 <div class="mobile-cart-footer px-3 py-2 text-center" style="position: fixed; bottom: 0; width: 100%; background: rgba(0, 0, 0, 0.95); z-index: 1051;">
     <!-- Tray Button -->
@@ -291,28 +136,7 @@ button.decrease-quantity {
 
 
 <!-- ✅ Footer Navigation Bar (scrolls normally below tray) -->
-<style>
-    .footer-nav {
-        background-color: #000;
-        color: #fff;
-        font-size: 14px;
-        box-shadow: 0 -2px 5px rgba(0,0,0,0.2);
-        margin-top: 10px;
-        padding: 10px 0;
-    }
-    .footer-nav a {
-        color: #f8f9fa;
-        padding: 10px 12px;
-        text-align: center;
-        text-decoration: none;
-        flex: 1;
-        transition: background 0.3s;
-    }
-    .footer-nav a:hover {
-        background-color: #333;
-        color: #ffc107;
-    }
-</style>
+
 
 <div class="footer-nav d-flex justify-content-around">
     <a href="/">🏠 Home</a>
@@ -323,10 +147,10 @@ button.decrease-quantity {
 </div>
 
 
-<script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.2/dist/umd/popper.min.js"></script>
-<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script src="{{ asset('assets/js/jquery-3.6.0.js') }}"></script>
+<script src="{{ asset('assets/js/popper.min.js') }}"></script>
+<script src="{{ asset('assets/js/bootstrap.min.js') }}"></script>
+<script src="{{ asset('assets/js/sweetalert2@11') }}"></script>
 
 <script>
     window.addEventListener('load', function () {
@@ -350,7 +174,7 @@ button.decrease-quantity {
         type: 'post', // still using POST for dynamic filtering
         data: form.serialize(),
         beforeSend: function() {
-            $('#itemsContainer').html('<div class="text-center w-100 py-5"><div class="spinner-border text-danger" role="status"><span class="sr-only">Loading...</span></div></div>');
+            $('#itemsContainer').html('<div class="text-center w-100 py-5"><div class="spinner-border text-danger" role="status"></div></div>');
         },
         success: function (data) {
             $('#itemsContainer').html(data.html);
