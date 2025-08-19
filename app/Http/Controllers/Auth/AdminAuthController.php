@@ -15,7 +15,8 @@ class AdminAuthController extends Controller
 {
     public function showLoginForm()
     {
-        return view('auth.admin.login');
+        $adminData = Admin::get();
+        return view('auth.admin.login',compact('adminData'));
     }
 
 

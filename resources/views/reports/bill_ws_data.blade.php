@@ -125,6 +125,13 @@
             <th class="text-left">S.NO</th>
             <th class="text-left">BILL NO</th>
             <th class="text-left">DATE</th>
+
+            {{-- Extra columns if Zomato or Swiggy --}}
+            @if(request('payment_mode') == 'Z' || request('payment_mode') == 'S')
+                <th class="text-left">ORDER ID</th>
+                <th class="text-left">OTP</th>
+            @endif
+
             <th class="text-left">TOKEN NO</th>
             <th class="text-left">PAYMENT MODE</th>
             <th class="text-right">NET AMT</th>
@@ -152,10 +159,17 @@
             $formattedInvoiceNo = $prefix . '-' . $branch . '/' . $serial;
         @endphp
 
-        <tr style="@if($d->net_amt_incl_gst == 0)  color: red; font-weight: normal; @endif">
+        <tr style="@if($d->net_amt_incl_gst == 0) color: red; font-weight: normal; @endif">
             <td class="text-center">{{ ++$index }}</td>
             <td>{{ $formattedInvoiceNo }}</td>
             <td>{{ date('d-m-Y', strtotime($d->tran_date)) ?? '' }}</td>
+
+            {{-- Extra columns for Zomato/Swiggy --}}
+            @if(request('payment_mode') == 'Z' || request('payment_mode') == 'S')
+                <td>{{ $d->order_id ?? '-' }}</td>
+                <td>{{ $d->otp ?? '-' }}</td>
+            @endif
+
             <td>{{ $d->tran_no }}</td>
             <td>
                 @if($d->net_amt_incl_gst == 0)
@@ -190,15 +204,15 @@
         @endphp
         @empty
             <tr>
-                <td colspan="10" class="text-center text-danger">No record found</td>
+                <td colspan="12" class="text-center text-danger">No record found</td>
             </tr>
         @endforelse
-
     </tbody>
 
     <tfoot>
         <tr>
-            <td colspan="5" class="text-right"><strong>Total</strong></td>
+            {{-- colspan adjusted based on condition --}}
+            <td colspan="{{ (request('payment_mode') == 'Z' || request('payment_mode') == 'S') ? 7 : 5 }}" class="text-right"><strong>Total</strong></td>
             <td class="text-right"><strong>{{ number_format($amtGross, 2) }}</strong></td>
             <td class="text-right"><strong>{{ number_format($amtCGST, 2) }}</strong></td>
             <td class="text-right"><strong>{{ number_format($amtSGST, 2) }}</strong></td>
@@ -206,8 +220,8 @@
             <td class="text-right"><strong>{{ number_format($netAmt, 2) }}</strong></td>
         </tr>
     </tfoot>
-
 </table>
+
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.4/xlsx.full.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
 <script>
@@ -242,11 +256,10 @@
         saveAs(blob, fileName);
     }
 
-    // Helper function to format dates in d-m-Y format
     function formatDate(dateStr) {
         var parts = dateStr.split('-');
         if (parts.length === 3) {
-            return parts[1] + '-' + parts[0] + '-' + parts[2]; // Convert to m-d-Y
+            return parts[1] + '-' + parts[0] + '-' + parts[2];
         }
         return dateStr;
     }

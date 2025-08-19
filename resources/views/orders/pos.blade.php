@@ -3,8 +3,9 @@
 @section('content')
 <style>
     #cart-table tbody {
-      -webkit-overflow-scrolling: touch !important;
-      overflow-y: auto!important;
+        -webkit-overflow-scrolling: touch !important;
+        overflow-y: auto!important;
+
     }
     .keypad-box {
         border: 2px solid #ccc;  
@@ -32,9 +33,6 @@
         border-radius: 4px;
     }
 
-
-</style>
-<style>
   /* minimal keypad styling - adapt as needed */
   #miniKeypad {
   display: none;
@@ -132,7 +130,6 @@
                     <button type="button" class="btn btn-sm btn-secondary m-1" id="keypad-clear">Clear</button>
                 </div>
             </div>
-
             </div>
 
             <!-- Scrollable Items Table -->
@@ -448,12 +445,59 @@ $(document).ready(function () {
 
 
 <script>
-document.addEventListener("DOMContentLoaded", function () {
-    const sidebar = document.getElementById("sidebar");
-    if (sidebar) {
-        sidebar.classList.add("collapsed");
-    }
-});
+    // custom keyboard start
+
+    $(document).ready(function () {
+        let activeInput = null;
+
+        // Show keypad when focusing any custom input
+        $('.custom-input').on('focus', function () {
+            activeInput = $(this);
+            $('#custom-keypad').removeClass('d-none');
+        });
+
+        // Hide keypad when clicking outside inputs and keypad
+        $(document).on('click', function (e) {
+            if (!$(e.target).closest('.custom-input, #custom-keypad').length) {
+                $('#custom-keypad').addClass('d-none');
+                activeInput = null;
+            }
+        });
+
+        // Handle number key press
+        $('.keypad-key').click(function () {
+            if (!activeInput) return;
+            let digit = $(this).data('key');
+            let current = activeInput.val();
+            let maxLength = activeInput.attr('maxlength');
+
+            if (current.length < maxLength) {
+                activeInput.val(current + digit).trigger('input');
+            }
+        });
+
+        // Handle backspace
+        $('#keypad-backspace').click(function () {
+            if (!activeInput) return;
+            let current = activeInput.val();
+            activeInput.val(current.slice(0, -1)).trigger('input');
+        });
+
+        // Handle clear
+        $('#keypad-clear').click(function () {
+            if (!activeInput) return;
+            activeInput.val('').trigger('input');
+        });
+
+        // Restrict to numbers only from physical keyboard
+        $('.custom-input').on('keypress', function (e) {
+            if (e.which < 48 || e.which > 57) { // not 0-9
+                e.preventDefault();
+            }
+        });
+    });
+    // customkeyboard end
+
 
 function scrollCartToBottom() {
     const container = document.querySelector("#cart-scroll-container");
@@ -841,12 +885,6 @@ $('#bill-view').click(() => {
     // localStorage.removeItem('lastOrderId');
 
 });
-
-
-
-
-
-
 
 function handlePrint(orderId, type) {
     Swal.close();
