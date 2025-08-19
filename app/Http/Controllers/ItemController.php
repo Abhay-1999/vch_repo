@@ -372,10 +372,20 @@ class ItemController extends Controller
 
          session()->forget('cart');
 
-
+         if($hd_data->payment_mode=='O'){
+            $paymentMode = 'Online';
+        }elseif($hd_data->payment_mode=='C'){
+            $paymentMode = 'Cash';
+        }elseif($hd_data->payment_mode=='U'){
+            $paymentMode = 'Counter UPI';
+        }elseif($hd_data->payment_mode=='Z'){
+            $paymentMode = 'Zomato';
+        }elseif($hd_data->payment_mode=='S'){
+            $paymentMode = 'Swiggy';
+        }
         
         
-         return view('items.bill', compact('dt_data', 'hd_data', 'rest_data'));
+         return view('items.bill', compact('dt_data', 'hd_data', 'rest_data','paymentMode'));
 
 
 

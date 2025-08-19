@@ -100,7 +100,7 @@ Route::prefix('admin')->group(function () {
     Route::get('/cncl-token',[ReportController::class,'cancel_token_form'])->name('cancel_form');
     Route::post('/cncl-data',[ReportController::class,'cncl_token_data'])->name('cancel_data');
 
-    Route::get('/orders/refresh', [OrderController::class, 'refresh'])->name('orders.refresh');
+    Route::post('/orders/refresh', [OrderController::class, 'refresh'])->name('orders.refresh');
 
     Route::get('/ordersp/refresh', [OrderController::class, 'refreshp'])->name('ordersp.refresh');
     Route::get('/ordersp/refreshdelivered', [OrderController::class, 'refreshdelivered'])->name('orders.refreshdelivered');

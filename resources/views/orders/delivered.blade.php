@@ -97,7 +97,6 @@
         win.document.open();
         win.document.write('<html><head><title>Print</title></head><body>');
         win.document.write(html);
-        win.document.write('</body></html>');
         win.document.close();
 
         win.onload = function () {

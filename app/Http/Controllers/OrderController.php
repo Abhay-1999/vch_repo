@@ -16,6 +16,7 @@ class OrderController extends Controller
         ->join('item_master', 'order_dt.item_code', '=', 'item_master.item_code')
         ->select('item_master.item_desc', DB::raw('SUM(order_dt.item_qty * item_master.item_rate) as total'))
         ->groupBy('item_master.item_desc')
+        ->where('tran_date',date('Y-m-d'))
         ->orderByDesc('total')
         ->get();
 
@@ -1098,7 +1099,7 @@ public function updateOrderItem(Request $request)
 
         $rest_data =  DB::table('chain_master')->where('group_code','01')->where('rest_code','01')->first();
 
-        $dt_data =   DB::table('order_dt')->select('order_dt.*','item_master.item_desc','item_master.item_gst as igst','item_master.item_rate')
+        $dt_data =   DB::table('order_dt')->select('order_dt.*','item_master.item_desc','item_master.item_hdesc','item_master.item_gst as igst','item_master.item_rate')
         ->join('item_master','order_dt.item_code','=','item_master.item_code')
         ->join('order_hd','order_dt.tran_no','=','order_hd.tran_no')
         ->where('order_hd.tran_no',$trans_no)
@@ -1108,13 +1109,20 @@ public function updateOrderItem(Request $request)
         ->where('order_dt.tran_no',$trans_no)
         ->get();
 
-      // $this->generateBillImage($trans_no,$mobile);
-
-
-
+        if($hd_data->payment_mode=='O'){
+            $paymentMode = 'Online';
+        }elseif($hd_data->payment_mode=='C'){
+            $paymentMode = 'Cash';
+        }elseif($hd_data->payment_mode=='U'){
+            $paymentMode = 'Counter UPI';
+        }elseif($hd_data->payment_mode=='Z'){
+            $paymentMode = 'Zomato';
+        }elseif($hd_data->payment_mode=='S'){
+            $paymentMode = 'Swiggy';
+        }
         
         
-         return view('items.bill', compact('dt_data', 'hd_data', 'rest_data'));
+         return view('items.bill', compact('dt_data', 'hd_data', 'rest_data','paymentMode'));
     }else{
         DB::table('order_hd')->where('order_id',$order_id)->where('tran_date',date('Y-m-d'))->where('status_trans','pending')->update(['status_trans'=>'failure']);
         

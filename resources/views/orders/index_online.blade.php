@@ -35,7 +35,6 @@
 
 
     function markDelivered(tran_no) {
-        if (!confirm("Are you sure you want to mark this order as delivered?")) return;
 
         fetch("{{ route('orders.deliver') }}", {
             method: 'POST',
@@ -60,7 +59,6 @@
     }
 
     function updateStatus(tran_no,flag) {
-        if (!confirm("Are you sure you want to Update this order?")) return;
 
         fetch("{{ route('orders.flag') }}", {
             method: 'POST',
