@@ -3,69 +3,10 @@
 @section('content')
 <style>
     #cart-table tbody {
-      -webkit-overflow-scrolling: touch !important;
-      overflow-y: auto!important;
-    }
-    .keypad-box {
-        border: 2px solid #ccc;  
-        border-radius: 12px;
-        background: #f9f9f9;
-        display: inline-block;
-        margin-bottom:10px;
-    }
-
-    /* Buttons */
-    #custom-keypad button {
-        width: 40px;
-        height: 45px;
-        font-size: 20px;
-        border-radius: 5px;
-        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-    }
-
-    /* Small buttons */
-    #custom-keypad #keypad-backspace,
-    #custom-keypad #keypad-clear {
-        width: 60px;
-        height: 30px;
-        font-size: 12px;
-        border-radius: 4px;
-    }
-
-
-</style>
-<style>
-  /* minimal keypad styling - adapt as needed */
-  #miniKeypad {
-  display: none;
-  position: fixed;
-  bottom: 20px;   /* distance from bottom */
-  right: 20px;    /* distance from right */
-  width: 220px;
-  background: #fff;
-  border: 1px solid #ddd;
-  border-radius: 8px;
-  padding: 8px;
-  box-shadow: 0 6px 18px rgba(0,0,0,0.12);
-  z-index: 9999;
+  -webkit-overflow-scrolling: touch !important;
+  overflow-y: auto!important;
 }
 
-  #miniKeypad .kp-display {
-    height: 40px;
-    margin-bottom: 8px;
-    padding: 6px 8px;
-    background: #f7f7f7;
-    text-align: right;
-    font-size: 18px;
-    border-radius: 6px;
-    border: 1px solid #eee;
-    box-sizing: border-box;
-    overflow: hidden;
-  }
-  #miniKeypad .kp-keys { display: grid; grid-template-columns: repeat(3,1fr); gap:8px; }
-  #miniKeypad button { height:44px; border-radius:6px; border: none; cursor:pointer; font-size:16px; }
-  #miniKeypad .kp-ok { grid-column: span 3; background:#0d6efd; color:white; }
-  #miniKeypad .kp-clear { background:#f1f1f1; }
 </style>
 <div class="fluid-container py-4">
     <div class="row g-4">
@@ -107,66 +48,54 @@
             </div>
             </div>
            
-            <div class="row">
-                <div class="col-6">
-                    <div class="mb-3" id="orderid_field">
-                        <label class="form-label">Order ID</label>
-                        <input type="text" class="form-control custom-input" id="order_id" placeholder="Enter order ID" maxlength="10">
-                    </div>
-                </div>
-                <div class="col-6">
-                    <div class="mb-3" id="mobile_field" style="display: none;">
-                        <label class="form-label">Otp</label>
-                        <input type="text" class="form-control custom-input" id="mobile" placeholder="Enter Otp Here" maxlength="4">
-                    </div>
-                </div>
+            <div class="col-6">
+            <div class="mb-3" id="orderid_field">
+                <label class="form-label">Order ID</label>
+                <input type="text" class="form-control" id="order_id" placeholder="Enter order ID">
             </div>
-            <!-- Custom Numeric Keypad (hidden by default) -->
-            <div class="col-12 mt-3 d-none" id="custom-keypad">
-                <div class="keypad-box d-flex flex-wrap justify-content-center p-3">
-                    @for ($i = 1; $i <= 9; $i++)
-                        <button type="button" class="btn btn-light m-1 keypad-key" data-key="{{ $i }}">{{ $i }}</button>
-                    @endfor
-                    <button type="button" class="btn btn-light m-1 keypad-key" data-key="0">0</button>
-                    <button type="button" class="btn btn-sm btn-danger m-1" id="keypad-backspace">⌫</button>
-                    <button type="button" class="btn btn-sm btn-secondary m-1" id="keypad-clear">Clear</button>
-                </div>
+            </div>
+            <div class="col-6">
+            <div class="mb-3" id="mobile_field" style="display: none;">
+                <label class="form-label">Otp</label>
+                <input type="text" class="form-control" id="mobile" placeholder="Enter Otp Here">
+            </div>
             </div>
 
             </div>
 
             <!-- Scrollable Items Table -->
             <div class="table-responsive mb-3" id="cart-scroll-container" style="max-height: 300px; overflow-y: auto;">
-            <table class="table table-striped align-middle" id="cart-table">
-                <thead class="table-dark">
-                    <tr><th>Item</th><th>Qty/Rs</th><th>Gram</th><th>Price</th><th>Total</th><th>Action</th></tr>
-                </thead>
-                <tbody>
-                    <!-- items will be added here -->
-                </tbody>
-                <tfoot>
-                    <tr>
-                        <td colspan="3" class="text-end">
-                            <h5>Total: ₹<span id="total">0.00</span></h5>
-                        </td>
-                    </tr>
-                    <tr id="discount_row" style="display: none;">
-                        <td colspan="2" class="text-end">
-                            <label class="form-label">Discount (%)</label>
-                        </td>
-                        <td colspan="2">
-                            <input type="number" id="discount_percent" name="discount_percent" class="form-control" value="0" min="0" max="100" disabled>
-                        </td>
-                    </tr>
-                    <tr id="final_row" style="display: none;">
-                        <td colspan="3" class="text-end">
-                            <h5>Final Amount: ₹<span id="final_total">0.00</span></h5>
-                            <input type="hidden" class="final_total" name="final_total" value="">
-                        </td>
-                    </tr>
-                </tfoot>
-            </table>
-        </div>
+    <table class="table table-striped align-middle" id="cart-table">
+        <thead class="table-dark">
+            <tr><th>Item</th><th>Qty</th><th>Gram</th><th>Price</th><th>Total</th><th>Action</th></tr>
+        </thead>
+        <tbody>
+            <!-- items will be added here -->
+        </tbody>
+        <tfoot>
+            <tr>
+                <td colspan="3" class="text-end">
+                    <h5>Total: ₹<span id="total">0.00</span></h5>
+                </td>
+            </tr>
+            <tr id="discount_row" style="display: none;">
+                <td colspan="2" class="text-end">
+                    <label class="form-label">Discount (%)</label>
+                </td>
+                <td colspan="2">
+                    <input type="number" id="discount_percent" name="discount_percent" class="form-control" value="0" min="0" max="100" disabled>
+                </td>
+            </tr>
+            <tr id="final_row" style="display: none;">
+                <td colspan="3" class="text-end">
+                    <h5>Final Amount: ₹<span id="final_total">0.00</span></h5>
+                    <input type="hidden" class="final_total" name="final_total" value="">
+                </td>
+            </tr>
+        </tfoot>
+    </table>
+</div>
+
 
         </div>
 
@@ -212,240 +141,11 @@
 
     </div>
 </div>
-<!-- Keypad -->
-<div id="miniKeypad" aria-hidden="true">
-  <div class="kp-display" id="kpDisplay"></div>
-  <div class="kp-keys">
-    <button type="button" data-val="1">1</button>
-    <button type="button" data-val="2">2</button>
-    <button type="button" data-val="3">3</button>
-
-    <button type="button" data-val="4">4</button>
-    <button type="button" data-val="5">5</button>
-    <button type="button" data-val="6">6</button>
-
-    <button type="button" data-val="7">7</button>
-    <button type="button" data-val="8">8</button>
-    <button type="button" data-val="9">9</button>
-
-    <button type="button" data-val="0">0</button>
-    <button type="button" data-val="clear" class="kp-clear">Clear</button>
-    <button type="button" data-val="ok" class="kp-ok">OK</button>
-  </div>
-</div>
 <iframe id="print-frame" style="display:none;"></iframe>
 
 <!-- Scripts -->
 <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-
-
-<script>
-// custom keyboard start
-
-$(document).ready(function () {
-    let activeInput = null;
-
-    // Show keypad when focusing any custom input
-    $('.custom-input').on('focus', function () {
-        activeInput = $(this);
-        $('#custom-keypad').removeClass('d-none');
-    });
-
-    // Hide keypad when clicking outside inputs and keypad
-    $(document).on('click', function (e) {
-        if (!$(e.target).closest('.custom-input, #custom-keypad').length) {
-            $('#custom-keypad').addClass('d-none');
-            activeInput = null;
-        }
-    });
-
-    // Handle number key press
-    $('.keypad-key').click(function () {
-        if (!activeInput) return;
-        let digit = $(this).data('key');
-        let current = activeInput.val();
-        let maxLength = activeInput.attr('maxlength');
-
-        if (current.length < maxLength) {
-            activeInput.val(current + digit).trigger('input');
-        }
-    });
-
-    // Handle backspace
-    $('#keypad-backspace').click(function () {
-        if (!activeInput) return;
-        let current = activeInput.val();
-        activeInput.val(current.slice(0, -1)).trigger('input');
-    });
-
-    // Handle clear
-    $('#keypad-clear').click(function () {
-        if (!activeInput) return;
-        activeInput.val('').trigger('input');
-    });
-
-    // Restrict to numbers only from physical keyboard
-    $('.custom-input').on('keypress', function (e) {
-        if (e.which < 48 || e.which > 57) { // not 0-9
-            e.preventDefault();
-        }
-    });
-});
-
-// customkeyboard end
-
-(function () {
-  const keypad = document.getElementById('miniKeypad');
-  const kpDisplay = document.getElementById('kpDisplay');
-
-  let buffer = '';
-  let activeInput = null;
-  let activeType = ''; // 'qty' | 'amount' | 'grams'
-
-  function showKeypadFor(inputEl) {
-    activeInput = inputEl;
-    activeType = inputEl.classList.contains('qty-direct-input') ? 'qty'
-              : inputEl.classList.contains('amount-input')      ? 'amount'
-              : 'grams';
-    buffer = '';
-    kpDisplay.textContent = '';
-
-    const r = inputEl.getBoundingClientRect();
-    // keypad.style.left = (r.left + window.scrollX) + 'px';
-    // keypad.style.top  = (r.bottom + window.scrollY + 6) + 'px';
-    keypad.style.display = 'block';
-    keypad.setAttribute('aria-hidden', 'false');
-  }
-
-  function hideKeypad() {
-    keypad.style.display = 'none';
-    keypad.setAttribute('aria-hidden', 'true');
-    activeInput = null;
-    activeType = '';
-    buffer = '';
-    kpDisplay.textContent = '';
-  }
-
-  function removeRow(id) {
-    if (typeof removeItem === 'function') {
-      removeItem(id);
-    } else {
-      document.querySelector(`tr[data-id="${id}"]`)?.remove();
-    }
-    if (Array.isArray(cart)) {
-      cart = cart.filter(i => i.id != id);
-    }
-    if (typeof updateTotals === 'function') updateTotals();
-    if (typeof updateFinalTotal === 'function') updateFinalTotal();
-  }
-
-  function commitValue() {
-    if (!activeInput) { hideKeypad(); return; }
-    const id  = activeInput.dataset.id;
-    const val = buffer.trim();
-
-    if (activeType === 'qty') {
-      if (!val) {
-        //removeRow(id);
-      } else {
-        const qty = parseInt(val, 10);
-        if (!isNaN(qty) && qty >= 0) {
-          activeInput.value = qty;
-          const item = cart.find(i => i.id == id);
-          if (item) item.qty = qty;
-          if (typeof updateRow === 'function') updateRow(id);
-          if (typeof updateTotals === 'function') updateTotals();
-        } else {
-         // removeRow(id);
-        }
-      }
-    }
-
-    if (activeType === 'amount') {
-      if (!val) {
-       // removeRow(id);
-      } else {
-        activeInput.value = parseFloat(val).toFixed(2);
-        if (typeof updateAmountAndLock === 'function') {
-          updateAmountAndLock(id, activeInput.value);
-        }
-        if (typeof updateFinalTotal === 'function') updateFinalTotal();
-      }
-    }
-
-    if (activeType === 'grams') {
-      if (!val) {
-       // removeRow(id);
-      } else {
-        activeInput.value = parseFloat(val).toFixed(2);
-        if (typeof updateGramAndLock === 'function') {
-          updateGramAndLock(id, activeInput.value);
-        }
-        if (typeof updateFinalTotal === 'function') updateFinalTotal();
-      }
-    }
-
-    hideKeypad();
-  }
-
-  // ---------- Events ----------
-  document.addEventListener('click', (e) => {
-    const input = e.target.closest && e.target.closest(
-      'input.qty-direct-input, input.amount-input, input.grams-input'
-    );
-    if (input) {
-      showKeypadFor(input);
-      e.preventDefault();
-      return;
-    }
-    if (!keypad.contains(e.target)) {
-      setTimeout(commitValue, 0);
-    }
-  });
-
-  keypad.addEventListener('click', (e) => {
-    const btn = e.target.closest('button');
-    if (!btn) return;
-    const val = btn.dataset.val;
-
-    if (val === 'clear') {
-      buffer = '';
-      kpDisplay.textContent = '';
-      return;
-    }
-    if (val === 'ok') {
-      commitValue();
-      return;
-    }
-    if (val === '.') {
-      if (activeType === 'qty') return; // no decimals in qty
-      if (buffer.includes('.')) return;
-      if (!buffer) buffer = '0';
-    }
-    buffer += val;
-    if (activeType === 'qty' && buffer.length > 1 && buffer[0] === '0') {
-      buffer = buffer.replace(/^0+/, '') || '0';
-    }
-    kpDisplay.textContent = buffer;
-  });
-
-  document.addEventListener('keydown', (e) => {
-    if (keypad.style.display !== 'block') return;
-    if (e.key === 'Enter' || e.key === 'Tab') {
-      commitValue();
-    } else if (e.key === 'Escape') {
-      hideKeypad();
-    }
-  });
-})();
-</script>
-
-
-
-
-
-
 
 <script>
 document.addEventListener("DOMContentLoaded", function () {
@@ -545,14 +245,12 @@ $('#new-order').click(function () {
 
 $(document).ready(function () {
     // Load item buttons
-    $.get('/all-items', function (res) {
+    // Load all categories and default items
+$.get('/all-items', function (res) {
     let categoryHtml = '';
     let firstCategory = null;
 
-    // --- Add custom categories first ---
-
-
-    // --- Build Category List from DB ---
+    // Build Category List
     res.categories.forEach((cat, index) => {
         const activeClass = index === 0 ? 'active bg-info text-dark' : '';
         if (index === 0) firstCategory = cat.item_grpcode;
@@ -564,36 +262,19 @@ $(document).ready(function () {
             </a>`;
     });
 
-    categoryHtml += `
-        <a href="#" class="list-group-item list-group-item-action bg-success text-white" 
-           data-code="zomato" data-custom="true">
-            Zomato
-        </a>
-        <a href="#" class="list-group-item list-group-item-action bg-danger text-white" 
-           data-code="swiggy" data-custom="true">
-            Swiggy
-        </a>
-    `;
-
     $('#categories').html(categoryHtml);
 
-    // --- Set click event for categories ---
+    // Set click event for categories
     $('#categories').on('click', '.list-group-item', function (e) {
         e.preventDefault();
         const catCode = $(this).data('code');
-        const isCustom = $(this).data('custom');
 
         // Toggle active class
         $('#categories .list-group-item').removeClass('active bg-info text-dark');
         $(this).addClass('active bg-info text-dark');
 
-        // If Zomato or Swiggy → load all items
-        if (isCustom) {
-            loadAllItems();
-        } else {
-            // Load selected category items
-            loadItems(catCode);
-        }
+        // Load selected category items
+        loadItems(catCode);
     });
 
     // Auto load first category items
@@ -602,34 +283,25 @@ $(document).ready(function () {
     }
 });
 
-// --- Load items by category ---
+// Load items by category
 function loadItems(categoryCode) {
     $.get('/items-by-category/' + categoryCode, function (res) {
-        renderItems(res.items);
-    });
-}
+        let html = '';
 
-// --- Load all items (for Zomato & Swiggy) ---
-function loadAllItems() {
-    $.get('/all-items-status', function (res) {
-        renderItems(res.items);
-    });
-}
+        res.items.forEach(item => {
+            const isDisabled = item.item_status === 'D' ? 'disabled' : '';
 
-// --- Render Items ---
-function renderItems(items) {
-    let html = '';
-    items.forEach(item => {
-        const isDisabled = item.item_status === 'D' ? 'disabled' : '';
-        html += `
-            <button  data-item-name="${item.item_desc}" class="btn btn-outline-warning text-dark ${isDisabled}"
-                    style="width: 120px; height: 80px; margin: 5px; font-size: 14px;"
-                    onclick="addItem('${item.item_code}', '${item.item_desc}', ${item.item_rate})"
-                    ${isDisabled}>
-                ${item.item_desc}
-            </button>`;
+            html += `
+    <button class="btn btn-outline-warning text-dark"
+            style="width: 120px; height: 80px; margin: 5px; font-size: 14px;"
+            onclick="addItem('${item.item_code}', '${item.item_desc}', ${item.item_rate})">
+        ${item.item_desc}
+    </button>`;
+
+        });
+
+        $('#items').html(html);
     });
-    $('#items').html(html);
 }
 
     // Handle order type change

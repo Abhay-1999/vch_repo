@@ -59,7 +59,6 @@
     }
 
     function updateStatus(tran_no,flag) {
-        if (!confirm("Are you sure you want to Update this order?")) return;
 
         fetch("{{ route('orders.flag') }}", {
             method: 'POST',
