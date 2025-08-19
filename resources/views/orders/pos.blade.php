@@ -3,9 +3,34 @@
 @section('content')
 <style>
     #cart-table tbody {
-  -webkit-overflow-scrolling: touch !important;
-  overflow-y: auto!important;
-}
+        -webkit-overflow-scrolling: touch !important;
+        overflow-y: auto!important;
+    }
+    .keypad-box {
+        border: 2px solid #ccc;  
+        border-radius: 12px;
+        background: #f9f9f9;
+        display: inline-block;
+        margin-bottom:10px;
+    }
+
+    /* Buttons */
+    #custom-keypad button {
+        width: 40px;
+        height: 45px;
+        font-size: 20px;
+        border-radius: 5px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+
+    /* Small buttons */
+    #custom-keypad #keypad-backspace,
+    #custom-keypad #keypad-clear {
+        width: 60px;
+        height: 30px;
+        font-size: 12px;
+        border-radius: 4px;
+    }
 
 </style>
 <div class="fluid-container py-4">
@@ -48,19 +73,31 @@
             </div>
             </div>
            
-            <div class="col-6">
-            <div class="mb-3" id="orderid_field">
-                <label class="form-label">Order ID</label>
-                <input type="text" class="form-control" id="order_id" placeholder="Enter order ID">
+            <div class="row">
+                <div class="col-6">
+                    <div class="mb-3" id="orderid_field">
+                        <label class="form-label">Order ID</label>
+                        <input type="text" class="form-control custom-input" id="order_id" placeholder="Enter order ID" maxlength="10">
+                    </div>
+                </div>
+                <div class="col-6">
+                    <div class="mb-3" id="mobile_field" style="display: none;">
+                        <label class="form-label">Otp</label>
+                        <input type="text" class="form-control custom-input" id="mobile" placeholder="Enter Otp Here" maxlength="4">
+                    </div>
+                </div>
             </div>
+            <!-- Custom Numeric Keypad (hidden by default) -->
+            <div class="col-12 mt-3 d-none" id="custom-keypad">
+                <div class="keypad-box d-flex flex-wrap justify-content-center p-3">
+                    @for ($i = 1; $i <= 9; $i++)
+                        <button type="button" class="btn btn-light m-1 keypad-key" data-key="{{ $i }}">{{ $i }}</button>
+                    @endfor
+                    <button type="button" class="btn btn-light m-1 keypad-key" data-key="0">0</button>
+                    <button type="button" class="btn btn-sm btn-danger m-1" id="keypad-backspace">⌫</button>
+                    <button type="button" class="btn btn-sm btn-secondary m-1" id="keypad-clear">Clear</button>
+                </div>
             </div>
-            <div class="col-6">
-            <div class="mb-3" id="mobile_field" style="display: none;">
-                <label class="form-label">Otp</label>
-                <input type="text" class="form-control" id="mobile" placeholder="Enter Otp Here">
-            </div>
-            </div>
-
             </div>
 
             <!-- Scrollable Items Table -->
@@ -148,6 +185,59 @@
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
 <script>
+    // custom keyboard start
+
+    $(document).ready(function () {
+        let activeInput = null;
+
+        // Show keypad when focusing any custom input
+        $('.custom-input').on('focus', function () {
+            activeInput = $(this);
+            $('#custom-keypad').removeClass('d-none');
+        });
+
+        // Hide keypad when clicking outside inputs and keypad
+        $(document).on('click', function (e) {
+            if (!$(e.target).closest('.custom-input, #custom-keypad').length) {
+                $('#custom-keypad').addClass('d-none');
+                activeInput = null;
+            }
+        });
+
+        // Handle number key press
+        $('.keypad-key').click(function () {
+            if (!activeInput) return;
+            let digit = $(this).data('key');
+            let current = activeInput.val();
+            let maxLength = activeInput.attr('maxlength');
+
+            if (current.length < maxLength) {
+                activeInput.val(current + digit).trigger('input');
+            }
+        });
+
+        // Handle backspace
+        $('#keypad-backspace').click(function () {
+            if (!activeInput) return;
+            let current = activeInput.val();
+            activeInput.val(current.slice(0, -1)).trigger('input');
+        });
+
+        // Handle clear
+        $('#keypad-clear').click(function () {
+            if (!activeInput) return;
+            activeInput.val('').trigger('input');
+        });
+
+        // Restrict to numbers only from physical keyboard
+        $('.custom-input').on('keypress', function (e) {
+            if (e.which < 48 || e.which > 57) { // not 0-9
+                e.preventDefault();
+            }
+        });
+    });
+    // customkeyboard end
+
 function scrollCartToBottom() {
     const container = document.querySelector("#cart-scroll-container");
     if (container) {
@@ -506,12 +596,6 @@ $('#bill-view').click(() => {
     // localStorage.removeItem('lastOrderId');
 
 });
-
-
-
-
-
-
 
 function handlePrint(orderId, type) {
     Swal.close();

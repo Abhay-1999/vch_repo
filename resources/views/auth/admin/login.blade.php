@@ -25,8 +25,26 @@
             box-shadow: 0 0 10px rgba(0, 0, 0, 0.1); /* Subtle shadow */
         }
         button.btn.btn-primary.w-100 {
-    background-color: #ff5700d6 !important;
-}
+            background-color: #ff5700d6 !important;
+        }
+
+        #otp-keypad button {
+            width: 60px;
+            height: 60px;
+            font-size: 20px;
+            border-radius: 10px;
+        }
+        #otp-keypad #otp-backspace,
+        #otp-keypad #otp-clear {
+            width: 50px;
+            height: 40px;
+            font-size: 14px;
+        }
+        #otp {
+            font-size: 24px;
+            letter-spacing: 10px;
+        }
+
     </style>
 </head>
 <body>
@@ -38,9 +56,13 @@
         @csrf
         <meta name="csrf-token" content="{{ csrf_token() }}">
 
-        <div class="mb-3">
-            <label>User Name:</label>
-            <input type="text" id="username" class="form-control" required>
+        <div class="mb-3 mt-2">
+            <label class="mb-1">User Name</label>
+            <select name="userid" id="userid" class="form-control">
+                @foreach($adminData as $d)
+                    <option value="{{ $d->userid }}">{{ $d->userid }}</option>
+                @endforeach
+            </select>
         </div>
 
         <!-- Centered Button -->
@@ -50,9 +72,20 @@
 
 
         <div class="mt-3 d-none" id="otpSection">
-            <label>Enter OTP:</label>
-            <input type="text" id="otp" class="form-control" maxlength="4">
+            <label class="mb-1">Enter OTP</label>
+            <input type="text" id="otp" class="form-control text-center" maxlength="4">
+
+            <!-- Custom Numeric Keypad -->
+            <div id="otp-keypad" class="mt-3 d-flex flex-wrap justify-content-center">
+                @for ($i = 1; $i <= 9; $i++)
+                    <button type="button" class="btn btn-light m-1 otp-key" data-key="{{ $i }}">{{ $i }}</button>
+                @endfor
+                <button type="button" class="btn btn-light m-1 otp-key" data-key="0">0</button>
+                <button type="button" class="btn btn-sm btn-danger m-1" id="otp-backspace">⌫</button>
+                <button type="button" class="btn btn-sm btn-secondary m-1" id="otp-clear">Clear</button>
+            </div>
         </div>
+
     </form>
 
 <!-- Error message container -->
@@ -100,54 +133,94 @@
     });
 </script> -->
 <script>
-   $('#sendOtpBtn').click(function () {
-    $.ajax({
-        url: '{{ url("admin/send-otp-login") }}',
-        type: 'POST',
-        data: {
-            _token: $('meta[name="csrf-token"]').attr('content'),
-            username: $('#username').val()
-        },
-        success: function (res) {
-            if (res.success) {
-                toastr.success(res.message);
-                $('#otpSection').removeClass('d-none');
-            } else {
-                toastr.error(res.message);
-            }
-        },
-        error: function () {
-            toastr.error("Failed to send OTP. Please try again.");
+   let selectedUser = null;
+
+    // Enable button only after selecting user
+    $('#userid').on('change', function () {
+        selectedUser = $(this).val();
+        if (selectedUser) {
+            $('#sendOtpBtn').prop('disabled', false);
+        } else {
+            $('#sendOtpBtn').prop('disabled', true);
         }
     });
-});
 
-$('#otp').on('input', function () {
-    const otp = $(this).val();
-    if (otp.length === 4) {
+    $('#sendOtpBtn').click(function () {
+        if (!selectedUser) {
+            toastr.error("Please select a user first.");
+            return;
+        }
+
         $.ajax({
-            url: '{{ url("admin/verify-otp-login") }}',
+            url: '{{ url("admin/send-otp-login") }}',
             type: 'POST',
             data: {
                 _token: $('meta[name="csrf-token"]').attr('content'),
-                otp: otp
+                username: selectedUser
             },
             success: function (res) {
                 if (res.success) {
                     toastr.success(res.message);
-                    setTimeout(() => {
-                        window.location.href = res.redirect;
-                    }, 1000);
+                    $('#otpSection').removeClass('d-none');
                 } else {
                     toastr.error(res.message);
                 }
             },
             error: function () {
-                toastr.error("OTP verification failed. Please try again.");
+                toastr.error("Failed to send OTP. Please try again.");
             }
         });
-    }
-});
+    });
+
+    $(document).ready(function () {
+        // Handle number button clicks
+        $('.otp-key').click(function () {
+            let digit = $(this).data('key');
+            let current = $('#otp').val();
+
+            if (current.length < 4) {
+                $('#otp').val(current + digit).trigger('input'); // trigger input for auto verify
+            }
+        });
+
+        $('#otp-backspace').click(function () {
+            let current = $('#otp').val();
+            $('#otp').val(current.slice(0, -1)).trigger('input');
+        });
+
+        $('#otp-clear').click(function () {
+            $('#otp').val('').trigger('input');
+        });
+
+        // Auto verify when 4 digits entered
+        $('#otp').on('input', function () {
+            const otp = $(this).val();
+            if (otp.length === 4) {
+                $.ajax({
+                    url: '{{ url("admin/verify-otp-login") }}',
+                    type: 'POST',
+                    data: {
+                        _token: $('meta[name="csrf-token"]').attr('content'),
+                        otp: otp
+                    },
+                    success: function (res) {
+                        if (res.success) {
+                            toastr.success(res.message);
+                            setTimeout(() => {
+                                window.location.href = res.redirect;
+                            }, 1000);
+                        } else {
+                            toastr.error(res.message);
+                            $('#otp').val('');
+                        }
+                    },
+                    error: function () {
+                        toastr.error("OTP verification failed. Please try again.");
+                    }
+                });
+            }
+        });
+    });
 
 </script>
 </body>

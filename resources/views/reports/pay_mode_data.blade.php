@@ -67,7 +67,7 @@
             margin-top:0px;
             @bottom-center {
                 content: "Page " counter(page) " of " counter(pages);
-                margin-top:-50px;
+                margin-top:-10px;
             }
         }
 
@@ -125,6 +125,7 @@
             <th class="text-right">UPI</th>
             <th class="text-right">Zomato</th>
             <th class="text-right">Swiggy</th>
+            <th class="text-right">Total</th>
         </tr>
     </thead>
     <tbody>
@@ -135,84 +136,97 @@
             $grandTotalUPI = 0;   
             $grandTotalZomato = 0;
             $grandTotalSwiggy = 0;
+            $grandTotalAll = 0; // For horizontal grand total
         @endphp
         @foreach ($totals as $date => $amounts)
-        <tr>
-            <td class="text-left">{{ $i++ }}</td>
-            <td class="text-left">{{ $date }}</td>
-            <td class="text-right">{{ number_format($amounts['cash'], 2) }}</td>
-            <td class="text-right">{{ number_format($amounts['Online'], 2) }}</td>
-            <td class="text-right">{{ number_format($amounts['UPI'], 2) }}</td>
-            <td class="text-right">{{ number_format($amounts['Zomato'], 2) }}</td>
-            <td class="text-right">{{ number_format($amounts['Swiggy'], 2) }}</td>
-        </tr>
-        @php
-            $grandTotalCash += $amounts['cash'];
-            $grandTotalOnline += $amounts['Online'];
-            $grandTotalUPI += $amounts['UPI'];
-            $grandTotalZomato += $amounts['Zomato'];
-            $grandTotalSwiggy += $amounts['Swiggy'];
-        @endphp
+            @php
+                $rowTotal = $amounts['cash'] + $amounts['Online'] + $amounts['UPI'] + $amounts['Zomato'] + $amounts['Swiggy'];
+            @endphp
+            <tr>
+                <td class="text-left">{{ $i++ }}</td>
+                <td class="text-left">{{ $date }}</td>
+                <td class="text-right">{{ number_format($amounts['cash'], 2) }}</td>
+                <td class="text-right">{{ number_format($amounts['Online'], 2) }}</td>
+                <td class="text-right">{{ number_format($amounts['UPI'], 2) }}</td>
+                <td class="text-right">{{ number_format($amounts['Zomato'], 2) }}</td>
+                <td class="text-right">{{ number_format($amounts['Swiggy'], 2) }}</td>
+                <td class="text-right"><strong>{{ number_format($rowTotal, 2) }}</strong></td>
+            </tr>
+            @php
+                $grandTotalCash += $amounts['cash'];
+                $grandTotalOnline += $amounts['Online'];
+                $grandTotalUPI += $amounts['UPI'];
+                $grandTotalZomato += $amounts['Zomato'];
+                $grandTotalSwiggy += $amounts['Swiggy'];
+                $grandTotalAll += $rowTotal;
+            @endphp
         @endforeach
     </tbody>
     <tfoot>
+        @php
+            // GST Breakdown
+            $baseCash = $grandTotalCash / 1.05;
+            $baseOnline = $grandTotalOnline / 1.05;
+            $baseUPI = $grandTotalUPI / 1.05;
+            $baseZomato = $grandTotalZomato / 1.05;
+            $baseSwiggy = $grandTotalSwiggy / 1.05;
 
-    @php
-        // GST Breakdown
-        $baseCash = $grandTotalCash / 1.05;
-        $baseOnline = $grandTotalOnline / 1.05;
-        $baseUPI = $grandTotalUPI / 1.05;
-        $baseZomato = $grandTotalZomato / 1.05;
-        $baseSwiggy = $grandTotalSwiggy / 1.05;
+            $cgstCash = $baseCash * 0.025;
+            $cgstOnline = $baseOnline * 0.025;
+            $cgstUPI = $baseUPI * 0.025;
+            $cgstZomato = $baseZomato * 0.025;
+            $cgstSwiggy = $baseSwiggy * 0.025;
 
-        $cgstCash = $baseCash * 0.025;
-        $cgstOnline = $baseOnline * 0.025;
-        $cgstUPI = $baseUPI * 0.025;
-        $cgstZomato = $baseZomato * 0.025;
-        $cgstSwiggy = $baseSwiggy * 0.025;
+            $sgstCash = $cgstCash;
+            $sgstOnline = $cgstOnline;
+            $sgstUPI = $cgstUPI;
+            $sgstZomato = $cgstZomato;
+            $sgstSwiggy = $cgstSwiggy;
 
-        $sgstCash = $cgstCash;
-        $sgstOnline = $cgstOnline;
-        $sgstUPI = $cgstUPI;
-        $sgstZomato = $cgstZomato;
-        $sgstSwiggy = $cgstSwiggy;
-    @endphp
+            $baseTotalAll = $grandTotalAll / 1.05;
+            $cgstTotalAll = $baseTotalAll * 0.025;
+            $sgstTotalAll = $cgstTotalAll;
+        @endphp
 
-    <tr>
-        <td colspan="2" class="text-right"><strong>Total (Excl. GST)</strong></td>
-        <td class="text-right"><strong>{{ number_format($baseCash, 2) }}</strong></td>
-        <td class="text-right"><strong>{{ number_format($baseOnline, 2) }}</strong></td>
-        <td class="text-right"><strong>{{ number_format($baseUPI, 2) }}</strong></td>
-        <td class="text-right"><strong>{{ number_format($baseZomato, 2) }}</strong></td>
-        <td class="text-right"><strong>{{ number_format($baseSwiggy, 2) }}</strong></td>
-    </tr>
-    <tr>
-        <td colspan="2" class="text-right"><strong>CGST (2.5%)</strong></td>
-        <td class="text-right"><strong>{{ number_format($cgstCash, 2) }}</strong></td>
-        <td class="text-right"><strong>{{ number_format($cgstOnline, 2) }}</strong></td>
-        <td class="text-right"><strong>{{ number_format($cgstUPI, 2) }}</strong></td>
-        <td class="text-right"><strong>{{ number_format($cgstZomato, 2) }}</strong></td>
-        <td class="text-right"><strong>{{ number_format($cgstSwiggy, 2) }}</strong></td>
-    </tr>
-    <tr>
-        <td colspan="2" class="text-right"><strong>SGST (2.5%)</strong></td>
-        <td class="text-right"><strong>{{ number_format($sgstCash, 2) }}</strong></td>
-        <td class="text-right"><strong>{{ number_format($sgstOnline, 2) }}</strong></td>
-        <td class="text-right"><strong>{{ number_format($sgstUPI, 2) }}</strong></td>
-        <td class="text-right"><strong>{{ number_format($sgstZomato, 2) }}</strong></td>
-        <td class="text-right"><strong>{{ number_format($sgstSwiggy, 2) }}</strong></td>
-    </tr>
-    <tr>
-        <td colspan="2" class="text-right"><strong>Total (Inclusive GST)</strong></td>
-        <td class="text-right"><strong>{{ number_format($grandTotalCash, 2) }}</strong></td>
-        <td class="text-right"><strong>{{ number_format($grandTotalOnline, 2) }}</strong></td>
-        <td class="text-right"><strong>{{ number_format($grandTotalUPI, 2) }}</strong></td>
-        <td class="text-right"><strong>{{ number_format($grandTotalZomato, 2) }}</strong></td>
-        <td class="text-right"><strong>{{ number_format($grandTotalSwiggy, 2) }}</strong></td>
-    </tr>
-</tfoot>
-
+        <tr>
+            <td colspan="2" class="text-right"><strong>Total (Excl. GST)</strong></td>
+            <td class="text-right"><strong>{{ number_format($baseCash, 2) }}</strong></td>
+            <td class="text-right"><strong>{{ number_format($baseOnline, 2) }}</strong></td>
+            <td class="text-right"><strong>{{ number_format($baseUPI, 2) }}</strong></td>
+            <td class="text-right"><strong>{{ number_format($baseZomato, 2) }}</strong></td>
+            <td class="text-right"><strong>{{ number_format($baseSwiggy, 2) }}</strong></td>
+            <td class="text-right"><strong>{{ number_format($baseTotalAll, 2) }}</strong></td>
+        </tr>
+        <tr>
+            <td colspan="2" class="text-right"><strong>CGST (2.5%)</strong></td>
+            <td class="text-right"><strong>{{ number_format($cgstCash, 2) }}</strong></td>
+            <td class="text-right"><strong>{{ number_format($cgstOnline, 2) }}</strong></td>
+            <td class="text-right"><strong>{{ number_format($cgstUPI, 2) }}</strong></td>
+            <td class="text-right"><strong>{{ number_format($cgstZomato, 2) }}</strong></td>
+            <td class="text-right"><strong>{{ number_format($cgstSwiggy, 2) }}</strong></td>
+            <td class="text-right"><strong>{{ number_format($cgstTotalAll, 2) }}</strong></td>
+        </tr>
+        <tr>
+            <td colspan="2" class="text-right"><strong>SGST (2.5%)</strong></td>
+            <td class="text-right"><strong>{{ number_format($sgstCash, 2) }}</strong></td>
+            <td class="text-right"><strong>{{ number_format($sgstOnline, 2) }}</strong></td>
+            <td class="text-right"><strong>{{ number_format($sgstUPI, 2) }}</strong></td>
+            <td class="text-right"><strong>{{ number_format($sgstZomato, 2) }}</strong></td>
+            <td class="text-right"><strong>{{ number_format($sgstSwiggy, 2) }}</strong></td>
+            <td class="text-right"><strong>{{ number_format($sgstTotalAll, 2) }}</strong></td>
+        </tr>
+        <tr>
+            <td colspan="2" class="text-right"><strong>Total (Inclusive GST)</strong></td>
+            <td class="text-right"><strong>{{ number_format($grandTotalCash, 2) }}</strong></td>
+            <td class="text-right"><strong>{{ number_format($grandTotalOnline, 2) }}</strong></td>
+            <td class="text-right"><strong>{{ number_format($grandTotalUPI, 2) }}</strong></td>
+            <td class="text-right"><strong>{{ number_format($grandTotalZomato, 2) }}</strong></td>
+            <td class="text-right"><strong>{{ number_format($grandTotalSwiggy, 2) }}</strong></td>
+            <td class="text-right"><strong>{{ number_format($grandTotalAll, 2) }}</strong></td>
+        </tr>
+    </tfoot>
 </table>
+
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.4/xlsx.full.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
 <script>
@@ -257,27 +271,17 @@
     }
 
    function printContent() {
-    var printWindow = window.open('', '_blank');
-    printWindow.document.write('<html><head><title>Print</title>');
-    printWindow.document.write('<style>');
-    printWindow.document.write('body { font-family: Arial, sans-serif; }');
-    printWindow.document.write('@media print {');
-    printWindow.document.write('  @page { size: landscape; }'); // 👈 Forces landscape orientation
-    printWindow.document.write('  #printButtonDiv { display: none; }');
-    printWindow.document.write('}');
-    printWindow.document.write('</style>');
-    printWindow.document.write('</head><body>');
-    printWindow.document.write(document.getElementById('print-content').innerHTML);
-    printWindow.document.write('</body></html>');
-    printWindow.document.close();
-    
-    // Wait for content to load before printing
-    printWindow.onload = function() {
-        printWindow.focus();
+        var printWindow = window.open('', '_blank');
+        printWindow.document.write('<html><head><title>Print</title>');
+        printWindow.document.write('<style>');
+        printWindow.document.write('body { font-family: Arial, sans-serif; }');
+        printWindow.document.write('@media print { #printButtonDiv { display: none; } }');
+        printWindow.document.write('</style>');
+        printWindow.document.write('</head><body>');
+        printWindow.document.write(document.getElementById('print-content').innerHTML);
+        printWindow.document.close();
         printWindow.print();
-        printWindow.close();
-    };
-}
+    }
 
 </script>
 </div>
