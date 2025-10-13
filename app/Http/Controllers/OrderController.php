@@ -7,9 +7,318 @@ use Illuminate\Support\Facades\Session;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
+use SimpleSoftwareIO\QrCode\Facades\QrCode;
 
 class OrderController extends Controller
 {
+    
+    private $merchantId = "HDFC000000079973"; // replace with your Merchant ID
+    private $merchantVpa = "vijaychathouse@hdfcbank"; // replace with your Merchant VPA
+    private $merchantName = "VIJAY CHAT HOUSE"; // replace with your Merchant ID
+    private $merchantKey = "799abcd43f85c9e68f25fc29d0db73e0"; // replace with your AES Key
+    private $uatUrl = "https://testupi.mindgate.in:8443/hupi/mePayInetentReq";
+    private $prodUrl = "https://upiv2.hdfcbank.com/upi/";
+
+      private function encrypt($plainText)
+    {
+        $cipher = "AES-128-ECB";
+        $key = hex2bin(trim($this->merchantKey)); // âœ… convert hex â†’ binary
+        $encrypted = openssl_encrypt($plainText, $cipher, $key, OPENSSL_RAW_DATA);
+        return strtoupper(bin2hex($encrypted));
+    }
+    
+    private function decrypt($encryptedHex)
+    {
+        $cipher = "AES-128-ECB";
+       $key = hex2bin(trim($this->merchantKey)); // âœ… convert hex â†’ binary
+        $binary = hex2bin($encryptedHex);
+        return openssl_decrypt($binary, $cipher, $key, OPENSSL_RAW_DATA);
+    }
+
+ 
+public function initiatePayment(Request $request)
+    {
+        $order_id = "ORD" . time(); // You can save this in DB if needed
+        $carts = session()->get('cart');
+
+
+          $group_code = '01';
+          $rest_code = '01';
+          $paymode_mode = 'O';
+          $confirm_order = 'Y';
+  
+          $taxes = $itemWiseAmt = 0; 
+  
+          foreach($carts as $cart){
+  
+              $item_gst = DB::table('item_master')->where('group_code',$group_code)->where('rest_code',$rest_code)
+              ->where('item_code',$cart['item_code'])->value('item_gst');
+  
+               $itemWiseAmt += $cart['quantity']*$cart['price'];
+               $taxes += ($item_gst*$itemWiseAmt/100);
+  
+          }
+
+
+        $amount = number_format($itemWiseAmt, 2, '.', '');
+
+
+        //   echo $itemWiseAmt;die;
+
+
+
+    // Step 1: Build request message
+    $message = $this->merchantId 
+          . "|" . $order_id 
+          . "|6012|P2M|PAY|TEST|" 
+          . "vijaychathouse@hdfcbank" 
+          . "|Vijay Chat House|" 
+          . $amount 
+          . "||||||||NA|NA|NA";
+
+    $encryptedMsg = $this->encrypt($message);
+
+    $payload = [
+        "requestMsg"   => $encryptedMsg,
+        "pgMerchantId" => $this->merchantId,
+    ];
+
+    // Step 2: API call
+    $response = Http::withoutVerifying()
+        ->withHeaders(['Content-Type' => 'application/json'])
+        ->post("https://testupi.mindgate.in:8443/hupi/mePayInetentReq", $payload);
+
+    $rawResponse = $response->body();
+    \Log::info("Bank Raw Response: " . $rawResponse);
+
+    if (!$rawResponse) {
+        return response()->json(["error" => "Empty response from Bank"]);
+    }
+
+    // Step 3: Decrypt response
+    $decrypted = $this->decrypt($rawResponse);
+    \Log::info("Decrypted Bank Response: " . $decrypted);
+
+    // Step 4: Parse pipe separated string
+    $parts = explode("|", $decrypted);
+    $status  = $parts[1] ?? null;
+    $message = $parts[2] ?? null;
+
+   // Step 5: Build UPI Intent Link
+    $upiLink = sprintf(
+        "upi://pay?ver=01&mode=03&tr=%s&tn=%s&pn=%s&pa=%s&mc=%s&am=%s&cu=INR",
+        $order_id,
+        urlencode("Payment for Order".$order_id),
+        urlencode("Vijay Chat House"),
+        "vijaychathouse@hdfcbank",
+        "6012",
+        $amount
+    );
+
+       
+
+  
+      
+
+        $convin_amt = 0;
+
+        $convin_amt_gst = 0;
+
+        $final_conv =  $convin_amt + $convin_amt_gst;
+
+        $paid_amt = $amount;
+
+        $service_charge = 0;
+        
+        $sgst_service = 0;
+
+        $cgst = 0;
+
+        $gross_amt = $cgst + $cgst + $amount;
+        $transactionNumber = str_pad(rand(0, 99999999), 8, '0', STR_PAD_LEFT);
+
+        $status = 'pending';
+        
+        $mobile =  Session::get('phone');
+
+        $trans_no =  DB::table('temp_order_hd')->where(['rest_code' => $rest_code,'tran_date'=>date('Y-m-d')])->orderby('tran_no','desc')->value('tran_no');
+
+        if($trans_no){
+            $trans_no = $trans_no + 1;
+        }else{
+            $trans_no = 1;
+        }
+
+        $order_hd = [
+            'group_code' => $group_code,
+            'tran_no' => $trans_no,
+            'rest_code' => $rest_code,
+            'net_amt' => $amount, 
+            'cgst_amt' => $cgst, 
+            'sgst_amt' => $cgst, 
+            'gross_amt' => $amount, 
+            'paid_amt' => round($amount), 
+            'order_id' =>$order_id, 
+            'service_charge'=>$convin_amt, 
+            'service_cgst' =>$convin_amt_gst/2, 
+            'service_sgst' =>$convin_amt_gst/2, 
+            'email' =>'test@gmail.com', 
+            'status_trans' =>$status, 
+            'flag' => 'S', 
+            'confirm_order' => $confirm_order, 
+            'transaction_no' =>$transactionNumber, 
+            'payment_mode' =>'O', 
+        ];
+
+        DB::table('temp_order_hd')->insertGetId($order_hd);
+
+        //    echo $trans_no;die;
+
+       DB::table('temp_order_hd')
+        ->where('tran_no', $trans_no)
+        ->where('tran_date',date('Y-m-d'))
+        ->update(['invoice_no' => $trans_no]);
+
+        foreach($carts as $cart){
+            // echo"<pre>";print_r($cart);die;
+            $item_gst = DB::table('item_master')->where('group_code',$group_code)->where('rest_code',$rest_code)
+            ->where('item_code',$cart['item_code'])->value('item_gst');
+
+            $item_amt = $cart['quantity']*$cart['price'];
+
+            // $item_gst_amt =  ($item_amt*$item_gst/100);
+
+            
+            $reverseamt = $this->reverseGST($item_amt,$item_gst);
+
+            $item_amt_real = $reverseamt['base'];
+            $item_gst_amt = $reverseamt['gst'];
+
+
+            DB::table('temp_order_dt')->insert([
+                'group_code' => $group_code,
+                'rest_code' => $rest_code,
+                'tran_no' => $trans_no,
+                'item_code' => $cart['item_code'],
+                'item_qty' => $cart['quantity'],
+                'customise_flag' => 'S',
+                'amount' =>$item_amt_real,
+                'item_gst' =>$item_gst_amt,
+            ]);
+        }
+
+        session()->forget('cart');
+
+      
+
+        // Step 6: Return response to frontend
+        return response()->json([
+            "order_id"   => $order_id,
+            "status"     => $status,
+            "message"    => $message,
+            "upi_intent" => $upiLink
+        ]);
+    }
+
+
+
+
+
+
+    /** ðŸ“¥ Callback URL (Bank posts here) **/
+    public function paymentCallback(Request $request)
+    { 
+        \Log::info("Callback hit start");
+        \Log::info('Encrypted Data: '.$encrypted);
+        // $encrypted   = $request->get('meRes');
+        // $decrypted   = $this->decrypt($encrypted);
+        // $fields      = explode('|', $decrypted);
+
+        // $order_id = $fields[0] ?? null;
+        // $status   = $fields[1] ?? null;
+        // $amount   = $fields[2] ?? null;
+
+        // \Log::info("Callback Response for Order {$order_id}: {$status}");
+
+        // $data = DB::table('temp_order_hd')
+        //     ->where('order_id', $order_id)
+        //     ->where('tran_date', date('Y-m-d'))
+        //     ->where('status_trans', 'pending')
+        //     ->first();
+
+        // if (!empty($data) && $status == 'SUCCESS') {
+
+        //     DB::table('temp_order_hd')
+        //         ->where('order_id', $order_id)
+        //         ->where('tran_date', date('Y-m-d'))
+        //         ->where('status_trans', 'pending')
+        //         ->update([
+        //             'status_trans'  => 'success',
+        //             'reponce_data'  => json_encode($fields)
+        //         ]);
+
+        //     return redirect()->route('receipt.show', ['orderId' => $order_id]);
+
+        // } else {
+        //     DB::table('temp_order_hd')
+        //         ->where('order_id', $order_id)
+        //         ->where('tran_date', date('Y-m-d'))
+        //         ->where('status_trans', 'pending')
+        //         ->update(['status_trans' => 'failure']);
+
+        //     return redirect()->route('payment.failed', ['orderId' => $order_id]);
+        // }
+    }
+
+
+    /** ðŸ”Ž Transaction Status Enquiry **/
+    public function checkStatus()
+    {
+        $orderId = 'ORD1757321951';
+        $message = $this->merchantId."|".$orderId."||||||||||NA";
+                        // HDFC000000000086|||65437829217889||||||||||NA
+        $encryptedMsg = $this->encrypt($message);
+        
+        // echo $encryptedMsg;die;
+
+        $payload = [
+            "requestMsg" => $encryptedMsg,
+            "pgMerchantId" => $this->merchantId,
+        ];
+
+        $response = Http::withoutVerifying()->post("https://testupi.mindgate.in:8443/hupi/transactionStatusQuery", $payload);
+        
+         $rawResponse = $response->body();
+        
+        // return response()->json(["status" => $rawResponse]);
+
+        // $data = $response->json();
+        $decrypted = $this->decrypt($rawResponse);
+
+        return response()->json(["status" => $decrypted]);
+    }
+
+    /** ðŸ’¸ Refund API **/
+    public function refund($orderId, $rrn, $upiTxnId, $amount)
+    {
+        $refundOrderId = "REF" . time();
+        $message = $this->merchantId . "|" . $refundOrderId . "|" . $orderId . "|" . $upiTxnId . "|" . $rrn . "|Refund|" . $amount . "|INR|P2M|PAY||||||||||NA";
+
+        $encryptedMsg = $this->encrypt($message);
+
+        $payload = [
+            "request-Msg" => $encryptedMsg,
+            "pgMerchantId" => $this->merchantId,
+        ];
+
+        $response = Http::withoutVerifying()->post($this->uatUrl . "refundReqSvc", $payload);
+        $data = $response->json();
+        $decrypted = $this->decrypt($data["responseMsg"] ?? "");
+
+        return response()->json(["refund_status" => $decrypted]);
+    }
+    
+
     public function dashboard(){
 
         $itemWiseSales = DB::table('order_dt')
@@ -44,12 +353,12 @@ class OrderController extends Controller
             $paymodeTotals[] = $row->total;
         }
 
-         // ✅ 1. Today’s total sales
+         // Ã¢Å“â€¦ 1. TodayÃ¢â‚¬â„¢s total sales
     $todaySales = DB::table('order_hd')
     ->where('tran_date', date('Y-m-d'))
     ->sum('paid_amt');
 
-// ✅ 2. Monthly overall sales (last 6 months)
+// Ã¢Å“â€¦ 2. Monthly overall sales (last 6 months)
 $monthlySales = DB::table('order_hd')
     ->select(
         DB::raw("DATE_FORMAT(tran_date, '%b') as month"),  // Jan, Feb, etc.
@@ -67,6 +376,69 @@ $monthTotals = $monthlySales->pluck('total');
         'monthLabels' => $monthLabels,
         'monthTotals' => $monthTotals,]);
     }
+    
+    
+
+
+    
+    
+//      public function initiatePayment(Request $request)
+// {
+//     // Customer enters their UPI ID (payer VPA)
+//     $payerVpa = $request->input('upi_id');  // e.g. "customer@upi"
+
+//     if (empty($payerVpa)) {
+//         return response()->json(['error' => 'Please provide UPI ID'], 400);
+//     }
+
+//     // Order Details
+//     $order_id   = "ORD" . time();
+//     $txnId      = uniqid("TXN");
+//     $amount     = 1; // You can calculate from cart/session like before
+//     $merchantId = env('HDFC_MERCHANT_ID');
+//     $merchantVpa = env('HDFC_MERCHANT_VPA');
+//     $merchantKey = env('HDFC_MERCHANT_KEY');
+
+//     // Payload
+//     $payload = [
+//         "merchantId"    => $merchantId,
+//         "merchantVpa"   => $merchantVpa,               // Your receiving UPI ID
+//         "merchantName"  => "VIJAY CHAT HOUSE",         // Shown in UPI app
+//         "transactionId" => $txnId,
+//         "amount"        => $amount,
+//         "payerVpa"      => $payerVpa,                  // Customerâ€™s UPI ID
+//         "note"          => "Food Order Payment",
+//         "callbackUrl"   => route('upi.callback'),      // HDFC will send status
+//     ];
+
+//     // Signature with Merchant Key
+//     $payload["signature"] = hash_hmac('sha256', json_encode($payload), $merchantKey);
+
+//     // API Call to HDFC UPI Collect Service
+//     $response = Http::withOptions([
+//     'verify' => false,
+//     ])->withHeaders([
+//         "Content-Type" => "application/json",
+//     ])->post("https://testupi.mindgate.in:8443/hupi/meTransCollectSvc", $payload);
+
+//   $res = $response->json();
+
+// if(isset($res['payUrl'])) {
+//     return redirect()->away($res['payUrl']);
+// }
+
+// // Generate UPI intent (mobile only)
+// $upiLink = "intent://pay?pa=" . urlencode(env("HDFC_MERCHANT_VPA")) .
+//           "&pn=" . urlencode("VIJAY CHAT HOUSE") .
+//           "&am=" . urlencode($amount) .
+//           "&cu=INR" .
+//           "&tn=" . urlencode("UPI Payment - Order $txnId") .
+//           "#Intent;scheme=upi;end";
+
+// return redirect()->away($upiLink);
+// }
+
+
 
     public function index()
     {
@@ -607,7 +979,7 @@ public function updateOrderItem(Request $request)
                 $minutes = (int) $minutes;
     
                 // Get time after X minutes in IST (Asia/Kolkata)
-                $futureTime = now('Asia/Kolkata')->addMinutes($minutes)->format('H:i:s'); // 👈 Only time string
+                $futureTime = now('Asia/Kolkata')->addMinutes($minutes)->format('H:i:s'); // Ã°Å¸â€˜Ë† Only time string
                 
                 // echo $futureTime;die;
                 DB::table('item_master')
@@ -628,7 +1000,7 @@ public function updateOrderItem(Request $request)
                 $minutes = (int) $minutes;
     
                 // Get time after X minutes in IST (Asia/Kolkata)
-                $futureTime = now('Asia/Kolkata')->addMinutes($minutes)->format('H:i:s'); // 👈 Only time string
+                $futureTime = now('Asia/Kolkata')->addMinutes($minutes)->format('H:i:s'); // Ã°Å¸â€˜Ë† Only time string
                 
                 
             
@@ -818,321 +1190,321 @@ public function updateOrderItem(Request $request)
     
 
      
-   public function initiatePayment(Request $request)
-    {
-        $order_id = "ORD" . time(); // You can save this in DB if needed
-        $carts = session()->get('cart');
+//   public function initiatePayment(Request $request)
+//     {
+//         $order_id = "ORD" . time(); // You can save this in DB if needed
+//         $carts = session()->get('cart');
 
-          $returnUrl = route('payment.status');
+//           $returnUrl = route('payment.status');
 
-          $group_code = '01';
-          $rest_code = '01';
-          $paymode_mode = 'O';
-          $confirm_order = 'Y';
+//           $group_code = '01';
+//           $rest_code = '01';
+//           $paymode_mode = 'O';
+//           $confirm_order = 'Y';
   
-          $taxes = $itemWiseAmt = 0; 
+//           $taxes = $itemWiseAmt = 0; 
   
-          foreach($carts as $cart){
+//           foreach($carts as $cart){
   
-              $item_gst = DB::table('item_master')->where('group_code',$group_code)->where('rest_code',$rest_code)
-              ->where('item_code',$cart['item_code'])->value('item_gst');
+//               $item_gst = DB::table('item_master')->where('group_code',$group_code)->where('rest_code',$rest_code)
+//               ->where('item_code',$cart['item_code'])->value('item_gst');
   
-               $itemWiseAmt += $cart['quantity']*$cart['price'];
-               $taxes += ($item_gst*$itemWiseAmt/100);
+//               $itemWiseAmt += $cart['quantity']*$cart['price'];
+//               $taxes += ($item_gst*$itemWiseAmt/100);
   
-          }
+//           }
 
 
-          $amount = $itemWiseAmt;
+//           $amount = $itemWiseAmt;
 
-        //   echo $itemWiseAmt;die;
+//         //   echo $itemWiseAmt;die;
 
 
-        $response = Http::withHeaders([
-            'Authorization' => 'Basic ' . base64_encode('EA317F35F824F60A1200589607AD8E'. ':'),
-            'Content-Type' => 'application/json',
-            'x-merchantid' => 'SG3164',
-            'x-customerid' => '355',
-        ])->post('https://smartgatewayuat.hdfcbank.com/session', [
-            "order_id" => $order_id,
-            "amount" => $amount,
-            "customer_id" => '355',
-            "customer_email" => "test@example.com",
-            "customer_phone" => "9999999999",
-            "payment_page_client_id" => 'hdfcmaster',
-            "action" => "paymentPage",
-            "currency" => "INR",
-            "callback_url" => $returnUrl,
-            "description" => "Test Payment",
-            "first_name" => "John",
-            "last_name" => "Doe"
-        ]);
+//         $response = Http::withHeaders([
+//             'Authorization' => 'Basic ' . base64_encode('EA317F35F824F60A1200589607AD8E'. ':'),
+//             'Content-Type' => 'application/json',
+//             'x-merchantid' => 'SG3164',
+//             'x-customerid' => '355',
+//         ])->post('https://smartgatewayuat.hdfcbank.com/session', [
+//             "order_id" => $order_id,
+//             "amount" => $amount,
+//             "customer_id" => '355',
+//             "customer_email" => "test@example.com",
+//             "customer_phone" => "9999999999",
+//             "payment_page_client_id" => 'hdfcmaster',
+//             "action" => "paymentPage",
+//             "currency" => "INR",
+//             "callback_url" => $returnUrl,
+//             "description" => "Test Payment",
+//             "first_name" => "John",
+//             "last_name" => "Doe"
+//         ]);
 
-        $data = $response->json();
+//         $data = $response->json();
         
-        // echo"<pre>";print_r($data);die;
+//         // echo"<pre>";print_r($data);die;
         
-        session(['last_order_id' =>$data['id']]); // $order_id should be your actual order ID
-    // $orderId = session('last_order_id');
+//         session(['last_order_id' =>$data['id']]); // $order_id should be your actual order ID
+//     // $orderId = session('last_order_id');
        
   
       
 
-        $convin_amt = 0;
+//         $convin_amt = 0;
 
-        $convin_amt_gst = 0;
+//         $convin_amt_gst = 0;
 
-        $final_conv =  $convin_amt + $convin_amt_gst;
+//         $final_conv =  $convin_amt + $convin_amt_gst;
 
-        $paid_amt = $amount;
+//         $paid_amt = $amount;
 
-        $service_charge = 0;
+//         $service_charge = 0;
         
-        $sgst_service = 0;
+//         $sgst_service = 0;
 
-        $cgst = 0;
+//         $cgst = 0;
 
-        $gross_amt = $cgst + $cgst + $amount;
-        $transactionNumber = str_pad(rand(0, 99999999), 8, '0', STR_PAD_LEFT);
+//         $gross_amt = $cgst + $cgst + $amount;
+//         $transactionNumber = str_pad(rand(0, 99999999), 8, '0', STR_PAD_LEFT);
 
-        $status = 'pending';
+//         $status = 'pending';
         
-        $mobile =  Session::get('phone');
+//         $mobile =  Session::get('phone');
 
-        $trans_no =  DB::table('temp_order_hd')->where(['rest_code' => $rest_code,'tran_date'=>date('Y-m-d')])->orderby('tran_no','desc')->value('tran_no');
+//         $trans_no =  DB::table('temp_order_hd')->where(['rest_code' => $rest_code,'tran_date'=>date('Y-m-d')])->orderby('tran_no','desc')->value('tran_no');
 
-        if($trans_no){
-            $trans_no = $trans_no + 1;
-        }else{
-            $trans_no = 1;
-        }
+//         if($trans_no){
+//             $trans_no = $trans_no + 1;
+//         }else{
+//             $trans_no = 1;
+//         }
 
-        $order_hd = [
-            'group_code' => $group_code,
-            'tran_no' => $trans_no,
-            'rest_code' => $rest_code,
-            'net_amt' => $amount, 
-            'cgst_amt' => $cgst, 
-            'sgst_amt' => $cgst, 
-            'gross_amt' => $amount, 
-            'paid_amt' => round($amount), 
-            'order_id' =>$order_id, 
-            'service_charge'=>$convin_amt, 
-            'service_cgst' =>$convin_amt_gst/2, 
-            'service_sgst' =>$convin_amt_gst/2, 
-            'email' =>'test@gmail.com', 
-            'status_trans' =>$status, 
-            'flag' => 'S', 
-            'confirm_order' => $confirm_order, 
-            'transaction_no' =>$transactionNumber, 
-            'payment_mode' =>'O', 
-        ];
+//         $order_hd = [
+//             'group_code' => $group_code,
+//             'tran_no' => $trans_no,
+//             'rest_code' => $rest_code,
+//             'net_amt' => $amount, 
+//             'cgst_amt' => $cgst, 
+//             'sgst_amt' => $cgst, 
+//             'gross_amt' => $amount, 
+//             'paid_amt' => round($amount), 
+//             'order_id' =>$order_id, 
+//             'service_charge'=>$convin_amt, 
+//             'service_cgst' =>$convin_amt_gst/2, 
+//             'service_sgst' =>$convin_amt_gst/2, 
+//             'email' =>'test@gmail.com', 
+//             'status_trans' =>$status, 
+//             'flag' => 'S', 
+//             'confirm_order' => $confirm_order, 
+//             'transaction_no' =>$transactionNumber, 
+//             'payment_mode' =>'O', 
+//         ];
 
-        DB::table('temp_order_hd')->insertGetId($order_hd);
+//         DB::table('temp_order_hd')->insertGetId($order_hd);
 
-    //    echo $trans_no;die;
+//     //    echo $trans_no;die;
 
-       DB::table('temp_order_hd')
-        ->where('tran_no', $trans_no)
-        ->where('tran_date',date('Y-m-d'))
-        ->update(['invoice_no' => $trans_no]);
+//       DB::table('temp_order_hd')
+//         ->where('tran_no', $trans_no)
+//         ->where('tran_date',date('Y-m-d'))
+//         ->update(['invoice_no' => $trans_no]);
 
-        foreach($carts as $cart){
-            // echo"<pre>";print_r($cart);die;
-            $item_gst = DB::table('item_master')->where('group_code',$group_code)->where('rest_code',$rest_code)
-            ->where('item_code',$cart['item_code'])->value('item_gst');
+//         foreach($carts as $cart){
+//             // echo"<pre>";print_r($cart);die;
+//             $item_gst = DB::table('item_master')->where('group_code',$group_code)->where('rest_code',$rest_code)
+//             ->where('item_code',$cart['item_code'])->value('item_gst');
 
-            $item_amt = $cart['quantity']*$cart['price'];
+//             $item_amt = $cart['quantity']*$cart['price'];
 
-            // $item_gst_amt =  ($item_amt*$item_gst/100);
+//             // $item_gst_amt =  ($item_amt*$item_gst/100);
 
             
-            $reverseamt = $this->reverseGST($item_amt,$item_gst);
+//             $reverseamt = $this->reverseGST($item_amt,$item_gst);
 
-            $item_amt_real = $reverseamt['base'];
-            $item_gst_amt = $reverseamt['gst'];
+//             $item_amt_real = $reverseamt['base'];
+//             $item_gst_amt = $reverseamt['gst'];
 
 
-            DB::table('temp_order_dt')->insert([
-                'group_code' => $group_code,
-                'rest_code' => $rest_code,
-                'tran_no' => $trans_no,
-                'item_code' => $cart['item_code'],
-                'item_qty' => $cart['quantity'],
-                'customise_flag' => 'S',
-                'amount' =>$item_amt_real,
-                'item_gst' =>$item_gst_amt,
-            ]);
-        }
+//             DB::table('temp_order_dt')->insert([
+//                 'group_code' => $group_code,
+//                 'rest_code' => $rest_code,
+//                 'tran_no' => $trans_no,
+//                 'item_code' => $cart['item_code'],
+//                 'item_qty' => $cart['quantity'],
+//                 'customise_flag' => 'S',
+//                 'amount' =>$item_amt_real,
+//                 'item_gst' =>$item_gst_amt,
+//             ]);
+//         }
 
-        session()->forget('cart');
+//         session()->forget('cart');
 
        
-        if (
-            isset($data['payment_links']['web']) &&
-            !empty($data['payment_links']['web'])
-        ) {
-            // Optionally save $order_id and $data['response']['id'] in DB
-            return redirect()->away($data['payment_links']['web']);
-        }
+//         if (
+//             isset($data['payment_links']['web']) &&
+//             !empty($data['payment_links']['web'])
+//         ) {
+//             // Optionally save $order_id and $data['response']['id'] in DB
+//             return redirect()->away($data['payment_links']['web']);
+//         }
 
-        return response()->json([
-            'error' => true,
-            'message' => 'Unable to generate payment page',
-            'response' => $data
-        ]);
-    }
+//         return response()->json([
+//             'error' => true,
+//             'message' => 'Unable to generate payment page',
+//             'response' => $data
+//         ]);
+//     }
 
-    /**
-     * Step 2: Handle Return URL After Payment
-     */
-   public function paymentStatus(Request $request)
-{
-   // echo"<pre>";print_r($request->all());die;
-    $orderId = $request['order_id']; // or get from DB
-    // OR try reading from GET if HDFC passes it
-    // $orderId = $request->query('order_id');
+//     /**
+//      * Step 2: Handle Return URL After Payment
+//      */
+//   public function paymentStatus(Request $request)
+//     {
+//   // echo"<pre>";print_r($request->all());die;
+//     $orderId = $request['order_id']; // or get from DB
+//     // OR try reading from GET if HDFC passes it
+//     // $orderId = $request->query('order_id');
     
-    //  echo $orderId;die;
+//     //  echo $orderId;die;
 
-    if (!$orderId) {
-        return "No order ID found to check status.";
-    }
+//     if (!$orderId) {
+//         return "No order ID found to check status.";
+//     }
 
-    // Call HDFC status check API here
-    $response = Http::withHeaders([
-        'Authorization' => 'Basic ' . base64_encode('EA317F35F824F60A1200589607AD8E'. ':'),
-        'Content-Type' => 'application/json',
-        'x-merchantid' => 'SG3164',
-        'x-customerid' => '355',
-    ])->post('https://smartgatewayuat.hdfcbank.com/orders/', [
-        'order_id' => $orderId,
-    ]);
+//     // Call HDFC status check API here
+//     $response = Http::withHeaders([
+//         'Authorization' => 'Basic ' . base64_encode('EA317F35F824F60A1200589607AD8E'. ':'),
+//         'Content-Type' => 'application/json',
+//         'x-merchantid' => 'SG3164',
+//         'x-customerid' => '355',
+//     ])->post('https://smartgatewayuat.hdfcbank.com/orders/', [
+//         'order_id' => $orderId,
+//     ]);
 
-    $result = $response->json();
+//     $result = $response->json();
     
-    // echo"<pre>";print_r($result);die;
+//     // echo"<pre>";print_r($result);die;
 
-    $order_id = $result['order_id'];
-    $amount = $result['amount'];
-    $status = $result['status'];
+//     $order_id = $result['order_id'];
+//     $amount = $result['amount'];
+//     $status = $result['status'];
 
-    $data = DB::table('temp_order_hd')->where('order_id',$order_id)->where('tran_date',date('Y-m-d'))->where('status_trans','pending')->first();
+//     $data = DB::table('temp_order_hd')->where('order_id',$order_id)->where('tran_date',date('Y-m-d'))->where('status_trans','pending')->first();
 
-    if(!empty($data) && $data->paid_amt == $amount && $status == 'CHARGED'){
+    // if(!empty($data) && $data->paid_amt == $amount && $status == 'CHARGED'){
 
-        DB::table('temp_order_hd')->where('order_id',$order_id)->where('tran_date',date('Y-m-d'))->where('status_trans','pending')->update(['status_trans'=>'success','reponce_data'=>$result['payment_gateway_response']]);
+    //     DB::table('temp_order_hd')->where('order_id',$order_id)->where('tran_date',date('Y-m-d'))->where('status_trans','pending')->update(['status_trans'=>'success','reponce_data'=>$result['payment_gateway_response']]);
 
 
-        $temp_data = DB::table('temp_order_hd')->where('order_id',$order_id)->where('tran_date',date('Y-m-d'))->where('status_trans','success')->first();
+    //     $temp_data = DB::table('temp_order_hd')->where('order_id',$order_id)->where('tran_date',date('Y-m-d'))->where('status_trans','success')->first();
 
-        $lastInvoice = DB::table('order_hd')->orderBy('invoice_no', 'desc')->first();
+    //     $lastInvoice = DB::table('order_hd')->orderBy('invoice_no', 'desc')->first();
 
-        // if ($lastInvoice) {
-        //     $newInvoiceNumber = $lastInvoice->invoice_no + 1;
-        // } else {
-        //     // First invoice number
-        //     $newInvoiceNumber = 20252600000000;
-        // }
+    //     // if ($lastInvoice) {
+    //     //     $newInvoiceNumber = $lastInvoice->invoice_no + 1;
+    //     // } else {
+    //     //     // First invoice number
+    //     //     $newInvoiceNumber = 20252600000000;
+    //     // }
 
     
-        $tran_no =  DB::table('order_hd')->where(['rest_code'=>$temp_data->rest_code,'tran_date'=>date('Y-m-d')])->orderby('tran_no','desc')->value('tran_no');
+    //     $tran_no =  DB::table('order_hd')->where(['rest_code'=>$temp_data->rest_code,'tran_date'=>date('Y-m-d')])->orderby('tran_no','desc')->value('tran_no');
 
-        if($tran_no){
-            $tran_no = $tran_no + 1;
-        }else{
-            $tran_no = 1;
-        }
+    //     if($tran_no){
+    //         $tran_no = $tran_no + 1;
+    //     }else{
+    //         $tran_no = 1;
+    //     }
         
-        $order_hd = [
-            'group_code' => $temp_data->group_code,
-            'rest_code' => $temp_data->rest_code,
-            'tran_no' => $tran_no,
-            'net_amt' => $temp_data->net_amt, 
-            'cgst_amt' => $temp_data->cgst_amt, 
-            'sgst_amt' => $temp_data->sgst_amt, 
-            'gross_amt' =>$temp_data->gross_amt, 
-            'paid_amt' => round($temp_data->paid_amt), 
-            'order_id' =>$temp_data->order_id, 
-            'service_charge'=>$temp_data->service_charge, 
-            'service_cgst' =>$temp_data->service_cgst, 
-            'service_sgst' =>$temp_data->service_sgst,
-            'email' =>$temp_data->email, 
-            'status_trans' =>$temp_data->status_trans, 
-            'flag' => 'S', 
-            'confirm_order' => $temp_data->confirm_order, 
-            'transaction_no' =>$temp_data->transaction_no, 
-            'reponce_data' =>$temp_data->reponce_data, 
-            'payment_mode' =>'O', 
-        ];
+    //     $order_hd = [
+    //         'group_code' => $temp_data->group_code,
+    //         'rest_code' => $temp_data->rest_code,
+    //         'tran_no' => $tran_no,
+    //         'net_amt' => $temp_data->net_amt, 
+    //         'cgst_amt' => $temp_data->cgst_amt, 
+    //         'sgst_amt' => $temp_data->sgst_amt, 
+    //         'gross_amt' =>$temp_data->gross_amt, 
+    //         'paid_amt' => round($temp_data->paid_amt), 
+    //         'order_id' =>$temp_data->order_id, 
+    //         'service_charge'=>$temp_data->service_charge, 
+    //         'service_cgst' =>$temp_data->service_cgst, 
+    //         'service_sgst' =>$temp_data->service_sgst,
+    //         'email' =>$temp_data->email, 
+    //         'status_trans' =>$temp_data->status_trans, 
+    //         'flag' => 'S', 
+    //         'confirm_order' => $temp_data->confirm_order, 
+    //         'transaction_no' =>$temp_data->transaction_no, 
+    //         'reponce_data' =>$temp_data->reponce_data, 
+    //         'payment_mode' =>'O', 
+    //     ];
 
-        DB::table('order_hd')->insertGetId($order_hd);
-
-
-        $carts = DB::table('temp_order_dt')->where('group_code',$temp_data->group_code)->where('rest_code',$temp_data->rest_code)->where('tran_no', $temp_data->tran_no)->where('tran_date',date('Y-m-d'))->get();
-
-        foreach($carts as $cart){
-            // echo"<pre>";print_r($cart);die;
+    //     DB::table('order_hd')->insertGetId($order_hd);
 
 
-            DB::table('order_dt')->insert([
-                'group_code' => $cart->group_code,
-                'rest_code' => $cart->rest_code,
-                'tran_no' => $tran_no,
-                'item_code' =>$cart->item_code,
-                'item_qty' => $cart->item_qty,
-                'customise_flag' => 'S',
-                'amount' =>$cart->amount,
-                'item_gst' =>$cart->item_gst,
-            ]);
-        }
+    //     $carts = DB::table('temp_order_dt')->where('group_code',$temp_data->group_code)->where('rest_code',$temp_data->rest_code)->where('tran_no', $temp_data->tran_no)->where('tran_date',date('Y-m-d'))->get();
+
+    //     foreach($carts as $cart){
+    //         // echo"<pre>";print_r($cart);die;
 
 
+    //         DB::table('order_dt')->insert([
+    //             'group_code' => $cart->group_code,
+    //             'rest_code' => $cart->rest_code,
+    //             'tran_no' => $tran_no,
+    //             'item_code' =>$cart->item_code,
+    //             'item_qty' => $cart->item_qty,
+    //             'customise_flag' => 'S',
+    //             'amount' =>$cart->amount,
+    //             'item_gst' =>$cart->item_gst,
+    //         ]);
+    //     }
 
 
 
 
 
-        $hd_data =   DB::table('order_hd')->where('order_id',$order_id)->where('tran_date',date('Y-m-d'))->where('status_trans','success')->first();
 
-        $trans_no = $hd_data->tran_no;
 
-        $rest_data =  DB::table('chain_master')->where('group_code','01')->where('rest_code','01')->first();
+    //     $hd_data =   DB::table('order_hd')->where('order_id',$order_id)->where('tran_date',date('Y-m-d'))->where('status_trans','success')->first();
 
-        $dt_data =   DB::table('order_dt')->select('order_dt.*','item_master.item_desc','item_master.item_hdesc','item_master.item_gst as igst','item_master.item_rate')
-        ->join('item_master','order_dt.item_code','=','item_master.item_code')
-        ->join('order_hd','order_dt.tran_no','=','order_hd.tran_no')
-        ->where('order_hd.tran_no',$trans_no)
-        ->where('order_dt.tran_date',date('Y-m-d'))
-        ->where('order_hd.tran_date',date('Y-m-d'))
-        ->where('order_hd.status_trans','success')
-        ->where('order_dt.tran_no',$trans_no)
-        ->get();
+    //     $trans_no = $hd_data->tran_no;
 
-        if($hd_data->payment_mode=='O'){
-            $paymentMode = 'Online';
-        }elseif($hd_data->payment_mode=='C'){
-            $paymentMode = 'Cash';
-        }elseif($hd_data->payment_mode=='U'){
-            $paymentMode = 'Counter UPI';
-        }elseif($hd_data->payment_mode=='Z'){
-            $paymentMode = 'Zomato';
-        }elseif($hd_data->payment_mode=='S'){
-            $paymentMode = 'Swiggy';
-        }
+    //     $rest_data =  DB::table('chain_master')->where('group_code','01')->where('rest_code','01')->first();
+
+    //     $dt_data =   DB::table('order_dt')->select('order_dt.*','item_master.item_desc','item_master.item_hdesc','item_master.item_gst as igst','item_master.item_rate')
+    //     ->join('item_master','order_dt.item_code','=','item_master.item_code')
+    //     ->join('order_hd','order_dt.tran_no','=','order_hd.tran_no')
+    //     ->where('order_hd.tran_no',$trans_no)
+    //     ->where('order_dt.tran_date',date('Y-m-d'))
+    //     ->where('order_hd.tran_date',date('Y-m-d'))
+    //     ->where('order_hd.status_trans','success')
+    //     ->where('order_dt.tran_no',$trans_no)
+    //     ->get();
+
+    //     if($hd_data->payment_mode=='O'){
+    //         $paymentMode = 'Online';
+    //     }elseif($hd_data->payment_mode=='C'){
+    //         $paymentMode = 'Cash';
+    //     }elseif($hd_data->payment_mode=='U'){
+    //         $paymentMode = 'Counter UPI';
+    //     }elseif($hd_data->payment_mode=='Z'){
+    //         $paymentMode = 'Zomato';
+    //     }elseif($hd_data->payment_mode=='S'){
+    //         $paymentMode = 'Swiggy';
+    //     }
         
         
-         return view('items.bill', compact('dt_data', 'hd_data', 'rest_data','paymentMode'));
-    }else{
-        DB::table('order_hd')->where('order_id',$order_id)->where('tran_date',date('Y-m-d'))->where('status_trans','pending')->update(['status_trans'=>'failure']);
+    //      return view('items.bill', compact('dt_data', 'hd_data', 'rest_data','paymentMode'));
+    // }else{
+    //     DB::table('order_hd')->where('order_id',$order_id)->where('tran_date',date('Y-m-d'))->where('status_trans','pending')->update(['status_trans'=>'failure']);
         
-        return redirect()->route('items.index')->with('error', 'Payment failed. Please try again.');
+    //     return redirect()->route('items.index')->with('error', 'Payment failed. Please try again.');
 
-    }
+    // }
 
 
 
-}
+// }
 
     public function reverseGST($totalAmount, $gstRate) {
         $baseAmount = ($totalAmount * 100) / (100 + $gstRate);

@@ -19,6 +19,18 @@ class ItemController extends Controller
 {
 
 
+    public function show($item_code, $item_grpcode)
+    {
+        $item = Item::where('item_code', $item_code)
+                    ->where('item_grpcode', $item_grpcode)
+                    ->firstOrFail();
+    
+        return response($item->item_image, 200)
+            ->header('Content-Type', $item->item_image_type)
+            ->header('Cache-Control', 'public, max-age=604800');
+    }
+    
+
     public function allItems()
     {
    
@@ -765,15 +777,16 @@ class ItemController extends Controller
 
         $rest_data =  DB::table('chain_master')->where('group_code',$group_code)->where('rest_code',$rest_code)->first();
 
-        $dt_data =   DB::table('order_dt')->select('order_dt.*','item_master.item_desc','item_master.item_gst as igst')
-        ->join('item_master','order_dt.item_code','=','item_master.item_code')
-        ->join('order_hd','order_dt.tran_no','=','order_hd.tran_no')
-        ->where('order_hd.tran_no',$trans_no)
-        ->where('order_hd.tran_date',date('Y-m-d'))
-        ->where('order_dt.tran_date',date('Y-m-d'))
-
-        ->where('order_hd.status_trans','success')
-        ->where('order_dt.tran_no',$trans_no)
+        $date = date('Y-m-d');
+        $dt_data = DB::table('order_dt')
+        ->select('order_dt.*', 'item_master.item_desc', 'item_master.item_hdesc', 'item_master.item_gst as igst','item_master.item_rate','item_master.store')
+        ->join('item_master', 'order_dt.item_code', '=', 'item_master.item_code')
+        ->join('order_hd', 'order_dt.tran_no', '=', 'order_hd.tran_no')
+        ->where('order_hd.tran_no', $trans_no)
+        ->where('order_hd.tran_date',$date)
+        ->where('order_dt.tran_date',$date)
+        ->where('order_hd.status_trans', 'success')
+        ->where('order_dt.tran_no', $trans_no)
         ->get();
 
       // $this->generateBillImage($trans_no,$mobile);
@@ -781,12 +794,24 @@ class ItemController extends Controller
     //   echo"<pre>";print_r($hd_data);die;
 
 
+        // $tokenHtml = $this->printContent($trans_no,'token',date('Y-m-d'));
+
+        if($hd_data->payment_mode=='O'){
+            $paymentMode = 'Online';
+        }elseif($hd_data->payment_mode=='C'){
+            $paymentMode = 'Cash';
+        }elseif($hd_data->payment_mode=='U'){
+            $paymentMode = 'Counter UPI';
+        }elseif($hd_data->payment_mode=='Z'){
+            $paymentMode = 'Zomato';
+        }elseif($hd_data->payment_mode=='S'){
+            $paymentMode = 'Swiggy';
+        }
         
-        
-        //  $billHtml = view('items.bill', compact('dt_data', 'hd_data', 'rest_data'))->render();
+        $html = view('items.bill', compact('dt_data', 'hd_data', 'rest_data','paymentMode'))->render(); // You must create this view
 
          session()->forget('cart');
-        return response()->json(['success' => true, 'order_id' => $trans_no]);
+        return response()->json(['success' => true, 'order_id' => $trans_no,'html'=>$html]);
     }
 
 

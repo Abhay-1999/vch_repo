@@ -34,7 +34,8 @@ class CashfreeController extends Controller
             'order_meta' => [
                 'return_url' => route('cashfree.success') . '?order_id={order_id}',
                 'notify_url' => route('cashfree.webhook'),
-            ]
+            ],
+            'payment_methods' => 'upi' // UPI only
         ]);
 
         // echo $response;die;

@@ -3,9 +3,8 @@
 @section('content')
 <style>
     #cart-table tbody {
-        -webkit-overflow-scrolling: touch !important;
-        overflow-y: auto!important;
-
+      -webkit-overflow-scrolling: touch !important;
+      overflow-y: auto!important;
     }
     .keypad-box {
         border: 2px solid #ccc;  
@@ -33,6 +32,9 @@
         border-radius: 4px;
     }
 
+
+</style>
+<style>
   /* minimal keypad styling - adapt as needed */
   #miniKeypad {
   display: none;
@@ -130,6 +132,7 @@
                     <button type="button" class="btn btn-sm btn-secondary m-1" id="keypad-clear">Clear</button>
                 </div>
             </div>
+
             </div>
 
             <!-- Scrollable Items Table -->
@@ -344,7 +347,7 @@ $(document).ready(function () {
 
     if (activeType === 'qty') {
       if (!val) {
-        //removeRow(id);
+     //   removeRow(id);
       } else {
         const qty = parseInt(val, 10);
         if (!isNaN(qty) && qty >= 0) {
@@ -354,14 +357,14 @@ $(document).ready(function () {
           if (typeof updateRow === 'function') updateRow(id);
           if (typeof updateTotals === 'function') updateTotals();
         } else {
-         // removeRow(id);
+          //removeRow(id);
         }
       }
     }
 
     if (activeType === 'amount') {
       if (!val) {
-       // removeRow(id);
+        //removeRow(id);
       } else {
         activeInput.value = parseFloat(val).toFixed(2);
         if (typeof updateAmountAndLock === 'function') {
@@ -373,7 +376,7 @@ $(document).ready(function () {
 
     if (activeType === 'grams') {
       if (!val) {
-       // removeRow(id);
+        //removeRow(id);
       } else {
         activeInput.value = parseFloat(val).toFixed(2);
         if (typeof updateGramAndLock === 'function') {
@@ -445,59 +448,12 @@ $(document).ready(function () {
 
 
 <script>
-    // custom keyboard start
-
-    $(document).ready(function () {
-        let activeInput = null;
-
-        // Show keypad when focusing any custom input
-        $('.custom-input').on('focus', function () {
-            activeInput = $(this);
-            $('#custom-keypad').removeClass('d-none');
-        });
-
-        // Hide keypad when clicking outside inputs and keypad
-        $(document).on('click', function (e) {
-            if (!$(e.target).closest('.custom-input, #custom-keypad').length) {
-                $('#custom-keypad').addClass('d-none');
-                activeInput = null;
-            }
-        });
-
-        // Handle number key press
-        $('.keypad-key').click(function () {
-            if (!activeInput) return;
-            let digit = $(this).data('key');
-            let current = activeInput.val();
-            let maxLength = activeInput.attr('maxlength');
-
-            if (current.length < maxLength) {
-                activeInput.val(current + digit).trigger('input');
-            }
-        });
-
-        // Handle backspace
-        $('#keypad-backspace').click(function () {
-            if (!activeInput) return;
-            let current = activeInput.val();
-            activeInput.val(current.slice(0, -1)).trigger('input');
-        });
-
-        // Handle clear
-        $('#keypad-clear').click(function () {
-            if (!activeInput) return;
-            activeInput.val('').trigger('input');
-        });
-
-        // Restrict to numbers only from physical keyboard
-        $('.custom-input').on('keypress', function (e) {
-            if (e.which < 48 || e.which > 57) { // not 0-9
-                e.preventDefault();
-            }
-        });
-    });
-    // customkeyboard end
-
+document.addEventListener("DOMContentLoaded", function () {
+    const sidebar = document.getElementById("sidebar");
+    if (sidebar) {
+        sidebar.classList.add("collapsed");
+    }
+});
 
 function scrollCartToBottom() {
     const container = document.querySelector("#cart-scroll-container");
@@ -666,7 +622,7 @@ function renderItems(items) {
     items.forEach(item => {
         const isDisabled = item.item_status === 'D' ? 'disabled' : '';
         html += `
-            <button  data-item-name="${item.item_desc}" class="btn btn-outline-warning text-dark ${isDisabled}"
+            <button class="btn btn-outline-warning text-dark ${isDisabled}"
                     style="width: 120px; height: 80px; margin: 5px; font-size: 14px;"
                     onclick="addItem('${item.item_code}', '${item.item_desc}', ${item.item_rate})"
                     ${isDisabled}>
@@ -680,8 +636,10 @@ function renderItems(items) {
    
 
 
-    $('#save-order').click(function () {
-    if (cart.length === 0) return alert("Cart is empty!");
+    $('#save-order').click(async function () {
+    if (cart.length === 0) {
+        return Swal.fire("Cart is empty!", "", "warning");
+    }
 
     const $saveBtn = $(this);
     $saveBtn.prop('disabled', true);
@@ -690,61 +648,99 @@ function renderItems(items) {
         'opacity': '0.5'
     });
 
-    const paymode = $('#order_type').val();
-    const mobile = $('#mobile').val();
-    const order_id = $('#order_id').val();
-    const dsc = $('#discount_percent').val();
-    const ft = $('.final_total').val();
-    const custId = $('#customer_id').val();
-
-    $.post('{{ route("order.save") }}', {
+    const payload = {
         _token: '{{ csrf_token() }}',
         cart: cart,
-        paymode: paymode,
-        mobile: mobile,
-        dsc: dsc,
-        ft: ft,
-        custId: custId,
-        order_id: order_id
-    }, function (response) {
-        if (response.success) {
-            localStorage.setItem('lastOrderId', response.order_id); // ✅ Store it here
+        paymode: $('#order_type').val(),
+        mobile: $('#mobile').val(),
+        dsc: $('#discount_percent').val(),
+        ft: $('.final_total').val(),
+        custId: $('#customer_id').val(),
+        order_id: $('#order_id').val()
+    };
+
+    try {
+        // Fire request with fetch (faster than $.post)
+        const response = await fetch('{{ route("order.save") }}', {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "X-CSRF-TOKEN": "{{ csrf_token() }}"
+            },
+            body: JSON.stringify(payload)
+        });
+
+        const data = await response.json();
+
+        if (data.success) {
+            localStorage.setItem('lastOrderId', data.order_id);
+            sendToPrinter(data.html);
+
             Swal.fire({
                 title: 'Order Saved!',
                 showConfirmButton: false,
-                timer: 1000
-            }).then(() => {
-                // Automatically print the bill/token
-                if (typeof handlePrint === 'function') {
-                    handlePrint(response.order_id, 'token');
-                }
-
-                // Refresh after 2 seconds (adjust if needed)
-                setTimeout(() => {
-                    location.reload();
-                }, 2000);
+                timer: 800
             });
 
-            $('#manual-print-token').removeAttr('disabled');
-            $('#manual-print-bill').removeAttr('disabled');
-            lastOrderId = response.order_id;
+            // Auto print without waiting
+            if (typeof handlePrint === 'function') {
+              //  handlePrint(data.order_id, 'token');
+            }
+
+            $('#manual-print-token, #manual-print-bill').prop('disabled', false);
+
+            // Instead of full reload → clear cart & refresh UI fast
+          //  setTimeout(() => {
+                cart = [];
+                updateCartUI(); // ✅ make a function to refresh only cart area
+           // }, 1000);
+
         } else {
-            Swal.fire("Error", "Failed to save order", "error");
-            $saveBtn.prop('disabled', false);
-            $('#itemCard').css({
-                'pointer-events': 'auto',
-                'opacity': '1'
-            });
+            throw new Error("Save failed");
         }
-    }).fail(function () {
+    } catch (err) {
         Swal.fire("Error", "Something went wrong while saving order", "error");
         $saveBtn.prop('disabled', false);
         $('#itemCard').css({
             'pointer-events': 'auto',
             'opacity': '1'
         });
-    });
+    }
 });
+
+
+
+function updateCartUI() {
+    // ✅ Empty cart array but keep reference
+    if (Array.isArray(cart)) cart.length = 0; 
+    else window.cart = [];
+
+    // ✅ Clear cart table rows (tbody)
+    $('#cart-table tbody').empty();
+
+    // ✅ Reset totals & discount
+    $('#total').text('0.00');
+    $('#final_total').text('0.00');
+    $('.final_total').val('0.00');
+    $('#discount_percent').val('').prop('disabled', true);
+    
+    // ✅ Hide discount & final rows again
+    $('#discount_row, #final_row').hide();
+
+    // ✅ Reset inputs
+    $('#order_id, #mobile').val('');
+    $('#customer_id').val('');
+    $('#order_type').val('C'); // default back to Cash (adjust if you want)
+
+    // ✅ Disable manual print buttons until next save
+    $('#manual-print-token, #manual-print-bill').prop('disabled', true);
+
+    // ✅ Re-enable interactions & save buttons
+    $('#itemCard').css({ 'pointer-events': 'auto', 'opacity': '1' });
+    $('#save-order, #save-order-only').prop('disabled', false);
+}
+
+
 
 
 $('#save-order-only').click(function () {
@@ -787,9 +783,10 @@ $('#save-order-only').click(function () {
                 // }
 
                 // Refresh after 2 seconds (adjust if needed)
-                setTimeout(() => {
-                    location.reload();
-                }, 2000);
+               // setTimeout(() => {
+                cart = [];
+                  updateCartUI();
+              //  }, 1000);
             });
 
             $('#manual-print-token').removeAttr('disabled');
@@ -886,6 +883,12 @@ $('#bill-view').click(() => {
 
 });
 
+
+
+
+
+
+
 function handlePrint(orderId, type) {
     Swal.close();
 
@@ -976,15 +979,22 @@ function addItem(id, name, price) {
 
     if (existing) {
         if (!gramBasedItems.includes(id)) {
+            // Normal item → increase qty
             existing.qty++;
+        } else {
+            // Gram-based item → increase grams by 100
+            existing.grams += 100;
+            existing.amount = (existing.grams / 100) * existing.price;
         }
     } else {
         if (id === '017') { // Gulab Jamun ID
             // default 4 qty
             cart.push({ id, name, price, qty: 4 });
         } else if (gramBasedItems.includes(id)) {
-            cart.push({ id, name, price, amount: 0, grams: 0 });
+            // Gram-based item starts at 100g
+            cart.push({ id, name, price, grams: 100, amount: price });
         } else {
+            // Normal item starts with qty 1
             cart.push({ id, name, price, qty: 1 });
         }
     }
@@ -992,6 +1002,7 @@ function addItem(id, name, price) {
     renderCart();
     scrollCartToBottom();
 }
+
 
 
 function changeQty(id, delta) {
@@ -1018,23 +1029,22 @@ function renderCart() {
         let lineTotal = 0;
 
         if (isGramItem) {
-            let amount = parseFloat(item.amount) || 0;
             let grams = parseFloat(item.grams) || 0;
+            let amount = parseFloat(item.amount) || 0;
 
-            // Set default 100gm amount if both are empty
-            if (!amount && !grams) {
-                item.grams = 100;
-                item.amount = item.price;
+            // Always sync grams ↔ amount
+            if (grams > 0) {
+                amount = (grams / 100) * item.price;
+            } else if (amount > 0) {
+                grams = (amount / item.price) * 100;
             } else {
-                if (amount && !grams) {
-                    item.grams = (amount / item.price) * 100;
-                }
-                if (grams && !amount) {
-                    item.amount = (grams / 100) * item.price;
-                }
+                grams = 100;
+                amount = item.price;
             }
 
-            lineTotal = item.amount;
+            item.grams = grams;
+            item.amount = amount;
+            lineTotal = amount;
         } else {
             lineTotal = item.price * item.qty;
         }
@@ -1045,26 +1055,26 @@ function renderCart() {
             <td>${item.name}</td>`;
 
         if (isGramItem) {
-            html += `   <td style="padding: 0;">
-      <input type="text" class="form-control form-control-sm amount-input" 
-             data-id="${item.id}" style="width: 70px; margin: 0;" 
-             placeholder="₹ Amt" step="0.01" value="${item.amount?.toFixed(2) || ''}">
-    </td>
-    <td style="padding: 0;">
-      <input type="text" class="form-control form-control-sm grams-input" 
-             data-id="${item.id}" style="width: 70px; margin: 0;" 
-             placeholder="Gram" value="${item.grams?.toFixed(2) || ''}">
-    </td>`;
+            html += `
+                <td style="padding: 0;">
+                    <input type="text" class="form-control form-control-sm amount-input" 
+                           data-id="${item.id}" style="width: 70px; margin: 0;" 
+                           placeholder="₹ Amt" step="0.01" value="${item.amount?.toFixed(2) || ''}">
+                </td>
+                <td style="padding: 0;">
+                    <input type="text" class="form-control form-control-sm grams-input" 
+                           data-id="${item.id}" style="width: 70px; margin: 0;" 
+                           placeholder="Gram" value="${item.grams?.toFixed(2) || ''}">
+                </td>`;
         } else {
             html += `<td style="padding: 0;">
-  <div class="input-group input-group-sm" style="max-width: 120px; margin: 0;">
-    <button class="btn btn-outline-secondary px-2 py-1" onclick="changeQty('${item.id}', -1)">-</button>
-    <input type="text" class="form-control text-center qty-direct-input" 
-           data-id="${item.id}" value="${item.qty}" min="0" style="margin: 0;">
-    <button class="btn btn-outline-secondary px-2 py-1" onclick="changeQty('${item.id}', 1)">+</button>
-  </div>
-</td><td></td>
-`;
+                <div class="input-group input-group-sm" style="max-width: 120px; margin: 0;">
+                    <button class="btn btn-outline-secondary px-2 py-1" onclick="changeQty('${item.id}', -1)">-</button>
+                    <input type="text" class="form-control text-center qty-direct-input" 
+                           data-id="${item.id}" value="${item.qty}" min="0" style="margin: 0;">
+                    <button class="btn btn-outline-secondary px-2 py-1" onclick="changeQty('${item.id}', 1)">+</button>
+                </div>
+            </td><td></td>`;
         }
 
         html += `
@@ -1080,10 +1090,12 @@ function renderCart() {
 
     $('#cart-table tbody').html(html);
     $('#total').text(total.toFixed(2));
+    $('.final_total').val(total.toFixed(2));
 
     bindAmountEvents(); // rebind inputs
     updateFinalTotal(); // recalculate any discounts/tax if needed
 }
+
 
 
 
@@ -1236,8 +1248,12 @@ function updateRow(id) {
     if (paymode.trim().toUpperCase() === 'C' || paymode.trim().toUpperCase() === 'U') {
         let roundedAmount = Math.round(fullTotal);
         $('#total').text(roundedAmount);
+        $('.final_total').val(roundedAmount);
+
     } else {
         $('#total').text(fullTotal.toFixed(2));
+        $('.final_total').val(fullTotal);
+        
     }
   
     // $('#total').text(fullTotal.toFixed(2));

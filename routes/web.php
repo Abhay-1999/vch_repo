@@ -119,6 +119,10 @@ Route::prefix('user')->group(function () {
 
 Route::post('/payment/dummy', [ItemController::class, 'payment_page'])->name('payment.dummy');
 
+// routes/web.php
+Route::get('/image/{item_code}/{item_grpcode}', [ItemController::class, 'show'])->name('image.show');
+
+
 Route::get('/', [ItemController::class, 'index'])->name('items.index');
 Route::post('/add-to-cart/{id}', [ItemController::class, 'addToCart'])->name('items.addToCart');
 Route::get('/cart', [ItemController::class, 'cart'])->name('items.cart');
@@ -195,6 +199,9 @@ Route::post('/print-content', [OrderController::class, 'printContent'])->name('p
 
 
 Route::post('/pay', [OrderController::class, 'initiatePayment'])->name('initiate.payment');
+Route::post('/upi/callback', [OrderController::class, 'callback'])->name('upi.callback');
+Route::get('/payment-status/{orderId}', [OrderController::class, 'checkStatus'])->name('upi.status');
+
 // Route::any('/payment/status', [OrderController::class, 'paymentStatus'])->name('payment.status.check');
 
 
