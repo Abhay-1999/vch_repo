@@ -100,162 +100,112 @@
   <script src="{{ asset('assets/js/jquery-3.6.0.js') }}"></script>
   <script src="{{ asset('assets/js/toastr.min.js') }}"></script>
 
+  
   <script>
-    document.getElementById("sendOtpBtn").addEventListener("click", function () {
-        const mobile = document.getElementById("mobile").value;
-        if (mobile.length < 10) {
-            alert("Enter a valid mobile number");
-            return;
-        }
+$(document).ready(function () {
+  updateTotals();
 
-        $.ajax({
-          url: "{{ route('send.otp') }}",
-          type: 'POST',
-          data: {
-            _token: '{{ csrf_token() }}',
-            mobile: mobile,
-          },
-          success: function (response) {
-            var typeValue = response.type;
-              // alert("OTP sent to " + mobile);
-              if (typeValue === 'success') {
-                toastr.success("OTP sent successfully!");
-                document.getElementById("otpSection").style.display = "block";
-              }else{
-                toastr.success("Something went wrong.");
-              }
-          }
-        });
-
-        // Simulate sending OTP (you'll replace this with AJAX call)
-     
+  function updateTotals() {
+    let subtotal = 0;
+    $('.Itemquantity').each(function () {
+      const row = $(this).closest('[data-id]');
+      const quantity = parseInt($(this).text());
+      const price = parseFloat(row.find('p:contains("Price")').text().replace(/[^\d.]/g, '')) || 
+                    parseFloat(row.find('td:nth-child(2)').text().replace(/[^\d.]/g, ''));
+      const total = quantity * price;
+      subtotal += total;
+      row.find('.item-total').text('₹ ' + total.toFixed(2));
     });
+    $('.total').val(subtotal.toFixed(2));
+    $('.totalamt').text(subtotal.toFixed(2));
+    if(subtotal>0){
+      $('.paymode_mode').removeClass('d-none');
+    }else{
+      $('.paymode_mode').addClass('d-none');
+    }
+  }
 
-    document.getElementById("verifyOtpBtn").addEventListener("click", function () {
-        const otp = document.getElementById("otpInput").value;
-        // Simulate OTP check (you'll replace this with real AJAX call)
-        $.ajax({
-          url: "{{ route('otp.sbt') }}",
-          type: 'POST',
-          data: {
-            _token: '{{ csrf_token() }}',
-            otp: otp,
-          },
-          success: function (response) {
-              // alert("OTP sent to " + mobile);
-              toastr.success(response.message);
-              document.getElementById("otpMessage").style.display = "block";
-              document.getElementById("payNowBtn").disabled = false;
+  // 🚀 Handle Pay Now (Ajax call to Laravel)
+  $("#orderForm").on("submit", function (e) {
+    e.preventDefault(); 
 
-              // Enable payment options if needed
-              const radios = document.querySelectorAll("input[name='paymode_mode']");
-              radios.forEach(r => r.disabled = false)
-          }
-        });
-    });
-</script>
-  <script>
-    
-
-
-    document.getElementById("orderForm").addEventListener("submit", function (e) {
-      const checkbox = document.querySelector('input[name="confirm_order"]');
-      if (!checkbox.checked) {
-        e.preventDefault();
-        alert("Please confirm before ordering.");
-      } else {
-        alert("Order confirmed!");
-      }
-    });
-
-    $(document).ready(function () {
-
-      updateTotals();
-      function updateTotals() {
-        // alert('a');
-        let subtotal = 0;
-       
-       
-
-        $('.Itemquantity').each(function () {
-          const row = $(this).closest('[data-id]');
-          const quantity = parseInt($(this).text());
-          const price = parseFloat(row.find('p:contains("Price")').text().replace(/[^\d.]/g, '')) || 
-                        parseFloat(row.find('td:nth-child(2)').text().replace(/[^\d.]/g, ''));
-          const total = quantity * price;
-          subtotal += total;
-          row.find('.item-total').text('₹ ' + total.toFixed(2));
-        });
-        $('.total').val(subtotal.toFixed(2));
-        $('.totalamt').text(subtotal.toFixed(2));
-        if(subtotal>0){
-          $('.paymode_mode').removeClass('d-none');
-        }else{
-          $('.paymode_mode').addClass('d-none');
-        }
-      
-      }
-
-      $('.increase-quantity').on('click', function () {
-        // $('.paymode_mode').removeClass('d-none');
-        var row = $(this).closest('[data-id]');
-        var id = row.data('id');
-        var quantityEl = row.find('.Itemquantity');
-        var currentQty = parseInt(quantityEl.text());
-        $.ajax({
-          url: "{{ route('items.addToCartitem') }}",
-          type: 'POST',
-          data: {
-            _token: '{{ csrf_token() }}',
-            quantity: currentQty + 1,
-            id: id
-          },
-          success: function (response) {
-            quantityEl.text(response.quantity);
-            updateTotals();
-          }
-        });
-      });
-
-      $('.decrease-quantity').on('click', function () {
-        var row = $(this).closest('[data-id]');
-        var id = row.data('id');
-        var quantityEl = row.find('.Itemquantity');
-        var currentQty = parseInt(quantityEl.text());
-
-        if (currentQty > 1) {
-          $.ajax({
-            url: "{{ route('items.removeFromCart') }}",
-            type: 'POST',
-            data: {
-              _token: '{{ csrf_token() }}',
-              quantity: currentQty - 1,
-              id: id
-            },
-            success: function (response) {
-              quantityEl.text(response.quantity);
-              updateTotals();
-            }
-          });
+    $.ajax({
+      url: "{{ route('initiate.payment') }}",
+      type: "POST",
+      data: $(this).serialize(),
+      success: function (response) {
+        if (response.status === "success" && response.upiIntent) {
+          // ✅ Redirect to UPI intent link (will open apps like GPay, PhonePe, PayZapp)
+           window.location.href = data.upiIntent;
         } else {
-          $.ajax({
-            url: "{{ route('items.removeFromCart') }}",
-            type: 'POST',
-            data: {
-              _token: '{{ csrf_token() }}',
-              id: id
-            },
-            success: function () {
-              row.remove();
-              updateTotals();
-             
-            }
-          });
+          toastr.error("Failed to get UPI intent link");
+        }
+      },
+      error: function () {
+        toastr.error("Something went wrong, please try again.");
+      }
+    });
+  });
+
+  // Quantity change handlers (unchanged)
+  $('.increase-quantity').on('click', function () {
+    var row = $(this).closest('[data-id]');
+    var id = row.data('id');
+    var quantityEl = row.find('.Itemquantity');
+    var currentQty = parseInt(quantityEl.text());
+    $.ajax({
+      url: "{{ route('items.addToCartitem') }}",
+      type: 'POST',
+      data: {
+        _token: '{{ csrf_token() }}',
+        quantity: currentQty + 1,
+        id: id
+      },
+      success: function (response) {
+        quantityEl.text(response.quantity);
+        updateTotals();
+      }
+    });
+  });
+
+  $('.decrease-quantity').on('click', function () {
+    var row = $(this).closest('[data-id]');
+    var id = row.data('id');
+    var quantityEl = row.find('.Itemquantity');
+    var currentQty = parseInt(quantityEl.text());
+
+    if (currentQty > 1) {
+      $.ajax({
+        url: "{{ route('items.removeFromCart') }}",
+        type: 'POST',
+        data: {
+          _token: '{{ csrf_token() }}',
+          quantity: currentQty - 1,
+          id: id
+        },
+        success: function (response) {
+          quantityEl.text(response.quantity);
+          updateTotals();
         }
       });
+    } else {
+      $.ajax({
+        url: "{{ route('items.removeFromCart') }}",
+        type: 'POST',
+        data: {
+          _token: '{{ csrf_token() }}',
+          id: id
+        },
+        success: function () {
+          row.remove();
+          updateTotals();
+        }
+      });
+    }
+  });
 
-      updateTotals();
-    });
-  </script>
+});
+</script>
+
 </body>
 </html>

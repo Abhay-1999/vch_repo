@@ -17,8 +17,6 @@
   .invoice-box {
     background: #fff;
     padding: 8px;
-    border-radius: 0;
-    box-shadow: none;
     font-size: 14px;
     width: 72mm;
     margin: auto;
@@ -51,34 +49,48 @@
   .text-end {
     text-align: right;
   }
+  .logo {
+      width: 60px;         /* adjust size as needed */
+      height: auto;
+      margin-bottom: 5px;
+    }
 
+  /* Print optimization for 72mm roll printer */
   @media print {
     body {
-      margin: 0;
-      padding: 0;
-      background-color: #fff;
+      margin: 0 !important;
+      padding: 0 !important;
+      background-color: #fff !important;
       font-size: 14px;
       line-height: 1.15;
+      width: 72mm !important;
     }
 
     .invoice-box {
       box-shadow: none;
       border-radius: 0;
-      padding: 0;
+      padding: 0 !important;   /* remove padding */
+      margin: 0 auto !important;
       font-size: 14px;
-      width: 72mm;
+      width: 72mm !important;
     }
 
     .btn, .no-print {
       display: none !important;
     }
+
+    @page {
+      size: 72mm auto;   /* 72mm width, height grows with content */
+      margin: 0;         /* no top/bottom blank space */
+    }
   }
 </style>
-
-
 </head>
 <body>
 <div class="invoice-box" id="invoiceContent">
+<div class="text-center">
+<img src="{{ asset('images/vijaychat.webp') }}" alt="Logo" style="height: 40px; margin-right: 10px;">
+      </div>
   <div class="text-center mb-2">
     <h5 class="invoice-header mb-1">{{ $rest_data->rest_name }}</h5>
     <small>
@@ -112,7 +124,7 @@
       <p>Order Id: <strong>{{ $hd_data->order_id }}</strong></p>
     @endif
     @if($hd_data->otp)
-    <p>OTP: <strong>{{ $hd_data->otp }}</strong></p>
+      <p>OTP: <strong>{{ $hd_data->otp }}</strong></p>
     @endif
   </div>
 
