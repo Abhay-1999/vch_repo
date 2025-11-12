@@ -1,10 +1,14 @@
 @extends('auth.layouts.app')
 @section('content')
 <div class="container" id="print-content">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
 <style>
     @media print {
         #printButton, #exportButton {
             display: none;
+        }
+        .printBillBtn{
+            display:none;
         }
         table#myTable {
             border-collapse: collapse;
@@ -139,6 +143,7 @@
             <th class="text-right">SGST</th>
             <th class="text-right">TOTAL GST</th>
             <th class="text-right">GROSS AMT</th>
+            <th class="text-left printBillBtn">ACTION</th>
         </tr>
     </thead>
     <tbody>
@@ -193,6 +198,10 @@
             <td class="text-right">{{ number_format($d->sgst_amt, 2) }}</td>
             <td class="text-right">{{ number_format($d->total_gst, 2) }}</td>
             <td class="text-right">{{ number_format($d->net_amt_incl_gst, 2) }}</td>
+            <td class="printBillBtn"><a href="javascript:void(0);" onclick="printBill({{ $d->tran_no }}, '{{ $d->tran_date }}')"
+                    class="btn btn-sm btn-primary rounded-pill">
+                        Print 
+                    </a></td>
         </tr>
 
         @php
@@ -262,6 +271,48 @@
             return parts[1] + '-' + parts[0] + '-' + parts[2];
         }
         return dateStr;
+    }
+
+    function printBill(lastOrderId,date){
+        handlePrint(lastOrderId,date, 'bill');
+    }
+
+
+
+    function handlePrint(orderId,date, type) {
+
+        $.post('/print-content', {
+            _token: $('meta[name="csrf-token"]').attr('content'),
+            trans_no: orderId,
+            type: type,
+            date: date
+        }, function(res) {
+            console.log(res); //
+            if (res.html) {
+            
+                    printHtml(res.html);
+                
+            } else {
+                alert('No HTML returned.');
+            }
+        }).fail(function() {
+            alert('Print failed due to server error.');
+        });
+    }
+
+    function printHtml(html) {
+        const win = window.open('', '', 'width=1200px,height=800px');
+
+        win.document.open();
+        win.document.write('<html><head><title>Print</title></head><body>');
+        win.document.write(html);
+        win.document.close();
+
+        win.onload = function () {
+            win.focus();
+            win.print();
+            win.close();
+        };
     }
 
     function printContent() {
