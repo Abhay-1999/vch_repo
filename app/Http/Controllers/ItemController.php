@@ -223,7 +223,57 @@ class ItemController extends Controller
 
     public function cart()
     {
-        return view('items.cart');
+      
+  
+         // echo $group_code.'-'.$rest_code;die;
+  
+          $rest_code = '01';
+          $group_code = '01';
+  
+          Session::put('group_code',$group_code);
+          Session::put('rest_code',$rest_code);
+  
+          // $items = Item::where('group_code',$group_code)->where('item_status','A')->where('rest_code',$rest_code)->get();
+  
+          // $now = now()->format('H:i:s');
+          $now = now('Asia/Kolkata')->format('H:i:s');
+          $cart = session()->get('cart', []);
+          $cartItemCodes = collect($cart)->pluck('item_code')->toArray();
+          
+          $suggestedItems = DB::table('item_master')
+              ->where('group_code', $group_code)
+              ->where('item_status', 'A')
+              ->where('rest_code', $rest_code)
+              ->whereNotIn('item_code', $cartItemCodes) // ✅ exclude items already in cart
+              ->where(function ($query) use ($now) {
+                  // Time-based items
+                  $query->where(function ($q) use ($now) {
+                      $q->whereRaw('start_time <= end_time')
+                        ->where('start_time', '<=', $now)
+                        ->where('end_time', '>=', $now);
+                  })
+                  // Midnight wrap items
+                  ->orWhere(function ($q) use ($now) {
+                      $q->whereRaw('start_time > end_time')
+                        ->where(function ($q2) use ($now) {
+                            $q2->where('start_time', '<=', $now)
+                               ->orWhere('end_time', '>=', $now);
+                        });
+                  })
+                  // Always visible items
+                  ->orWhere(function ($q) {
+                      $q->whereNull('start_time')->whereNull('end_time');
+                  });
+              })
+              ->inRandomOrder() // ✅ random order
+              ->limit(10)       // ✅ only 10 items
+              ->get();
+          
+  
+  
+        $item_grpcodes = Item::select('item_grpcode','item_grpdesc')->where('group_code',$group_code)->where('item_status','A')->where('rest_code',$rest_code)->groupBy('item_grpcode','item_grpdesc')->get();
+          
+        return view('items.cart',compact('suggestedItems','item_grpcodes'));
     }
 
     public function payment_page(Request $request){
@@ -402,6 +452,31 @@ class ItemController extends Controller
 
 
     }
+
+    public function removeCartItem(Request $request)
+    {
+        $id = $request->id;
+        $cart = session()->get('cart', []);
+
+        if (isset($cart[$id])) {
+            unset($cart[$id]);
+            session()->put('cart', $cart);
+        }
+
+        $totalQuantity = array_sum(array_column($cart, 'quantity'));
+        $totalAmount = 0;
+        foreach ($cart as $item) {
+            $totalAmount += $item['price'] * $item['quantity'];
+        }
+
+        return response()->json([
+            'status' => 'success',
+            'message' => 'Item removed from cart!',
+            'total_quantity' => $totalQuantity,
+            'total_amount' => number_format($totalAmount, 2)
+        ]);
+    }
+
 
     public function addToCartitem(Request $request)
     {

@@ -32,7 +32,7 @@ class QRCodeController extends Controller
         
         $websiteLink = 'http://vch.thesimplyindia.com';
         
-        $qrCode = QrCode::size(300)->generate($websiteLink);
+        $qrCode = QrCode::size(1000)->generate($websiteLink);
 
         return view('qr_code', compact('qrCode'));
     }

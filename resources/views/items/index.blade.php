@@ -47,7 +47,7 @@
     <h2 class="text-center mb-3">Welcome To Vijay Chaat House</h2>
 
     <!-- Filter Form -->
-    <form id="filterForm" method="GET" class="mb-4">
+    <!-- <form id="filterForm" method="GET" class="mb-4">
       <div class="row justify-content-center">
         <div class="col-md-3 mb-2">
           <input type="text" class="form-control" name="item_desc" placeholder="Search by item name">
@@ -68,7 +68,7 @@
           </select>
         </div>
       </div>
-    </form>
+    </form> -->
 
     <!-- Items -->
     <div id="itemsContainer">
@@ -97,15 +97,33 @@
             <div class="card-body text-center">
               <h5 class="card-title">{{ $item->item_desc }}</h5>
               <p class="card-text">Price: ₹ {{ number_format($item->item_rate, 2) }}</p>
-              <form action="{{ route('items.addToCart', $item->item_code) }}" method="POST" class="add-to-cart-form">
-                <input type="hidden" name="item_grpcode" value="{{ $item->item_grpcode }}">
-                @csrf
-                <button class="btn btn-sm btn-success increase-quantity" type="button">+</button>
-                <button type="submit" class="btn btn-primary add-to-cart-button" disabled>0</button>
-                <input type="button" class="quantity-input d-none" value="0">
-                <input type="hidden" class="btn btn-primary quantity-input qty" name="quantity" value="0">
-                <button class="btn btn-sm btn-danger decrease-quantity" type="button">-</button>
-              </form>
+              <form action="{{ route('items.addToCart', $item->item_code) }}" 
+                  method="POST" 
+                  class="add-to-cart-form" 
+                  data-id="{{ $item->item_code }}">
+              @csrf
+              <input type="hidden" name="item_grpcode" value="{{ $item->item_grpcode }}">
+
+              <!-- Decrease quantity -->
+              <button type="button" class="btn btn-sm btn-danger decrease-quantity">−</button>
+
+              <!-- Quantity input visible by default -->
+              <input type="text" 
+                class="form-control d-inline-block quantity-input" 
+                value="0" 
+                style="width: 60px; text-align: center;"
+                oninput="this.value = this.value.replace(/[^0-9]/g, '').replace(/^0+/, '');"
+                onkeypress="return event.charCode >= 48 && event.charCode <= 57"
+                inputmode="numeric"
+                pattern="[0-9]*">
+
+              <!-- Hidden field for backend -->
+              <input type="hidden" name="quantity" class="qty" value="0">
+
+              <!-- Increase quantity -->
+              <button type="button" class="btn btn-sm btn-success increase-quantity">+</button>
+            </form>
+
             </div>
           </div>
         </div>
@@ -287,6 +305,28 @@
         });
       }
     });
+
+  //     // Manual input typing
+  $('.quantity-input').on('input blur', function () {
+    const form = $(this).closest('.add-to-cart-form');
+    const qty = parseInt($(this).val()) || 0;
+    form.find('.qty').val(qty);
+
+    $.ajax({
+      url: "{{ route('items.addToCartitem') }}",
+      type: 'POST',
+      data: {
+        _token: '{{ csrf_token() }}',
+        quantity: qty,
+        id: form.data('id')
+      },
+      success: function (response) {
+        updateCartCount(response.total_quantity);
+      }
+    });
+  });
+
+ 
   });
 </script>
 </body>
