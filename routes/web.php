@@ -12,7 +12,32 @@ use App\Http\Controllers\CashfreeController;
 use App\Http\Controllers\ReportController;
 use App\Http\Controllers\CustomerMasterController;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 
+use Illuminate\Support\Facades\Artisan;
+
+Route::get('/clear-cache', function () {
+    Artisan::call('route:clear');
+    Artisan::call('config:clear');
+    Artisan::call('cache:clear');
+    Artisan::call('view:clear');
+    Artisan::call('clear-compiled');
+
+    return "✅ All Laravel cache cleared!";
+});
+
+
+
+// Route::match(['get','post'],'/upi/callback', [OrderController::class,'paymentCallback'])->name('upi.callback');
+
+// Route::any('/upi/callback', function (\Illuminate\Http\Request $request) {
+//     file_put_contents(storage_path('logs/callback_debug.log'), json_encode([
+//         'method' => $request->method(),
+//         'params' => $request->all(),
+//         'time' => now()
+//     ])."\n", FILE_APPEND);
+//     return response('OK', 200);
+// });
 
 // About Page
 Route::get('/about', function () {
@@ -53,6 +78,7 @@ Route::prefix('admin')->group(function () {
     Route::get('/orders-cash-upi', [OrderController::class, 'indexCash'])->name('orders.indexc');
     Route::get('/orders-zomato-swiggy', [OrderController::class, 'indexZomato'])->name('orders.indexz');
     Route::get('/orders-online', [OrderController::class, 'indexOnline'])->name('orders.indexo');
+    Route::get('/orders-store', [OrderController::class, 'store4'])->name('orders.store');
 
 
     Route::get('/ordersp', [OrderController::class, 'indexp'])->name('orders.indexp');
@@ -117,11 +143,11 @@ Route::prefix('user')->group(function () {
 });
 
 
-Route::post('/payment/dummy', [ItemController::class, 'payment_page'])->name('payment.dummy');
-
-// routes/web.php
 Route::get('/image/{item_code}/{item_grpcode}', [ItemController::class, 'show'])->name('image.show');
 
+
+
+Route::post('/payment/dummy', [ItemController::class, 'payment_page'])->name('payment.dummy');
 
 Route::get('/', [ItemController::class, 'index'])->name('items.index');
 Route::post('/add-to-cart/{id}', [ItemController::class, 'addToCart'])->name('items.addToCart');
@@ -129,6 +155,8 @@ Route::get('/cart', [ItemController::class, 'cart'])->name('items.cart');
 Route::get('/checkout', [ItemController::class, 'checkout'])->name('items.checkout');
 Route::post('/add-to-cart-item', [ItemController::class, 'addToCartitem'])->name('items.addToCartitem');
 Route::post('/order-save', [ItemController::class, 'save'])->name('order.save');
+Route::post('/cart/remove', [ItemController::class, 'removeCartItem'])->name('cart.remove');
+
 
 Route::get('/all-items-status', [ItemController::class, 'allItems']);
 Route::get('/all-items', [ItemController::class, 'all']);
@@ -170,9 +198,11 @@ Route::get('/home', [App\Http\Controllers\HomeController::class, 'index'])->name
 // routes/web.php
 
 // Route::get('/pay', [CashfreeController::class, 'showPayPage'])->name('cashfree.pay');
-// Route::post('/pay/submit', [CashfreeController::class, 'createOrder'])->name('cashfree.create');
+// Route::post('/create-order', [CashfreeController::class, 'createOrder'])->name('cashfree.create');
 // Route::get('/pay/success', [CashfreeController::class, 'paymentSuccess'])->name('cashfree.success');
 // Route::post('/webhook/cashfree', [CashfreeController::class, 'handleWebhook'])->name('cashfree.webhook');
+// Route::get('/cashfree/verify', [CashfreeController::class, 'verifyPayment'])->name('cashfree.verify');
+
 
 
 Route::post('/order/item-update', [OrderController::class, 'updateOrderItem'])->name('order.item.update');
@@ -189,18 +219,17 @@ Route::get('/change-order', [OrderController::class, 'ChangeOrder'])->name('chan
 
 Route::post('/print-content', [OrderController::class, 'printContent'])->name('print.content');
 
-
-// Route::get('/pay', [OrderController::class, 'initiateHDFCPayment']);
-// Route::any('/payment/response', function(Request $request) {
-//     // Handle success or failure callback here
-//     return response()->json($request->all());
-// });
-
-
-
 Route::post('/pay', [OrderController::class, 'initiatePayment'])->name('initiate.payment');
-Route::post('/upi/callback', [OrderController::class, 'callback'])->name('upi.callback');
-Route::get('/payment-status/{orderId}', [OrderController::class, 'checkStatus'])->name('upi.status');
+
+
+
+// Route::get('/upi/callback', [OrderController::class, 'paymentCallback'])->name('upi.callback');
+// Receipt page
+Route::get('/receipt/{orderId}', [OrderController::class, 'showReceipt'])->name('receipt.show');
+
+// Failure page
+Route::get('/payment-failed/{orderId}', [OrderController::class, 'showFailure'])->name('payment.failed');
+Route::get('/upi/status', [OrderController::class, 'checkStatus'])->name('check.status');
 
 // Route::any('/payment/status', [OrderController::class, 'paymentStatus'])->name('payment.status.check');
 
