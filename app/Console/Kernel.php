@@ -26,6 +26,10 @@ class Kernel extends ConsoleKernel
         $schedule->command('update:table')->daily();
 
         // You can add more scheduled commands here if needed
+
+        $schedule->command('report:send-daily')
+        ->dailyAt('23:50')
+        ->timezone('Asia/Kolkata');
     }
 
     /**

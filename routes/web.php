@@ -118,6 +118,8 @@ Route::prefix('admin')->group(function () {
     Route::get('dt-sale-form',[ReportController::class,'pay_mode_form'])->name('mode_pay_form');
     Route::post('dt-sale-data',[ReportController::class,'pay_mode_data'])->name('mode_pay_data');
     
+    Route::post('daily-report-mail',[ReportController::class,'dailyReportMail'])->name('daily.report.mail');
+    
     //total sale
     Route::get('/sale-form',[ReportController::class,'total_sale_form'])->name('sale_form');
     Route::post('/sale-data',[ReportController::class,'total_sale_data'])->name('tot_sale_data');
@@ -130,6 +132,10 @@ Route::prefix('admin')->group(function () {
 
     Route::get('/ordersp/refresh', [OrderController::class, 'refreshp'])->name('ordersp.refresh');
     Route::get('/ordersp/refreshdelivered', [OrderController::class, 'refreshdelivered'])->name('orders.refreshdelivered');
+
+
+    Route::get('/check-new-orders', [OrderController::class, 'checkNewOrders'])->name('check.new.orders');
+
 
     Route::get('dashboard', function () {
         return view('auth.admin.dashboard'); // Ensure this view exists

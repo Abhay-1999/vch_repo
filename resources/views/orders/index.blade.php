@@ -21,6 +21,12 @@
     }
 </style>
     <h1 class="text-center">Orders</h1>
+    <audio id="newOrderSound" src="{{ asset('sounds/bell.wav') }}" preload="auto"></audio>
+
+<!-- Button to unlock sound -->
+<button id="unlockSoundBtn" style="padding: 10px 20px; font-size: 16px; cursor: pointer;">
+    Click here to enable sound notifications
+</button>
     <meta name="csrf-token" content="{{ csrf_token() }}">
 
     <div style="overflow-y: auto; max-height: calc(100vh - 100px); padding-bottom: 50px;">
@@ -31,6 +37,9 @@
          @include('orders.orders_table', ['orders' => $orders,'order_arr'=>$order_arr,'role'=>$role])
          </div>
          </div>
+      
+     
+         <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 
     <script>
 
@@ -103,8 +112,94 @@
 
     setInterval(reloadOrders, 10000);
 
+    $(document).on('change', '.item-checkbox', function () {
+        if (this.checked) {
+            
 
+            let checkbox = $(this);
+            let tran_no = checkbox.data('tran');
+            let item_code = checkbox.data('item_code');
+            let item_index = checkbox.data('index');
+            let total = checkbox.data('total');
+            checkbox.prop('disabled', true);
+            $.ajax({
+                url: "{{ route('order.item.update') }}",
+                method: "POST",
+                data: {
+                    _token: "{{ csrf_token() }}",
+                    tran_no: tran_no,
+                    item_index: item_index,
+                    item_code: item_code,
+                },
+                success: function (response) {
+                    checkbox.prop('disabled', true);
+
+                    // If last item is checked
+                    let allCheckboxes = checkbox.closest('ul').find('input[type="checkbox"]');
+                    let allChecked = allCheckboxes.filter(':checked').length;
+
+                    if (allChecked === total) {
+                        // Call another ajax to mark full order complete
+                        $.ajax({
+                            url: "{{ route('order.complete') }}",
+                            method: "POST",
+                            data: {
+                                _token: "{{ csrf_token() }}",
+                                tran_no: tran_no
+                            },
+                            success: function (res) {
+                                reloadOrders(); // Reload full order list
+                            }
+                        });
+                    }
+                }
+            });
+        }
+    });
     
 </script>
 
+<script>
+const unlockBtn = document.getElementById('unlockSoundBtn');
+const sound = document.getElementById('newOrderSound');
+let soundUnlocked = false;
+
+unlockBtn.addEventListener('click', function() {
+    if (soundUnlocked) return;
+
+    sound.play().then(() => {
+        sound.pause();
+        sound.currentTime = 0;
+        soundUnlocked = true;
+        console.log('🔊 Sound unlocked by user');
+        unlockBtn.style.display = 'none'; // Hide button after click
+        // Start your polling or other logic here if needed
+    }).catch(err => {
+        console.warn('Sound unlock failed:', err);
+    });
+});
+
+// Example polling for new orders after unlock
+// You can move this to run only after soundUnlocked = true if you prefer
+let lastOrderId = 0;
+function checkNewOrders() {
+    fetch("{{ route('check.new.orders') }}")
+        .then(res => res.json())
+        .then(data => {
+            if (soundUnlocked && data.latest_order_id > lastOrderId && lastOrderId !== 0) {
+                sound.volume = 1;
+                sound.currentTime = 0;
+                sound.play()
+                    .then(() => console.log('🔔 New order detected - sound played'))
+                    .catch(e => console.error('Sound playback error:', e));
+            }
+            lastOrderId = data.latest_order_id;
+        })
+        .catch(err => console.error('Fetching orders error:', err));
+}
+
+// Poll every 5 seconds, you can start this only after unlock if required
+setInterval(checkNewOrders, 5000);
+checkNewOrders();
+</script>
 @endsection

@@ -84,53 +84,6 @@
                         @endif
                     </div>
                 </div>
-                <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-<script>
-$(document).on('change', '.item-checkbox', function () {
-        if (this.checked) {
-            
-
-            let checkbox = $(this);
-            let tran_no = checkbox.data('tran');
-            let item_code = checkbox.data('item_code');
-            let item_index = checkbox.data('index');
-            let total = checkbox.data('total');
-            checkbox.prop('disabled', true);
-            $.ajax({
-                url: "{{ route('order.item.update') }}",
-                method: "POST",
-                data: {
-                    _token: "{{ csrf_token() }}",
-                    tran_no: tran_no,
-                    item_index: item_index,
-                    item_code: item_code,
-                },
-                success: function (response) {
-                    checkbox.prop('disabled', true);
-
-                    // If last item is checked
-                    let allCheckboxes = checkbox.closest('ul').find('input[type="checkbox"]');
-                    let allChecked = allCheckboxes.filter(':checked').length;
-
-                    if (allChecked === total) {
-                        // Call another ajax to mark full order complete
-                        $.ajax({
-                            url: "{{ route('order.complete') }}",
-                            method: "POST",
-                            data: {
-                                _token: "{{ csrf_token() }}",
-                                tran_no: tran_no
-                            },
-                            success: function (res) {
-                                reloadOrders(); // Reload full order list
-                            }
-                        });
-                    }
-                }
-            });
-        }
-    });
-
-</script>
+      
              
 @endforeach
