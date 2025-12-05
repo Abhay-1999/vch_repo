@@ -201,4 +201,49 @@ class ReportController extends Controller
 
         return view("reports.cancel_data", compact('startDate', 'endDate', 'data'));
     }
+
+
+    public function dailyReportMail(Request $request)
+    {
+        $startDate = date('Y-m-d');
+        $endDate = date('Y-m-d');
+        $group_code = '01';
+        $rest_code =  '01';
+
+        $rest_data = DB::table('chain_master')
+            ->where('group_code', $group_code)
+            ->where('rest_code', $rest_code)
+            ->first();
+
+        $data = DB::table('order_hd')
+            ->select('tran_date', 'payment_mode', DB::raw('SUM(paid_amt) as total_net_amt'))
+            ->whereBetween('tran_date', [$startDate, $endDate])
+            ->where('order_hd.flag','!=','H')
+            ->groupBy('tran_date', 'payment_mode')
+            ->orderBy('tran_date')
+            ->get();
+        
+        $totals = [];
+        foreach ($data as $d) {
+            $date = date('d-m-Y', strtotime($d->tran_date));
+            if (!isset($totals[$date])) {
+                $totals[$date] = ['cash' => 0, 'UPI' => 0, 'Online' => 0, 'Zomato' => 0, 'Swiggy' => 0 ];
+            }
+            if ($d->payment_mode == 'C') {
+                $totals[$date]['cash'] += $d->total_net_amt;
+            } elseif ($d->payment_mode == 'O') {
+                $totals[$date]['Online'] += $d->total_net_amt;
+            }elseif ($d->payment_mode == 'U') {
+                $totals[$date]['UPI'] += $d->total_net_amt;
+            }elseif ($d->payment_mode == 'Z') {
+                $totals[$date]['Zomato'] += $d->total_net_amt;
+            }elseif ($d->payment_mode == 'S') {
+                $totals[$date]['Swiggy'] += $d->total_net_amt;
+            }
+        }
+
+        // echo "<pre>";print_r($data->toArray());die;
+
+        return view("reports.dailyReport",compact('startDate','endDate','totals','rest_data'));
+    }
 }

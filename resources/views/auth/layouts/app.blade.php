@@ -177,7 +177,7 @@ $admin = Auth::guard('admin')->user();
                     <a class="nav-link {{ request()->routeIs('orders.index') ? 'active' : '' }}" href="{{ route('orders.index') }}">
                         <i class="bi bi-bag-fill me-2"></i><span>All Orders</span>
                     </a>
-                    <a class="nav-link {{ request()->routeIs('orders.indexc') ? 'active' : '' }}" href="{{ route('orders.indexc') }}">
+                    <!-- <a class="nav-link {{ request()->routeIs('orders.indexc') ? 'active' : '' }}" href="{{ route('orders.indexc') }}">
                         <i class="bi bi-bag-fill me-2"></i><span>Cash/Upi Orders</span>
                     </a>
                     <a class="nav-link {{ request()->routeIs('orders.indexz') ? 'active' : '' }}" href="{{ route('orders.indexz') }}">
@@ -185,7 +185,7 @@ $admin = Auth::guard('admin')->user();
                     </a>
                     <a class="nav-link {{ request()->routeIs('orders.indexo') ? 'active' : '' }}" href="{{ route('orders.indexo') }}">
                         <i class="bi bi-bag-fill me-2"></i><span>Online Orders</span>
-                    </a>
+                    </a> -->
                 @endif
             </li>
             <li class="nav-item mt-4">

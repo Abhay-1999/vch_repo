@@ -1451,4 +1451,20 @@ public function updateOrderItem(Request $request)
     }
 
 
+    public function checkNewOrders()
+    {
+        $latestOrder = DB::table('order_hd')
+            ->whereDate('tran_date', date('Y-m-d'))
+            ->latest('tran_no')
+            ->first();
+
+           // echo $latestOrder->tran_no;die;
+    
+        return response()->json([
+            'latest_order_id' => $latestOrder ? $latestOrder->tran_no : 0
+        ]);
+    }
+    
+
+
 }
