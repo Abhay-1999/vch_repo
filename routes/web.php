@@ -149,6 +149,16 @@ Route::prefix('admin')->group(function () {
     Route::post('/purchase-store', [PurchaseEntryController::class, 'store'])->name('purchase.store');
 
 
+    Route::get('/kitchen-request-create', [PurchaseEntryController::class, 'createRequest'])->name('kitchen.request.create');
+    Route::post('/kitchen/request/save', [PurchaseEntryController::class, 'save'])
+    ->name('kitchen.request.save');
+
+
+    Route::get('/store/pending-request', [PurchaseEntryController::class, 'pendingRequest'])->name('store.pending.request');
+    Route::get('/store/request-view/{id}', [PurchaseEntryController::class, 'requestView'])->name('store.request.view');
+    Route::post('/store/request-issue-save', [PurchaseEntryController::class, 'issueSave'])->name('store.request.issue.save');
+
+
 
     Route::get('dashboard', function () {
         return view('auth.admin.dashboard'); // Ensure this view exists
