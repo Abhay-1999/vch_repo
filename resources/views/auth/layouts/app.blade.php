@@ -144,6 +144,12 @@ $admin = Auth::guard('admin')->user();
                     <a class="nav-link {{ request()->routeIs('purchase-create') ? 'active' : '' }}" href="{{ route('purchase.create') }}">
                         <i class="bi bi-bag-fill me-2"></i><span>Raw Material Purchase Master</span>
                     </a>
+                    <a class="nav-link {{ request()->routeIs('kitchen-request-create') ? 'active' : '' }}" href="{{ route('kitchen.request.create') }}">
+                        <i class="bi bi-bag-fill me-2"></i><span>Create Kitchen Request</span>
+                    </a>
+                    <a class="nav-link {{ request()->routeIs('/store-pending-request') ? 'active' : '' }}" href="{{ route('store.pending.request') }}">
+                        <i class="bi bi-bag-fill me-2"></i><span>Pending Kitchen Request</span>
+                    </a>
                     <a class="nav-link {{ request()->routeIs('create.order') ? 'active' : '' }}" href="{{ route('create.order') }}">
                         <i class="bi bi-bag-fill me-2"></i><span>Create Order</span>
                     </a>

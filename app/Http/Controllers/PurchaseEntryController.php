@@ -105,5 +105,123 @@ class PurchaseEntryController extends Controller
             'message' => "Saved"
         ]);
     }
+
+
+        public function createRequest()
+    {
+        $items = DB::table('raw_material_master')->get();
+
+        $trans_no = DB::table('kitchen_material_issue')->max('trans_no') + 1;
+
+        $unit_masters = DB::table('unit_master')->get();
+
+        return view('kitchen.request-create', compact('items','trans_no','unit_masters'));
+    }
+
+
+    public function save(Request $request)
+        {
+            // SERVER VALIDATION
+            $request->validate([
+                'rest_cd' => 'required',
+                'trans_date' => 'required|date',
+                'requstion_no' => 'required',
+                'requstion_date' => 'required|date',
+                'item_code.*' => 'required',
+                'qty.*' => 'required|numeric|min:0.01',
+                'unit_cd.*' => 'required'
+            ],[
+                'item_code.*.required' => 'Item is required',
+                'qty.*.required' => 'Qty is required',
+                'unit_cd.*.required' => 'Unit is required'
+            ]);
+
+            try{
+
+                // INSERT HEADER
+                $trans_no = DB::table('kitchen_material_issue')->insertGetId([
+                    'rest_cd' => $request->rest_cd,
+                    'trans_date' => $request->trans_date,
+                    'requstion_no' => $request->requstion_no,
+                    'requstion_date' => $request->requstion_date,
+                    'status' =>'P',
+                ]);
+
+                // INSERT DETAILS
+                foreach($request->item_code as $k => $item){
+                    DB::table('kitchen_material_issue_dt')->insert([
+                        'rest_cd' => $request->rest_cd,
+                        'trans_no' => $trans_no,
+                        'trans_date' => $request->trans_date,
+                        'item_code' => $item,
+                        'qty' => $request->qty[$k],
+                        'issue_qty' => 0,
+                        'unit_cd' => $request->unit_cd[$k],
+                        'remark' => $request->remark[$k],
+                    ]);
+                }
+
+                return response()->json([
+                    'success' => true,
+                    'message' => 'Request Successfully Saved!'
+                ]);
+
+            } catch (\Exception $e) {
+
+                return response()->json([
+                    'success' => false,
+                    'message' => $e->getMessage()
+                ]);
+            }
+        }
+
+
+        public function pendingRequest()
+        {
+            $pending = DB::table('kitchen_material_issue')->where('status', 'P')->get();
+
+            
+            return view('store.pending-request', compact('pending'));
+        }
+
+
+        public function requestView($id)
+        {
+            $hd = DB::table('kitchen_material_issue')->where('trans_no',$id)->first();
+
+            $dt =  DB::table('kitchen_material_issue_dt')->select('kitchen_material_issue_dt.*','raw_material_master.item_desc','unit_master.unit_small_desc')->where('trans_no',$id)
+                   ->join('raw_material_master','kitchen_material_issue_dt.item_code','=','raw_material_master.item_code')
+                   ->join('unit_master','kitchen_material_issue_dt.unit_cd','=','unit_master.unit_cd')
+                   ->get();
+
+            return view('store.request-view', compact('hd', 'dt'));
+        }
+
+
+        public function issueSave(Request $request)
+        {
+            $hd_id = $request->hd_id;
+
+            foreach($request->dt_id as $key => $dtid){
+                // update detail record
+                DB::table('kitchen_material_issue_dt')->where('trans_no',$hd_id)->where('item_code',$request->item_code[$key])->update([
+                    'issue_qty' => $request->issue_qty[$key],
+                ]);
+            }
+
+            DB::table('kitchen_material_issue')->where('trans_no',$hd_id)->update([
+                'status' =>'A',
+            ]);
+
+       
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Material issued successfully!'
+            ]);
+        }
+
+
+
     
 }
