@@ -11,6 +11,7 @@ use App\Http\Controllers\Auth\UserAuthController;
 use App\Http\Controllers\CashfreeController;
 use App\Http\Controllers\ReportController;
 use App\Http\Controllers\CustomerMasterController;
+use App\Http\Controllers\PurchaseEntryController;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 
@@ -135,6 +136,10 @@ Route::prefix('admin')->group(function () {
 
 
     Route::get('/check-new-orders', [OrderController::class, 'checkNewOrders'])->name('check.new.orders');
+
+    Route::get('/purchase-create', [PurchaseEntryController::class, 'create'])->name('purchase.create');
+    Route::post('/purchase-store', [PurchaseEntryController::class, 'store'])->name('purchase.store');
+
 
 
     Route::get('dashboard', function () {
