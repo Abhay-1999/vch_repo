@@ -46,6 +46,7 @@ $admin = Auth::guard('admin')->user();
       padding: 20px 15px;
       flex-shrink: 0;
       transition: width 0.3s;
+      overflow-y: auto;
     }
 
     .sidebar h4 {
@@ -161,19 +162,23 @@ $admin = Auth::guard('admin')->user();
                     <a class="nav-link {{ request()->routeIs('change.order') ? 'active' : '' }}" href="{{ route('change.order') }}">
                         <i class="bi bi-bag-fill me-2"></i><span>Change Order Type</span>
                     </a>
+                    <a class="nav-link {{ request()->routeIs('raw_mat_form') ? 'active' : '' }}" href="{{ route('raw_mat_form') }}">
+                        <i class="bi bi-bag-fill me-2"></i><span>Raw Material Master</span>
+                    </a>
+                    <a class="nav-link {{ request()->routeIs('supp_mast_form') ? 'active' : '' }}" href="{{ route('supp_mast_form') }}">
+                        <i class="bi bi-bag-fill me-2"></i><span>Supplier Master</span>
+                    </a>
                     <li class="nav-item dropdown">
                         <a class="nav-link dropdown-toggle d-flex justify-content-between align-items-center"
                         href="#" id="dropdownReports" role="button" data-bs-toggle="dropdown" aria-expanded="false">
                             <span><i class="bi bi-graph-up-arrow me-2"></i><span>Reports</span></span>
                         </a>
                         <ul class="dropdown-menu" aria-labelledby="dropdownReports">
-                            
                             <li><a class="dropdown-item" href="{{ route('mode_pay_form') }}"><i class="bi bi-file-earmark-bar-graph me-2"></i>Date Wise Sale</a></li>
                             <li><a class="dropdown-item" href="{{ route('bill_ws_form') }}"><i class="bi bi-file-earmark-bar-graph me-2"></i>Sale Register</a></li>
                             <li><a class="dropdown-item" href="{{ route('sale_form') }}"><i class="bi bi-file-earmark-bar-graph me-2"></i>GST Summary</a></li>
                             <li><a class="dropdown-item" href="{{ route('item_ws_form') }}"><i class="bi bi-file-earmark-text me-2"></i>Item Wise Sale</a></li>
                             <li><a class="dropdown-item" href="{{ route('cancel_form') }}"><i class="bi bi-file-earmark-bar-graph me-2"></i>Cancel Register</a></li>
-                            
                         </ul>
                     </li>
                 @else
@@ -247,8 +252,13 @@ $admin = Auth::guard('admin')->user();
   // Loader on form submit
   document.querySelectorAll('form').forEach(form => {
     form.addEventListener('submit', () => {
-      document.getElementById('loader-overlay').style.display = 'flex';
+        document.getElementById('loader-overlay').style.display = 'flex';
+
+        setTimeout(() => {
+            $('#loader-overlay').hide();   // auto hide if AJAX blocked or validation failed
+        }, 1000);
     });
+
   });
 
   // Sidebar toggle
