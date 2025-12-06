@@ -12,6 +12,7 @@ use App\Http\Controllers\CashfreeController;
 use App\Http\Controllers\ReportController;
 use App\Http\Controllers\CustomerMasterController;
 use App\Http\Controllers\RawMaterialController;
+use App\Http\Controllers\PurchaseEntryController;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 
@@ -144,6 +145,10 @@ Route::prefix('admin')->group(function () {
     // supplier master
     Route::get('/supp-mast-form', [RawMaterialController::class, 'supplier_mast_form'])->name('supp_mast_form');
     Route::post('/supp-mast-form-store', [RawMaterialController::class, 'supplier_mast_store'])->name('supp_mast_store');
+    Route::get('/purchase-create', [PurchaseEntryController::class, 'create'])->name('purchase.create');
+    Route::post('/purchase-store', [PurchaseEntryController::class, 'store'])->name('purchase.store');
+
+
 
     Route::get('dashboard', function () {
         return view('auth.admin.dashboard'); // Ensure this view exists
