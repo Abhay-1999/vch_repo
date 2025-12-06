@@ -13,8 +13,9 @@ class RawMaterialController extends Controller
     public function raw_mat_mast_form()
     {
         $catMast = CategoryMaster::orderBy('catg_name')->get();
+        $suppMast = SupplierMaster::orderBy('supp_name')->get();
         $unitMast = UnitMaster::get();
-        return view('raw_material.raw_mat_mast_form',compact('catMast','unitMast'));
+        return view('raw_material.raw_mat_mast_form',compact('catMast','unitMast','suppMast'));
     }
 
     public function raw_mat_mast_store(Request $request)

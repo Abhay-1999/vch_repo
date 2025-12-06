@@ -12,7 +12,7 @@
         <div class="col-md-12">
             <div class="card shadow">
                 <div class="card-header bg-primary text-white">
-                    <h5 class="mb-0"><i class="fas fa-box"></i> Supplier Master Form</h5>
+                    <h5 class="mb-0"><i class="fas fa-box"></i>Supplier Master Form</h5>
                 </div>
                 <div class="card-body mt-3">
                     <form id="rawMatForm">
