@@ -11,6 +11,7 @@ use App\Http\Controllers\Auth\UserAuthController;
 use App\Http\Controllers\CashfreeController;
 use App\Http\Controllers\ReportController;
 use App\Http\Controllers\CustomerMasterController;
+use App\Http\Controllers\RawMaterialController;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 
@@ -136,6 +137,13 @@ Route::prefix('admin')->group(function () {
 
     Route::get('/check-new-orders', [OrderController::class, 'checkNewOrders'])->name('check.new.orders');
 
+    // raw material master
+    Route::get('/raw-mast-form', [RawMaterialController::class, 'raw_mat_mast_form'])->name('raw_mat_form');
+    Route::post('/raw-mast-form-store', [RawMaterialController::class, 'raw_mat_mast_store'])->name('raw_mat_store');
+
+    // supplier master
+    Route::get('/supp-mast-form', [RawMaterialController::class, 'supplier_mast_form'])->name('supp_mast_form');
+    Route::post('/supp-mast-form-store', [RawMaterialController::class, 'supplier_mast_store'])->name('supp_mast_store');
 
     Route::get('dashboard', function () {
         return view('auth.admin.dashboard'); // Ensure this view exists
