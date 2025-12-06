@@ -12,7 +12,7 @@
         <div class="col-md-12">
             <div class="card shadow">
                 <div class="card-header bg-primary text-white">
-                    <h5 class="mb-0"><i class="fas fa-box"></i> Raw Material Master Form</h5>
+                    <h5 class="mb-0"><i class="fas fa-box"></i>Raw Material Master Form</h5>
                 </div>
                 <div class="card-body mt-3">
                     <form id="rawMatForm">
@@ -50,8 +50,13 @@
                                 </select>
                             </div>
                             <div class="col-md-4 mb-3">
-                                <label class="form-label">Supplier Code</label>
-                                <input type="text" class="form-control" name="supp_code">
+                                <label class="form-label">Supplier Name</label>
+                                <select name="supp_cd " id="supp_cd " class="form-control">
+                                    <option value="">Select</option>
+                                    @foreach($suppMast as $supp)
+                                        <option value="{{ $supp->supp_cd  }}">{{ $supp->supp_name }}</option>
+                                    @endforeach
+                                </select>
                             </div>
                             <div class="col-md-4 mb-3">
                                 <label class="form-label">Supplier Bill No</label>
