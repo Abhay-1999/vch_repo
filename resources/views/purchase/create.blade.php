@@ -104,7 +104,7 @@
                                 </select>
                             </td>
 
-                            <td><input type="number" class="form-control qty" step="0.001" name="qty[]"></td>
+                            <td><input type="number" class="form-control qty" min="0" step="0.001" name="qty[]"></td>
                             <td>
                             <select name="unit_cd[]" class="form-control">
                                 <option>Select</option>
@@ -114,15 +114,15 @@
                                     @endforeach
                                 </select>
 </td>
-                            <td><input type="number" class="form-control rate" step="0.01" name="rate[]"></td>
+                            <td><input type="number" min="0" class="form-control rate" step="0.01" name="rate[]"></td>
 
-                            <td><input type="number" class="form-control sgst_per" step="0.01" name="sgst_per[]"></td>
+                            <td><input type="number" min="0" class="form-control sgst_per" step="0.01" name="sgst_per[]"></td>
                             <!-- <td><input type="number" class="form-control cgst_per" step="0.01" name="cgst_per[]"></td> -->
 
-                            <td><input type="number" class="form-control sgst_amt" step="0.01" name="sgst_amt[]" readonly></td>
-                            <td><input type="number" class="form-control cgst_amt" step="0.01" name="cgst_amt[]" readonly></td>
+                            <td><input type="number" min="0" class="form-control sgst_amt" step="0.01" name="sgst_amt[]" readonly></td>
+                            <td><input type="number" min="0" class="form-control cgst_amt" step="0.01" name="cgst_amt[]" readonly></td>
 
-                            <td><input type="number" class="form-control total" step="0.01" name="total[]" readonly></td>
+                            <td><input type="number" min="0" class="form-control total" step="0.01" name="total[]" readonly></td>
 
                             <td class="text-center">
                                 <button type="button" class="btn btn-danger btn-sm remove">X</button>
@@ -140,7 +140,7 @@
 
                     <div class="col-md-4">
                         <label>Gross Value</label>
-                        <input type="number" name="gross_val" id="gross_val" class="form-control" readonly>
+                        <input type="number"  name="gross_val" id="gross_val" class="form-control" readonly>
                     </div>
 
                     <div class="col-md-4">
@@ -166,6 +166,22 @@
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
 <script>
+// Sabhi number inputs ke liye
+$(document).on('input keydown', 'input[type="number"]', function (e) {
+
+// ❌ Minus key block (keyboard se)
+if (e.key === "-" || e.keyCode === 189) {
+    e.preventDefault();
+    return false;
+}
+
+// ❌ Paste ki hui negative value hatao
+if ($(this).val() < 0) {
+    $(this).val(0);
+}
+});
+
+
 $("#purchaseForm").submit(function(e) {
     e.preventDefault();
     document.getElementById('loader-overlay').style.display = 'flex';
@@ -277,7 +293,7 @@ $("#addRow").click(function () {
             </select>
         </td>
 
-        <td><input type="number" class="form-control qty" step="0.001" name="qty[]"></td>
+        <td><input type="number" min="0" class="form-control qty" step="0.001" name="qty[]"></td>
         <td>
                             <select name="unit_cd[]" class="form-control">
                                 <option>Select</option>
@@ -287,14 +303,14 @@ $("#addRow").click(function () {
                                     @endforeach
                                 </select>
 </td>
-        <td><input type="number" class="form-control rate" step="0.01" name="rate[]"></td>
+        <td><input type="number" min="0" class="form-control rate" step="0.01" name="rate[]"></td>
 
-        <td><input type="number" class="form-control sgst_per" step="0.01" name="sgst_per[]"></td>
+        <td><input type="number" min="0" class="form-control sgst_per" step="0.01" name="sgst_per[]"></td>
 
-        <td><input type="number" class="form-control sgst_amt" step="0.01" name="sgst_amt[]" readonly></td>
-        <td><input type="number" class="form-control cgst_amt" step="0.01" name="cgst_amt[]" readonly></td>
+        <td><input type="number" min="0" class="form-control sgst_amt" step="0.01" name="sgst_amt[]" readonly></td>
+        <td><input type="number" min="0" class="form-control cgst_amt" step="0.01" name="cgst_amt[]" readonly></td>
 
-        <td><input type="number" class="form-control total" step="0.01" name="total[]" readonly></td>
+        <td><input type="number" min="0" class="form-control total" step="0.01" name="total[]" readonly></td>
 
         <td><button type="button" class="btn btn-danger btn-sm remove">X</button></td>
     </tr>`;

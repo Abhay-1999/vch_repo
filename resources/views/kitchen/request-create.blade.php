@@ -1,6 +1,15 @@
 @extends('auth.layouts.app')
 
 @section('content')
+<style>
+    .highlight-low-stock {
+        background-color: #ffebee !important;   /* Light red */
+    }
+
+    .highlight-good-stock {
+        background-color: #e8f5e9 !important;   /* Light green */
+    }
+</style>
 
 <div class="container-fluid mt-4">
 
@@ -71,32 +80,40 @@
                             </thead>
 
                             <tbody id="itemBody">
-                                <tr>
-                                    <td>
-                                        <select name="item_code[]" class="form-control item_code">
-                                            <option value="">Select</option>
-                                            @foreach($items as $i)
-                                                <option value="{{ $i->item_code }}">{{ $i->item_desc }}</option>
-                                            @endforeach
-                                        </select>
-                                    </td>
-                                    <td>
-                                        <input type="number" step="0.01" name="qty[]" class="form-control qty">
-                                    </td>
-                                    <td>
-                                        <select name="unit_cd[]" class="form-control unit_cd">
-                                            @foreach($unit_masters as $unit_master)
-                                                <option value="{{ $unit_master->unit_cd }}">{{ $unit_master->unit_small_desc }}</option>
-                                            @endforeach
-                                        </select>
-                                    </td>
-                                    <td>
-                                        <input type="text" name="remark[]" class="form-control">
-                                    </td>
-                                    <td class="text-center">
-                                        <button type="button" class="btn btn-danger btn-sm removeRow">X</button>
-                                    </td>
-                                </tr>
+                            <tr class="item-row">
+                                <td>
+                                    <select name="item_code[]" class="form-control item_code">
+                                        <option value="">Select</option>
+                                        @foreach($items as $i)
+                                            <option value="{{ $i->item_code }}">{{ $i->item_desc }}</option>
+                                        @endforeach
+                                    </select>
+                                    
+                                    <!-- Stock Show -->
+                                    <small class="text-primary available_stock"></small>
+                                </td>
+
+                                <td>
+                                    <input type="number" step="0.01" min="0" name="qty[]" class="form-control qty">
+                                </td>
+
+                                <td>
+                                    <select name="unit_cd[]" class="form-control unit_cd">
+                                        @foreach($unit_masters as $unit_master)
+                                            <option value="{{ $unit_master->unit_cd }}">{{ $unit_master->unit_small_desc }}</option>
+                                        @endforeach
+                                    </select>
+                                </td>
+
+                                <td>
+                                    <input type="text" name="remark[]" class="form-control">
+                                </td>
+
+                                <td class="text-center">
+                                    <button type="button" class="btn btn-danger btn-sm removeRow">X</button>
+                                </td>
+                            </tr>
+
                             </tbody>
 
                         </table>
@@ -132,6 +149,48 @@
 
 <script>
 
+$(document).on('input keydown', 'input[type="number"]', function (e) {
+
+// ❌ Minus key block (keyboard se)
+if (e.key === "-" || e.keyCode === 189) {
+    e.preventDefault();
+    return false;
+}
+
+// ❌ Paste ki hui negative value hatao
+if ($(this).val() < 0) {
+    $(this).val(0);
+}
+});
+$(document).on('change', '.item_code', function () {
+
+let item_code = $(this).val();
+let row = $(this).closest('tr');
+
+$.ajax({
+    url: "{{ route('item.stock', ['item_code' => ':code']) }}".replace(':code', item_code),
+    type: "GET",
+
+    success: function(res) {
+        let stock = parseFloat(res.stock);
+        let unit = res.unit;
+
+        row.find('.available_stock').text("Available: " + stock  +  unit);
+        row.find('.qty').attr('max', stock);
+
+        row.removeClass('highlight-low-stock highlight-good-stock');
+        
+        if (stock <= 0) {
+            row.addClass('highlight-low-stock');
+        } else if (stock <= 5) {
+            row.addClass('highlight-low-stock');
+        } else {
+            row.addClass('highlight-good-stock');
+        }
+    }
+});
+});
+
 // ADD ROW
 $('#addRow').click(function(){
     $('#itemBody').append(`
@@ -144,7 +203,7 @@ $('#addRow').click(function(){
                     @endforeach
                 </select>
             </td>
-            <td><input type="number" step="0.01" name="qty[]" class="form-control qty"></td>
+            <td><input type="number" min="0" step="0.01" name="qty[]" class="form-control qty"></td>
             <td>
                 <select name="unit_cd[]" class="form-control unit_cd">
                     @foreach($unit_masters as $unit_master)

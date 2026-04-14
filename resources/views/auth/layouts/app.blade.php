@@ -141,7 +141,7 @@ $admin = Auth::guard('admin')->user();
                     <a class="nav-link {{ request()->routeIs('cust-mast') ? 'active' : '' }}" href="{{ route('cust_mast') }}">
                         <i class="bi bi-bag-fill me-2"></i><span>Customer Master</span>
                     </a>
-                    <a class="nav-link {{ request()->routeIs('purchase-create') ? 'active' : '' }}" href="{{ route('purchase.create') }}">
+                    <!-- <a class="nav-link {{ request()->routeIs('purchase-create') ? 'active' : '' }}" href="{{ route('purchase.create') }}">
                         <i class="bi bi-bag-fill me-2"></i><span>Raw Material Purchase Master</span>
                     </a>
                     <a class="nav-link {{ request()->routeIs('kitchen-request-create') ? 'active' : '' }}" href="{{ route('kitchen.request.create') }}">
@@ -149,7 +149,7 @@ $admin = Auth::guard('admin')->user();
                     </a>
                     <a class="nav-link {{ request()->routeIs('/store-pending-request') ? 'active' : '' }}" href="{{ route('store.pending.request') }}">
                         <i class="bi bi-bag-fill me-2"></i><span>Pending Kitchen Request</span>
-                    </a>
+                    </a> -->
                     <a class="nav-link {{ request()->routeIs('create.order') ? 'active' : '' }}" href="{{ route('create.order') }}">
                         <i class="bi bi-bag-fill me-2"></i><span>Create Order</span>
                     </a>
@@ -168,12 +168,34 @@ $admin = Auth::guard('admin')->user();
                     <a class="nav-link {{ request()->routeIs('change.order') ? 'active' : '' }}" href="{{ route('change.order') }}">
                         <i class="bi bi-bag-fill me-2"></i><span>Change Order Type</span>
                     </a>
-                    <a class="nav-link {{ request()->routeIs('raw_mat_form') ? 'active' : '' }}" href="{{ route('raw_mat_form') }}">
+                    <!-- <a class="nav-link {{ request()->routeIs('raw_mat_form') ? 'active' : '' }}" href="{{ route('raw_mat_form') }}">
                         <i class="bi bi-bag-fill me-2"></i><span>Raw Material Master</span>
                     </a>
                     <a class="nav-link {{ request()->routeIs('supp_mast_form') ? 'active' : '' }}" href="{{ route('supp_mast_form') }}">
                         <i class="bi bi-bag-fill me-2"></i><span>Supplier Master</span>
-                    </a>
+                    </a> -->
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle d-flex justify-content-between align-items-center"
+                        href="#" id="dropdownReports" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                            <span><i class="bi bi-graph-up-arrow me-2"></i><span>Inventory</span></span>
+                        </a>
+                        <ul class="dropdown-menu" aria-labelledby="dropdownReports">
+
+                            <li>
+                                <a class="dropdown-item" href="{{ route('supp_mast_form') }}">
+                                <i class="bi bi-file-earmark-bar-graph me-2"></i>Supplier Master</a>
+                            </li>
+
+                            <li><a class="dropdown-item" href="{{ route('raw_mat_form') }}"><i class="bi bi-file-earmark-bar-graph me-2"></i>Raw Material Master</a></li>
+
+                            <li><a class="dropdown-item" href="{{ route('purchase.create') }}"><i class="bi bi-file-earmark-bar-graph me-2"></i>Raw Material Purchase</a></li>
+
+                            <li><a class="dropdown-item" href="{{ route('kitchen.request.create') }}"><i class="bi bi-file-earmark-text me-2"></i>Create Kitchen Request</a></li>
+
+                            <li><a class="dropdown-item" href="{{ route('store.pending.request') }}"><i class="bi bi-file-earmark-bar-graph me-2"></i>Pending Kitchen Request</a></li>
+                        </ul>
+                    </li>
+                    
                     <li class="nav-item dropdown">
                         <a class="nav-link dropdown-toggle d-flex justify-content-between align-items-center"
                         href="#" id="dropdownReports" role="button" data-bs-toggle="dropdown" aria-expanded="false">

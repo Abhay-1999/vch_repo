@@ -1024,170 +1024,221 @@ public function updateOrderItem(Request $request)
     
 
      
-  public function initiatePayment(Request $request)
-    {
-        $order_id = "ORD" . time(); // You can save this in DB if needed
-        $carts = session()->get('cart');
+//   public function initiatePayment(Request $request)
+//     {
+//         $order_id = "ORD" . time(); // You can save this in DB if needed
+//         $carts = session()->get('cart');
 
-          $returnUrl = route('payment.status');
+//           $returnUrl = route('payment.status');
 
-          $group_code = '01';
-          $rest_code = '01';
-          $paymode_mode = 'O';
-          $confirm_order = 'Y';
+//           $group_code = '01';
+//           $rest_code = '01';
+//           $paymode_mode = 'O';
+//           $confirm_order = 'Y';
   
-          $taxes = $itemWiseAmt = 0; 
+//           $taxes = $itemWiseAmt = 0; 
   
-          foreach($carts as $cart){
+//           foreach($carts as $cart){
   
-              $item_gst = DB::table('item_master')->where('group_code',$group_code)->where('rest_code',$rest_code)
-              ->where('item_code',$cart['item_code'])->value('item_gst');
+//               $item_gst = DB::table('item_master')->where('group_code',$group_code)->where('rest_code',$rest_code)
+//               ->where('item_code',$cart['item_code'])->value('item_gst');
   
-              $itemWiseAmt += $cart['quantity']*$cart['price'];
-              $taxes += ($item_gst*$itemWiseAmt/100);
+//               $itemWiseAmt += $cart['quantity']*$cart['price'];
+//               $taxes += ($item_gst*$itemWiseAmt/100);
   
-          }
+//           }
 
 
-          $amount = $itemWiseAmt;
+//           $amount = $itemWiseAmt;
 
-        //   echo $itemWiseAmt;die;
+//         //   echo $itemWiseAmt;die;
 
 
-        $response = Http::withHeaders([
-            'Authorization' => 'Basic ' . base64_encode('22D8113EDBC465EB8A40CBC6ADEC7F'. ':'),
-            'Content-Type' => 'application/json',
-            'x-merchantid' => '60473',
-            'x-customerid' => '355',
-        ])->post('https://smartgateway.hdfcbank.com/session', [
-            "order_id" => $order_id,
-            "amount" => $amount,
-            "customer_id" => '355',
-            "customer_email" => "test@example.com",
-            "customer_phone" => "9999999999",
-            "payment_page_client_id" => 'hdfcmaster',
-            "action" => "paymentPage",
-            "currency" => "INR",
-            "callback_url" => $returnUrl,
-            "description" => "Test Payment",
-            "first_name" => "test",
-            "last_name" => "test"
-        ]);
+//         $response = Http::withHeaders([
+//             'Authorization' => 'Basic ' . base64_encode('22D8113EDBC465EB8A40CBC6ADEC7F'. ':'),
+//             'Content-Type' => 'application/json',
+//             'x-merchantid' => '60473',
+//             'x-customerid' => '355',
+//         ])->post('https://smartgateway.hdfcbank.com/session', [
+//             "order_id" => $order_id,
+//             "amount" => $amount,
+//             "customer_id" => '355',
+//             "customer_email" => "test@example.com",
+//             "customer_phone" => "9999999999",
+//             "payment_page_client_id" => 'hdfcmaster',
+//             "action" => "paymentPage",
+//             "currency" => "INR",
+//             "callback_url" => $returnUrl,
+//             "description" => "Test Payment",
+//             "first_name" => "test",
+//             "last_name" => "test"
+//         ]);
 
-        $data = $response->json();
+//         $data = $response->json();
         
-        // echo"<pre>";print_r($data);die;
+//         // echo"<pre>";print_r($data);die;
         
-        session(['last_order_id' =>$data['id']]); // $order_id should be your actual order ID
-    // $orderId = session('last_order_id');
+//         session(['last_order_id' =>$data['id']]); // $order_id should be your actual order ID
+//     // $orderId = session('last_order_id');
        
   
       
 
-        $convin_amt = 0;
+//         $convin_amt = 0;
 
-        $convin_amt_gst = 0;
+//         $convin_amt_gst = 0;
 
-        $final_conv =  $convin_amt + $convin_amt_gst;
+//         $final_conv =  $convin_amt + $convin_amt_gst;
 
-        $paid_amt = $amount;
+//         $paid_amt = $amount;
 
-        $service_charge = 0;
+//         $service_charge = 0;
         
-        $sgst_service = 0;
+//         $sgst_service = 0;
 
-        $cgst = 0;
+//         $cgst = 0;
 
-        $gross_amt = $cgst + $cgst + $amount;
-        $transactionNumber = str_pad(rand(0, 99999999), 8, '0', STR_PAD_LEFT);
+//         $gross_amt = $cgst + $cgst + $amount;
+//         $transactionNumber = str_pad(rand(0, 99999999), 8, '0', STR_PAD_LEFT);
 
-        $status = 'pending';
+//         $status = 'pending';
         
-        $mobile =  Session::get('phone');
+//         $mobile =  Session::get('phone');
 
-        $trans_no =  DB::table('temp_order_hd')->where(['rest_code' => $rest_code,'tran_date'=>date('Y-m-d')])->orderby('tran_no','desc')->value('tran_no');
+//         $trans_no =  DB::table('temp_order_hd')->where(['rest_code' => $rest_code,'tran_date'=>date('Y-m-d')])->orderby('tran_no','desc')->value('tran_no');
 
-        if($trans_no){
-            $trans_no = $trans_no + 1;
-        }else{
-            $trans_no = 1;
-        }
+//         if($trans_no){
+//             $trans_no = $trans_no + 1;
+//         }else{
+//             $trans_no = 1;
+//         }
 
-        $order_hd = [
-            'group_code' => $group_code,
-            'tran_no' => $trans_no,
-            'rest_code' => $rest_code,
-            'net_amt' => $amount, 
-            'cgst_amt' => $cgst, 
-            'sgst_amt' => $cgst, 
-            'gross_amt' => $amount, 
-            'paid_amt' => round($amount), 
-            'order_id' =>$order_id, 
-            'service_charge'=>$convin_amt, 
-            'service_cgst' =>$convin_amt_gst/2, 
-            'service_sgst' =>$convin_amt_gst/2, 
-            'email' =>'test@gmail.com', 
-            'status_trans' =>$status, 
-            'flag' => 'S', 
-            'confirm_order' => $confirm_order, 
-            'transaction_no' =>$transactionNumber, 
-            'payment_mode' =>'O', 
-        ];
+//         $order_hd = [
+//             'group_code' => $group_code,
+//             'tran_no' => $trans_no,
+//             'rest_code' => $rest_code,
+//             'net_amt' => $amount, 
+//             'cgst_amt' => $cgst, 
+//             'sgst_amt' => $cgst, 
+//             'gross_amt' => $amount, 
+//             'paid_amt' => round($amount), 
+//             'order_id' =>$order_id, 
+//             'service_charge'=>$convin_amt, 
+//             'service_cgst' =>$convin_amt_gst/2, 
+//             'service_sgst' =>$convin_amt_gst/2, 
+//             'email' =>'test@gmail.com', 
+//             'status_trans' =>$status, 
+//             'flag' => 'S', 
+//             'confirm_order' => $confirm_order, 
+//             'transaction_no' =>$transactionNumber, 
+//             'payment_mode' =>'O', 
+//         ];
 
-        DB::table('temp_order_hd')->insertGetId($order_hd);
+//         DB::table('temp_order_hd')->insertGetId($order_hd);
 
-    //    echo $trans_no;die;
+//     //    echo $trans_no;die;
 
-      DB::table('temp_order_hd')
-        ->where('tran_no', $trans_no)
-        ->where('tran_date',date('Y-m-d'))
-        ->update(['invoice_no' => $trans_no]);
+//       DB::table('temp_order_hd')
+//         ->where('tran_no', $trans_no)
+//         ->where('tran_date',date('Y-m-d'))
+//         ->update(['invoice_no' => $trans_no]);
 
-        foreach($carts as $cart){
-            // echo"<pre>";print_r($cart);die;
-            $item_gst = DB::table('item_master')->where('group_code',$group_code)->where('rest_code',$rest_code)
-            ->where('item_code',$cart['item_code'])->value('item_gst');
+//         foreach($carts as $cart){
+//             // echo"<pre>";print_r($cart);die;
+//             $item_gst = DB::table('item_master')->where('group_code',$group_code)->where('rest_code',$rest_code)
+//             ->where('item_code',$cart['item_code'])->value('item_gst');
 
-            $item_amt = $cart['quantity']*$cart['price'];
+//             $item_amt = $cart['quantity']*$cart['price'];
 
-            // $item_gst_amt =  ($item_amt*$item_gst/100);
+//             // $item_gst_amt =  ($item_amt*$item_gst/100);
 
             
-            $reverseamt = $this->reverseGST($item_amt,$item_gst);
+//             $reverseamt = $this->reverseGST($item_amt,$item_gst);
 
-            $item_amt_real = $reverseamt['base'];
-            $item_gst_amt = $reverseamt['gst'];
+//             $item_amt_real = $reverseamt['base'];
+//             $item_gst_amt = $reverseamt['gst'];
 
 
-            DB::table('temp_order_dt')->insert([
-                'group_code' => $group_code,
-                'rest_code' => $rest_code,
-                'tran_no' => $trans_no,
-                'item_code' => $cart['item_code'],
-                'item_qty' => $cart['quantity'],
-                'customise_flag' => 'S',
-                'amount' =>$item_amt_real,
-                'item_gst' =>$item_gst_amt,
-            ]);
-        }
+//             DB::table('temp_order_dt')->insert([
+//                 'group_code' => $group_code,
+//                 'rest_code' => $rest_code,
+//                 'tran_no' => $trans_no,
+//                 'item_code' => $cart['item_code'],
+//                 'item_qty' => $cart['quantity'],
+//                 'customise_flag' => 'S',
+//                 'amount' =>$item_amt_real,
+//                 'item_gst' =>$item_gst_amt,
+//             ]);
+//         }
 
-        session()->forget('cart');
+//         session()->forget('cart');
 
        
-        if (
-            isset($data['payment_links']['web']) &&
-            !empty($data['payment_links']['web'])
-        ) {
-            // Optionally save $order_id and $data['response']['id'] in DB
-            return redirect()->away($data['payment_links']['web']);
-        }
+//         if (
+//             isset($data['payment_links']['web']) &&
+//             !empty($data['payment_links']['web'])
+//         ) {
+//             // Optionally save $order_id and $data['response']['id'] in DB
+//             return redirect()->away($data['payment_links']['web']);
+//         }
 
-        return response()->json([
-            'error' => true,
-            'message' => 'Unable to generate payment page',
-            'response' => $data
+//         return response()->json([
+//             'error' => true,
+//             'message' => 'Unable to generate payment page',
+//             'response' => $data
+//         ]);
+//     }
+
+public function initiatePayment(Request $request)
+{
+    $carts = session()->get('cart');
+
+    $group_code = '01';
+    $rest_code = '01';
+
+    $amount = 0;
+
+    foreach($carts as $cart){
+        $amount += $cart['quantity'] * $cart['price'];
+    }
+
+    // Generate tran_no
+    $trans_no = DB::table('temp_order_hd')
+        ->where('rest_code', $rest_code)
+        ->where('tran_date', date('Y-m-d'))
+        ->max('tran_no');
+
+    $trans_no = $trans_no ? $trans_no + 1 : 1;
+
+    // SAVE ORDER HEADER ✅
+    DB::table('order_hd')->insert([
+        'group_code' => $group_code,
+        'rest_code' => $rest_code,
+        'tran_no' => $trans_no,
+        'net_amt' => $amount,
+        'gross_amt' => $amount,
+        'paid_amt' => $amount,
+        'status_trans' => 'success',
+        'payment_mode' => 'C', // Cash / Direct
+    ]);
+
+    // SAVE ORDER DETAILS ✅
+    foreach($carts as $cart){
+        DB::table('order_dt')->insert([
+            'group_code' => $group_code,
+            'rest_code' => $rest_code,
+            'tran_no' => $trans_no,
+            'item_code' => $cart['item_code'],
+            'item_qty' => $cart['quantity'],
+            'amount' => $cart['price'],
         ]);
     }
+
+    session()->forget('cart');
+
+    // 👉 redirect to success page
+    return redirect()->route('payment.success');
+}
 
     /**
      * Step 2: Handle Return URL After Payment

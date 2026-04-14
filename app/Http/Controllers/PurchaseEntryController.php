@@ -96,7 +96,8 @@ class PurchaseEntryController extends Controller
 
             $itemQty = $itemData->qty + $request->qty[$i];
 
-            DB::table('raw_material_master')->where('rest_cd',$request->rest_cd)->where('item_code',$item)->update(['qty'=>$itemQty]);
+            DB::table('raw_material_master')->where('rest_cd',$request->rest_cd)->where('item_code',$item)->update(['qty'=>$itemQty,'supp_billno' => $request->supp_billno,
+            'supp_billdt' => $request->supp_billdt,]);
 
         }
     
@@ -189,7 +190,7 @@ class PurchaseEntryController extends Controller
         {
             $hd = DB::table('kitchen_material_issue')->where('trans_no',$id)->first();
 
-            $dt =  DB::table('kitchen_material_issue_dt')->select('kitchen_material_issue_dt.*','raw_material_master.item_desc','unit_master.unit_small_desc')->where('trans_no',$id)
+            $dt =  DB::table('kitchen_material_issue_dt')->select('kitchen_material_issue_dt.*','raw_material_master.item_desc','unit_master.unit_small_desc','raw_material_master.qty as avlQty')->where('trans_no',$id)
                    ->join('raw_material_master','kitchen_material_issue_dt.item_code','=','raw_material_master.item_code')
                    ->join('unit_master','kitchen_material_issue_dt.unit_cd','=','unit_master.unit_cd')
                    ->get();
@@ -207,6 +208,14 @@ class PurchaseEntryController extends Controller
                 DB::table('kitchen_material_issue_dt')->where('trans_no',$hd_id)->where('item_code',$request->item_code[$key])->update([
                     'issue_qty' => $request->issue_qty[$key],
                 ]);
+
+                $item = DB::table('raw_material_master')->where('item_code', $request->item_code[$key])->first();
+
+                $finalQty = $item->qty - $request->issue_qty[$key];
+
+                DB::table('raw_material_master')->where('item_code', $request->item_code[$key])->update(['qty'=>$finalQty]);
+
+
             }
 
             DB::table('kitchen_material_issue')->where('trans_no',$hd_id)->update([
@@ -221,6 +230,18 @@ class PurchaseEntryController extends Controller
             ]);
         }
 
+
+        public function getItemStock($item_code)
+        {
+            $item = DB::table('raw_material_master')->where('item_code', $item_code)->first();
+
+            $unit = DB::table('unit_master')->where('unit_cd', $item->unit_cd)->first();
+
+            return response()->json([
+                'stock' => $item ? $item->qty : 0,
+                'unit' => $unit ? $unit->unit_small_desc : 0
+            ]);
+        }
 
 
     
