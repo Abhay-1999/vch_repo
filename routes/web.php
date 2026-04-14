@@ -152,6 +152,11 @@ Route::prefix('admin')->group(function () {
     Route::get('/kitchen-request-create', [PurchaseEntryController::class, 'createRequest'])->name('kitchen.request.create');
     Route::post('/kitchen/request/save', [PurchaseEntryController::class, 'save'])
     ->name('kitchen.request.save');
+    // web.php
+// web.php
+Route::get('/get-item-stock/{item_code}', [PurchaseEntryController::class, 'getItemStock'])
+     ->name('item.stock');
+
 
 
     Route::get('/store/pending-request', [PurchaseEntryController::class, 'pendingRequest'])->name('store.pending.request');
@@ -185,13 +190,13 @@ Route::get('/checkout', [ItemController::class, 'checkout'])->name('items.checko
 Route::post('/add-to-cart-item', [ItemController::class, 'addToCartitem'])->name('items.addToCartitem');
 Route::post('/order-save', [ItemController::class, 'save'])->name('order.save');
 Route::post('/cart/remove', [ItemController::class, 'removeCartItem'])->name('cart.remove');
-
+Route::post('/get-combo-items', [ItemController::class, 'getComboItems'])->name('items.combo');
 
 Route::get('/all-items-status', [ItemController::class, 'allItems']);
 Route::get('/all-items', [ItemController::class, 'all']);
 
 Route::get('/items-by-category/{category}', function ($category) {
-    $items = DB::table('item_master')->select('item_desc', 'item_code', 'rest_code', 'item_rate', 'item_status', 'start_time', 'end_time')
+    $items = DB::table('item_master')->select('item_desc', 'item_code', 'rest_code','veg_nonveg', 'item_rate', 'item_status', 'start_time', 'end_time')
                 ->where('item_grpcode', $category)
                 ->orderBy('item_desc')
                 ->get();
@@ -249,7 +254,9 @@ Route::get('/change-order', [OrderController::class, 'ChangeOrder'])->name('chan
 Route::post('/print-content', [OrderController::class, 'printContent'])->name('print.content');
 
 Route::post('/pay', [OrderController::class, 'initiatePayment'])->name('initiate.payment');
-
+Route::get('/payment-success', function () {
+    return view('items.payment_success');
+})->name('payment.success');
 
 
 // Route::get('/upi/callback', [OrderController::class, 'paymentCallback'])->name('upi.callback');

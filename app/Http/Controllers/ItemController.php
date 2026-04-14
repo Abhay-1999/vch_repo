@@ -35,7 +35,7 @@ class ItemController extends Controller
     {
    
         // Get items for the first category
-        $items = Item::select('item_desc', 'item_code', 'rest_code', 'item_rate', 'item_status', 'start_time', 'end_time')
+        $items = Item::select('item_desc', 'item_code', 'rest_code', 'item_rate', 'item_status','veg_nonveg', 'start_time', 'end_time')
                     ->orderBy('item_desc')
                     ->get();
     
@@ -274,6 +274,38 @@ class ItemController extends Controller
         $item_grpcodes = Item::select('item_grpcode','item_grpdesc')->where('group_code',$group_code)->where('item_status','A')->where('rest_code',$rest_code)->groupBy('item_grpcode','item_grpdesc')->get();
           
         return view('items.cart',compact('suggestedItems','item_grpcodes'));
+    }
+
+    public function getComboItems(Request $request)
+    {
+        $cart = session('cart', []);
+    
+        $cartItemCodes = [];
+    
+        foreach ($cart as $item) {
+            if (!empty($item['item_code'])) {
+                $cartItemCodes[] = $item['item_code'];
+            }
+        }
+    
+        if (empty($cartItemCodes)) {
+            return response()->json(['html' => '<p>No items in cart</p>']);
+        }
+    
+        // ✅ Step 1: get combo codes
+        $comboCodes = DB::table('item_master')
+            ->whereIn('item_code', $cartItemCodes)
+            ->pluck('item_combo_cd')
+            ->toArray();
+    
+        // ✅ Step 2: get combo items
+        $comboItems = DB::table('item_master')
+            ->whereIn('item_combo_cd', $comboCodes)
+            ->get();
+    
+        $html = view('items.combo_items', compact('comboItems'))->render();
+    
+        return response()->json(['html' => $html]);
     }
 
     public function payment_page(Request $request){

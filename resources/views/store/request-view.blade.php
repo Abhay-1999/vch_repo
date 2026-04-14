@@ -29,6 +29,7 @@
                             <th>Item</th>
                             <th>Requested Qty</th>
                             <th>Unit</th>
+                            <th>Available Qty In Store </th>
                             <th>Issue Qty</th>
                         </tr>
                     </thead>
@@ -40,6 +41,7 @@
                             <td>{{ $d->item_desc }}</td>
                             <td>{{ $d->qty }}</td>
                             <td>{{ $d->unit_small_desc }}</td>
+                            <td>{{ $d->avlQty }}</td>
 
                             <td>
                                 <input type="hidden" name="dt_id[]" value="{{ $d->trans_no }}">

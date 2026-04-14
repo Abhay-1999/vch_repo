@@ -191,7 +191,9 @@
         <div class="card-header bg-warning text-center">
             <h5 class="mb-0">📋 Item List</h5>
         </div>
-
+    <div class="p-2 w-100">
+    <input type="text" id="item-search" class="form-control" placeholder="🔍 Search item...">
+</div>
         <div class="card-body p-0 d-flex" style="height: calc(100% - 56px); overflow: hidden;">
             <!-- Category List -->
             <div id="categories"
@@ -617,18 +619,68 @@ function loadAllItems() {
 }
 
 // --- Render Items ---
+
+$('#item-search').on('keyup', function () {
+    const keyword = $(this).val().toLowerCase();
+
+    // ❌ OLD → category based
+    // const filtered = allItems.filter(...);
+
+    // ✅ NEW → global search
+    let filtered;
+
+    if (keyword === '') {
+        // अगर search empty है → वापस category items दिखाओ
+        drawItems(allItems);
+        return;
+    }
+
+    filtered = globalItems.filter(item => 
+        item.item_desc.toLowerCase().includes(keyword)
+    );
+
+    drawItems(filtered);
+});
+
+let allItems = [];        // category items
+let globalItems = [];     // ALL items (full DB)
+
+// 🔥 Load ALL items once (for search)
+$.get('/all-items-status', function (res) {
+    globalItems = res.items; // full items store
+});
+
+
 function renderItems(items) {
+    allItems = items; // store all items
+    drawItems(items);
+}
+
+function drawItems(items) {
     let html = '';
+
     items.forEach(item => {
         const isDisabled = item.item_status === 'D' ? 'disabled' : '';
+
+        // 🎨 Food type color
+        let bgColor = '';
+        if (item.veg_nonveg === 'V') {
+            bgColor = 'border-success text-success';
+        } else if (item.veg_nonveg === 'N') {
+            bgColor = 'border-danger text-danger';
+        } else if (item.veg_nonveg === 'W') {
+            bgColor = 'border-warning text-warning';
+        }
+
         html += `
-            <button class="btn btn-outline-warning text-dark ${isDisabled}"
+            <button class="btn ${bgColor} ${isDisabled}"
                     style="width: 120px; height: 80px; margin: 5px; font-size: 14px;"
                     onclick="addItem('${item.item_code}', '${item.item_desc}', ${item.item_rate})"
                     ${isDisabled}>
                 ${item.item_desc}
             </button>`;
     });
+
     $('#items').html(html);
 }
 

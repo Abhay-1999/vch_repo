@@ -102,6 +102,7 @@
                   class="add-to-cart-form" 
                   data-id="{{ $item->item_code }}">
               @csrf
+              <input type="hidden" name="item_combo_cd" value="{{ $item->item_grpcode }}">
               <input type="hidden" name="item_grpcode" value="{{ $item->item_grpcode }}">
 
               <!-- Decrease quantity -->
@@ -142,9 +143,9 @@
 <div class="mobile-cart-footer px-3 py-2 text-center"
      style="position: fixed; bottom: 0; width: 100%; background: rgba(0, 0, 0, 0.95); z-index: 1051;">
   <div class="mb-2">
-    <a href="{{ route('items.cart') }}" 
-       class="btn btn-danger position-relative mx-auto d-inline-flex justify-content-center align-items-center"
-       style="max-width: 220px;">
+    <a href="javascript:void(0)" 
+   id="openComboPopup"
+   class="btn btn-danger position-relative mx-auto d-inline-flex justify-content-center align-items-center">
       <span>Check Your Tray</span>
       <img src="{{ asset('images/cart_logo.png') }}" alt="Cart" width="50" height="auto" style="margin-left:5px;" loading="lazy">
       <span class="cart-quantity-mobile position-absolute top-0 start-100 translate-middle badge rounded-pill bg-dark">
@@ -171,9 +172,37 @@
   <a href="/privacy">🔒 Privacy</a>
   <a href="/refund">💸 Refund</a>
 </div>
+<!-- ✅ Combo Popup -->
+<div class="modal fade" id="comboModal" tabindex="-1">
+  <div class="modal-dialog modal-lg modal-dialog-centered">
+    <div class="modal-content">
+      
+      <div class="modal-header">
+        <h5 class="modal-title">Add More Items</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+
+      <div class="modal-body" id="comboItemsContainer">
+        <div class="text-center py-4">
+          <div class="spinner-border text-danger"></div>
+        </div>
+      </div>
+      <div class="modal-footer">
+   <a href="{{ route('items.cart') }}" class="btn btn-danger position-relative">
+    🛒 View Cart
+    <span class="badge bg-dark position-absolute top-0 start-100 translate-middle">
+        {{ session('cart') ? array_sum(array_column(session('cart'), 'quantity')) : 0 }}
+    </span>
+</a>
+</div>
+
+    </div>
+  </div>
+</div>
 
 <!-- ✅ Scripts (deferred) -->
-<script src="{{ asset('assets/js/jquery-3.6.0.js') }}" ></script>
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script><script src="{{ asset('assets/js/jquery-3.6.0.js') }}" ></script>
 <script src="{{ asset('assets/js/popper.min.js') }}" ></script>
 <script src="{{ asset('assets/js/bootstrap.min.js') }}" ></script>
 <script src="{{ asset('assets/js/sweetalert2@11') }}" ></script>
@@ -328,6 +357,52 @@
 
  
   });
+
+  $('#openComboPopup').on('click', function () {
+
+    $('#comboModal').modal('show');
+
+    $.ajax({
+        url: "{{ route('items.combo') }}",
+        type: 'POST',
+        data: { _token: '{{ csrf_token() }}' },
+
+        success: function (response) {
+            $('#comboItemsContainer').html(response.html);
+        }
+    });
+});
+
+$(document).on('click', '.add-combo-item', function () {
+
+    let id = $(this).data('id');
+
+    $.ajax({
+        url: "{{ route('items.addToCartitem') }}",
+        type: 'POST',
+        data: {
+            _token: '{{ csrf_token() }}',
+            quantity: 1,
+            id: id
+        },
+        success: function (response) {
+          Swal.fire({
+            title: 'Item added!',
+            text: 'Go to cart or add more?',
+            showCancelButton: true,
+            confirmButtonText: 'Go to Cart',
+            cancelButtonText: 'Continue'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                window.location.href = "{{ route('items.cart') }}";
+            }
+        });
+
+            $('.cart-quantity-mobile').text(response.total_quantity);
+        }
+    });
+
+});
 </script>
 </body>
 </html>
