@@ -1,6 +1,7 @@
 @extends('auth.layouts.app')
 
 @section('content')
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 <style>
     #cart-table tbody {
       -webkit-overflow-scrolling: touch !important;
@@ -66,74 +67,98 @@
   #miniKeypad button { height:44px; border-radius:6px; border: none; cursor:pointer; font-size:16px; }
   #miniKeypad .kp-ok { grid-column: span 3; background:#0d6efd; color:white; }
   #miniKeypad .kp-clear { background:#f1f1f1; }
+
+  .order-type {
+    border-radius: 0 !important;
+    font-weight: 600;
+}
+
+.order-type.active {
+    background-color: #ffc107 !important; /* highlight */
+    color: #000 !important;
+}
+.d-flex i {
+    font-size: 18px;
+    color: #444;
+    cursor: pointer;
+}
+
+.d-flex i:hover {
+    color: #000;
+}
+#return_amount {
+    font-weight: bold;
+    color: green;
+}
 </style>
 <div class="fluid-container py-4">
     <div class="row g-4">
         <!-- Left Side: Cart -->
 
+       
+
+        <!-- Right Side: Item List -->
         <div class="col-md-6">
-    <div class="card shadow d-flex flex-column" style="height: 100vh;"> <!-- Full-page height -->
-        <div class="card-header bg-primary text-white">
-            <h5 class="mb-0">🛒 New Order</h5>
+    <div class="card shadow" id="itemCard" style="height: 90vh;">
+      
+    <div class="p-2 w-100">
+    <input type="text" id="item-search" class="form-control" placeholder="🔍 Search item...">
+</div>
+        <div class="card-body p-0 d-flex" style="height: calc(100% - 56px); overflow: hidden;">
+            <!-- Category List -->
+            <div id="categories"
+                 class="list-group bg-primary text-white flex-shrink-0"
+                 style="width: 140px; overflow-y: auto; padding: 5px;">
+                <!-- Category buttons load here -->
+            </div>
+
+            <!-- Items List -->
+            <div id="items"
+                 class="bg-light flex-grow-1 d-flex flex-wrap p-2 gap-2 justify-content-start align-content-start"
+                 style="overflow-y: auto; scroll-behavior: smooth;">
+                <!-- Items load here -->
+            </div>
         </div>
+    </div>
+</div>
+ <div class="col-md-6">
+    <div class="card shadow d-flex flex-column" style="height: 100vh;"> <!-- Full-page height -->
+        <div class="card-header  p-0">
+       <!-- ORDER TYPE BUTTONS -->
+<div class="btn-group w-100 text-center mb-2" role="group">
+    <button type="button" class="btn btn-light order-type active w-100" data-type="T">
+        Dine In
+    </button>
+    <button type="button" class="btn btn-light order-type w-100" data-type="D">
+        Delivery
+    </button>
+    <button type="button" class="btn btn-light order-type w-100" data-type="P">
+        Pick Up
+    </button>
+</div>
+
+<!-- ICON ROW (NEW ROW BELOW) -->
+<div class="d-flex justify-content-around align-items-center bg-light py-2 border rounded">
+
+    <i class="fas fa-filter"></i>
+<i class="fa-regular fa-user"></i>
+<i class="fa-solid fa-users"></i>
+<i class="fa-regular fa-comment" id="orderNoteBtn" style="cursor:pointer;"></i>
+<i class="fa-solid fa-bowl-food"></i>
+
+<input type="hidden" name="order_inst" id="order_inst">
+<input type="hidden" id="tran_no" value="{{ $order->tran_no ?? '' }}">
+</div>
+</div>
+
+<input type="hidden" id="order_mode" name="order_mode" value="T">
 
         <meta name="csrf-token" content="{{ csrf_token() }}">
 
         <!-- Make this section scrollable -->
         <div class="card-body d-flex flex-column p-3" style="overflow-y: auto; flex: 1 1 auto;">
 
-            <!-- Form Section -->
-            <div class="row">
-            <div class="col-md-6">
-            <div class="mb-3">
-                <label class="form-label">Select Customer</label>
-                <select id="customer_id" class="form-select">
-                    <option value="">Select</option>
-                    @foreach($customers as $customer)
-                        <option value="{{ $customer->id }}">{{ $customer->name }}</option>
-                    @endforeach
-                </select>
-            </div>
-            </div>
-            <div class="col-6">
-            <div class="mb-3">
-                <label class="form-label">Order Type</label>
-                <select id="order_type" class="form-select">
-                    <option value="C">Cash</option>
-                    <option value="U">Counter UPI</option>
-                    <option value="Z">Zomato</option>
-                    <option value="S">Swiggy</option>
-                </select>
-            </div>
-            </div>
-           
-            <div class="row">
-                <div class="col-6">
-                    <div class="mb-3" id="orderid_field">
-                        <label class="form-label">Order ID</label>
-                        <input type="text" class="form-control custom-input" id="order_id" placeholder="Enter order ID" maxlength="10">
-                    </div>
-                </div>
-                <div class="col-6">
-                    <div class="mb-3" id="mobile_field" style="display: none;">
-                        <label class="form-label">Otp</label>
-                        <input type="text" class="form-control custom-input" id="mobile" placeholder="Enter Otp Here" maxlength="4">
-                    </div>
-                </div>
-            </div>
-            <!-- Custom Numeric Keypad (hidden by default) -->
-            <div class="col-12 mt-3 d-none" id="custom-keypad">
-                <div class="keypad-box d-flex flex-wrap justify-content-center p-3">
-                    @for ($i = 1; $i <= 9; $i++)
-                        <button type="button" class="btn btn-light m-1 keypad-key" data-key="{{ $i }}">{{ $i }}</button>
-                    @endfor
-                    <button type="button" class="btn btn-light m-1 keypad-key" data-key="0">0</button>
-                    <button type="button" class="btn btn-sm btn-danger m-1" id="keypad-backspace">⌫</button>
-                    <button type="button" class="btn btn-sm btn-secondary m-1" id="keypad-clear">Clear</button>
-                </div>
-            </div>
-
-            </div>
+          
 
             <!-- Scrollable Items Table -->
             <div class="table-responsive mb-3" id="cart-scroll-container" style="max-height: 300px; overflow-y: auto;">
@@ -171,46 +196,86 @@
         </div>
 
         <!-- Fixed Bottom Buttons -->
-        <div class="p-3 border-top bg-white" style="position: sticky; bottom: 0; z-index: 100;">
-            <div class="d-flex justify-content-between gap-2 flex-wrap">
-                <button class="btn btn-warning flex-fill" id="token-view">🧾 Token View</button>
-                <button class="btn btn-primary flex-fill" id="bill-view">🧾 Bill View</button>
-                <button class="btn btn-danger flex-fill" id="save-order-only">✅ Save</button>
-                <button class="btn btn-info flex-fill" id="print-last-bill">🧾 Last Print</button>
-                <button class="btn btn-success flex-fill"  id="save-order">✅ Save & Print</button>
-            </div>
+      <!-- Payment Mode Selection -->
+
+
+<!-- Bottom Action Buttons -->
+<div class="p-3 border-top bg-white" style="position: sticky; bottom: 0; z-index: 100;">
+ <div class="btn-group w-100 p-3" role="group">
+
+    <input type="radio" class="btn-check" name="payment_mode" id="cash" value="C" checked>
+    <label class="btn btn-outline-success w-100" for="cash">Cash</label>
+
+    <input type="radio" class="btn-check" name="payment_mode" id="upi" value="U">
+    <label class="btn btn-outline-primary w-100 " for="upi">UPI</label>
+
+    <input type="radio" class="btn-check" name="payment_mode" id="card" value="E">
+    <label class="btn btn-outline-success w-100" for="card">Card</label>
+
+
+    <input type="radio" class="btn-check delv d-none" name="payment_mode" id="zomato" value="Z">
+    <label class="btn btn-outline-danger w-100 delv d-none" for="zomato">Zomato</label>
+
+    <input type="radio" class="btn-check delv d-none" name="payment_mode" id="swiggy" value="S">
+    <label class="btn btn-outline-warning w-100 delv d-none" for="swiggy">Swiggy</label>
+
+</div>
+<div class="p-3 border-top bg-white" id="payment-extra" style="display:none;">
+
+    <!-- UPI Options -->
+    <div id="upi-options" style="display:none;">
+        <div class="d-flex gap-2 flex-wrap">
+            <button class="btn btn-outline-primary">Paytm</button>
+            <button class="btn btn-outline-success">PhonePe</button>
+            <button class="btn btn-outline-dark">Google Pay</button>
+            <button class="btn btn-outline-info">BHIM UPI</button>
         </div>
+    </div>
+
+    <!-- Card Options -->
+    <div id="card-options" style="display:none;">
+        <div class="d-flex gap-2 flex-wrap">
+            <button class="btn btn-outline-primary">Credit Card</button>
+            <button class="btn btn-outline-success">Debit Card</button>
+        </div>
+    </div>
+
+</div>
+    <!-- SETTLEMENT ROW -->
+<div class="d-flex align-items-center gap-2 px-3 pb-3">
+
+    <!-- Settlement Input -->
+    <input type="number" step="0.01" id="settle_amount" 
+           class="form-control setl" placeholder="Enter Settlement Amount">
+
+    <!-- Return Input -->
+    <input type="text" id="return_amount" 
+           class="form-control setl" placeholder="Return" readonly>
+
+    <!-- Offers Button -->
+    <button class="btn btn-danger px-3" id="offersBtn">
+        Offers
+    </button>
+
+    <!-- Split Button -->
+    <button class="btn btn-danger px-3" id="splitBtn" disabled>
+        Split
+    </button>
+
+</div>
+    <div class="d-flex justify-content-between gap-2 flex-wrap">
+ 
+
+        <button class="btn btn-danger flex-fill" id="save-order-only"> Save </button>
+        <button class="btn btn-danger flex-fill" id="save-order-only"> Save & Print</button>
+        <button class="btn btn-danger flex-fill" id="save-order"> Save & eBill</button>
+        <button class="btn btn-danger flex-fill" id="save-order"> Save & Kot Print</button>
+    </div>
+</div>
     </div>
 </div>
 
 
-
-        <!-- Right Side: Item List -->
-        <div class="col-md-6">
-    <div class="card shadow" id="itemCard" style="height: 90vh;">
-        <div class="card-header bg-warning text-center">
-            <h5 class="mb-0">📋 Item List</h5>
-        </div>
-    <div class="p-2 w-100">
-    <input type="text" id="item-search" class="form-control" placeholder="🔍 Search item...">
-</div>
-        <div class="card-body p-0 d-flex" style="height: calc(100% - 56px); overflow: hidden;">
-            <!-- Category List -->
-            <div id="categories"
-                 class="list-group bg-primary text-white flex-shrink-0"
-                 style="width: 140px; overflow-y: auto; padding: 5px;">
-                <!-- Category buttons load here -->
-            </div>
-
-            <!-- Items List -->
-            <div id="items"
-                 class="bg-light flex-grow-1 d-flex flex-wrap p-2 gap-2 justify-content-start align-content-start"
-                 style="overflow-y: auto; scroll-behavior: smooth;">
-                <!-- Items load here -->
-            </div>
-        </div>
-    </div>
-</div>
 
     </div>
 </div>
@@ -237,12 +302,303 @@
 </div>
 <iframe id="print-frame" style="display:none;"></iframe>
 
+<div class="modal fade" id="orderNoteModal" tabindex="-1">
+  <div class="modal-dialog modal-sm modal-dialog-centered">
+    <div class="modal-content">
+      
+      <div class="modal-header py-2">
+        <h6 class="modal-title">Order Instruction</h6>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+
+      <div class="modal-body p-2">
+        <input type="text" id="orderNoteInput" class="form-control" placeholder="Enter instruction">
+      </div>
+
+      <div class="modal-footer py-2">
+        <button class="btn btn-primary btn-sm" id="saveOrderNote">Save</button>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<div class="modal fade" id="splitModal">
+  <div class="modal-dialog modal-lg modal-dialog-centered">
+    <div class="modal-content">
+
+      <div class="modal-header">
+        <h5 class="modal-title">Split Payment</h5>
+        <button class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+
+      <div class="modal-body">
+
+        <h6>Total: ₹<span id="split_total">0</span></h6>
+
+        <!-- Tabs -->
+        <ul class="nav nav-tabs mt-2">
+          <li class="nav-item">
+            <button class="nav-link active" data-bs-toggle="tab" data-bs-target="#userSplit">User Wise</button>
+          </li>
+          <li class="nav-item">
+            <button class="nav-link" data-bs-toggle="tab" data-bs-target="#itemSplit">Item Wise</button>
+          </li>
+          <li class="nav-item">
+            <button class="nav-link" data-bs-toggle="tab" data-bs-target="#percentSplit">Percentage</button>
+          </li>
+        </ul>
+
+        <div class="tab-content mt-3">
+
+          <!-- USER WISE -->
+          <div class="tab-pane fade show active" id="userSplit">
+              <input type="number" id="split_users" class="form-control mb-2" placeholder="No. of Persons">
+              <button class="btn btn-primary btn-sm" onclick="calculateUserSplit()">Split</button>
+
+              <div id="user_split_result" class="mt-2"></div>
+          </div>
+
+          <!-- ITEM WISE -->
+          <div class="tab-pane fade" id="itemSplit">
+              <div id="item_split_list"></div>
+          </div>
+
+          <!-- PERCENTAGE -->
+          <div class="tab-pane fade" id="percentSplit">
+              <input type="number" id="percent_value" class="form-control mb-2" placeholder="Enter %">
+              <button class="btn btn-primary btn-sm" onclick="calculatePercentSplit()">Apply</button>
+
+              <div id="percent_result" class="mt-2"></div>
+          </div>
+
+        </div>
+
+      </div>
+
+    </div>
+  </div>
+</div>
+
+
 <!-- Scripts -->
 <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
 
 <script>
+
+
+$('input[name="payment_mode"]').on('change', function () {
+    let mode = $(this).val();
+
+    if (mode === 'C') {
+        $('.setl').removeClass('d-none');  // show
+    } else {
+        $('.setl').addClass('d-none');    // hide
+    }
+
+      // sab hide karo pehle
+    $('#payment-extra').hide();
+    $('#upi-options').hide();
+    $('#card-options').hide();
+
+    if (mode === 'U') {
+        $('#payment-extra').show();
+        $('#upi-options').slideDown();
+    } 
+    else if (mode === 'E') {
+        $('#payment-extra').show();
+        $('#card-options').slideDown();
+    }
+});
+
+$(document).ready(function () {
+    loadItemSplit();
+    calculateInitialTotals();
+});
+
+document.getElementById('splitBtn').addEventListener('click', function () {
+    let total = parseFloat(document.getElementById('total').innerText) || 0;
+    
+    if (total <= 0) return;
+
+    let modal = new bootstrap.Modal(document.getElementById('splitModal'));
+    document.getElementById('split_total').innerText = total.toFixed(2);
+    modal.show();
+    loadItemSplit();
+});
+
+function calculateUserSplit() {
+    let total = parseFloat($('#split_total').text()) || 0;
+    let users = parseInt($('#split_users').val()) || 1;
+
+    let perPerson = total / users;
+
+    $('#user_split_result').html(`Each Pays: ₹${perPerson.toFixed(2)}`);
+}
+
+function loadItemSplit() {
+    let html = '';
+
+    cart.forEach(item => {
+        let total = item.price * item.qty;
+
+        html += `
+        <div class="border p-2 mb-2">
+            <div class="d-flex justify-content-between align-items-center">
+
+                <div>
+                    <strong>${item.name}</strong><br>
+                    <small>₹${item.price} x ${item.qty} = <b>₹${total}</b></small><br>
+                    <small>Remaining: 
+                        <b id="remain-${item.id}" class="text-success">₹${total}</b>
+                    </small>
+                </div>
+
+                <input type="number"
+                    class="form-control form-control-sm w-25 item-split"
+                    data-id="${item.id}"
+                    data-type="${item.type}"
+                    data-total="${total}"
+                    placeholder="₹">
+            </div>
+        </div>`;
+    });
+
+    $('#item_split_list').html(html);
+}
+
+function calculateInitialTotals() {
+    let vegTotal = 0, nonVegTotal = 0;
+
+    cart.forEach(item => {
+        let total = item.price * item.qty;
+
+        if (item.type === 'veg') {
+            vegTotal += total;
+        } else {
+            nonVegTotal += total;
+        }
+    });
+
+    $('#veg-total').text('₹' + vegTotal);
+    $('#nonveg-total').text('₹' + nonVegTotal);
+
+    // Initially remaining = total
+    $('#veg-remaining').text('₹' + vegTotal);
+    $('#nonveg-remaining').text('₹' + nonVegTotal);
+}
+
+
+$(document).on('keyup change', '.item-split', function () {
+    let total = 0;
+
+    $('.item-split').each(function () {
+        let val = parseFloat($(this).val()) || 0;
+        total += val;
+    });
+
+    $('#split_total').text('₹ ' + total);
+});
+
+$(document).on('input', '.item-split', function () {
+
+    let vegTotal = 0, nonVegTotal = 0;
+    let vegSplit = 0, nonVegSplit = 0;
+
+    $('.item-split').each(function () {
+
+        let id = $(this).data('id');
+        let type = $(this).data('type');
+        let total = parseFloat($(this).data('total')) || 0;
+        let val = parseFloat($(this).val()) || 0;
+
+        // ❌ validation
+        if (val > total) {
+            val = total;
+            $(this).val(total);
+        }
+
+        let remaining = total - val;
+
+        // ✅ item remaining update
+        $('#remain-' + id).text('₹' + remaining);
+
+        // ✅ category totals
+        if (type === 'veg') {
+            vegTotal += total;
+            vegSplit += val;
+        } else {
+            nonVegTotal += total;
+            nonVegSplit += val;
+        }
+    });
+
+    // ✅ update totals
+    $('#veg-total').text('₹' + vegTotal);
+    $('#nonveg-total').text('₹' + nonVegTotal);
+
+    $('#veg-split').text('₹' + vegSplit);
+    $('#nonveg-split').text('₹' + nonVegSplit);
+
+    $('#veg-remaining').text('₹' + (vegTotal - vegSplit));
+    $('#nonveg-remaining').text('₹' + (nonVegTotal - nonVegSplit));
+});
+
+function calculatePercentSplit() {
+    let total = parseFloat($('#split_total').text()) || 0;
+    let percent = parseFloat($('#percent_value').val()) || 0;
+
+    let amount = (total * percent) / 100;
+
+    $('#percent_result').html(`Amount: ₹${amount.toFixed(2)}`);
+}
+
+document.getElementById('settle_amount').addEventListener('input', function () {
+    
+    let paid = parseFloat(this.value) || 0;
+    let total = parseFloat(document.getElementById('total').innerText) || 0;
+
+    let returnAmt = paid - total;
+
+    document.getElementById('return_amount').value = returnAmt >= 0 
+        ? returnAmt.toFixed(2) 
+        : '0.00';
+});
+
+  // Open popup
+    document.getElementById('orderNoteBtn').addEventListener('click', function () {
+        let modal = new bootstrap.Modal(document.getElementById('orderNoteModal'));
+        
+        // set existing value if any
+        document.getElementById('orderNoteInput').value = document.getElementById('order_inst').value;
+        
+        modal.show();
+    });
+
+    // Save input to hidden field
+    document.getElementById('saveOrderNote').addEventListener('click', function () {
+        let value = document.getElementById('orderNoteInput').value;
+        document.getElementById('order_inst').value = value;
+
+        bootstrap.Modal.getInstance(document.getElementById('orderNoteModal')).hide();
+    });
+
+    $(document).on('click', '.order-type', function () {
+        $('.order-type').removeClass('active');
+        $(this).addClass('active');
+
+        let type = $(this).data('type');
+        $('#order_mode').val(type);
+
+        if(type == 'D'){
+            $('.delv').removeClass('d-none');
+        }else{
+            $('.delv').addClass('d-none');
+        }
+
+    });
 // custom keyboard start
 
 $(document).ready(function () {
@@ -330,6 +686,8 @@ $(document).ready(function () {
   }
 
   function removeRow(id) {
+
+ 
     if (typeof removeItem === 'function') {
       removeItem(id);
     } else {
@@ -620,23 +978,39 @@ function loadAllItems() {
 
 // --- Render Items ---
 
-$('#item-search').on('keyup', function () {
-    const keyword = $(this).val().toLowerCase();
+$('#item-search').on('keyup', function (e) {
 
-    // ❌ OLD → category based
-    // const filtered = allItems.filter(...);
+    const keyword = $(this).val().toLowerCase().trim();
 
-    // ✅ NEW → global search
-    let filtered;
+    // ✅ ENTER press → direct add item
+    if (e.key === 'Enter') {
 
+        let foundItem = globalItems.find(item => 
+            item.item_srcd?.toLowerCase() === keyword
+        );
+
+        if (foundItem) {
+            addItem(foundItem.item_code, foundItem.item_desc, foundItem.item_rate);
+
+            $(this).val('');
+            drawItems(allItems);
+
+        } else {
+            alert('Item not found');
+        }
+
+        return;
+    }
+
+    // 🔍 Normal search
     if (keyword === '') {
-        // अगर search empty है → वापस category items दिखाओ
         drawItems(allItems);
         return;
     }
 
-    filtered = globalItems.filter(item => 
-        item.item_desc.toLowerCase().includes(keyword)
+    let filtered = globalItems.filter(item => 
+        item.item_desc.toLowerCase().includes(keyword) ||
+        item.item_srcd?.toLowerCase().includes(keyword)
     );
 
     drawItems(filtered);
@@ -688,31 +1062,38 @@ function drawItems(items) {
    
 
 
-    $('#save-order').click(async function () {
+   $('#save-order').click(async function () {
+
     if (cart.length === 0) {
         return Swal.fire("Cart is empty!", "", "warning");
     }
 
     const $saveBtn = $(this);
     $saveBtn.prop('disabled', true);
+
     $('#itemCard').css({
         'pointer-events': 'none',
         'opacity': '0.5'
     });
 
+    let paymentMode = $('input[name="payment_mode"]:checked').val();
+    let tran_no = $('#tran_no').val(); // 🔥 EDIT MODE
+
     const payload = {
         _token: '{{ csrf_token() }}',
         cart: cart,
-        paymode: $('#order_type').val(),
+        paymode: paymentMode,
         mobile: $('#mobile').val(),
         dsc: $('#discount_percent').val(),
         ft: $('.final_total').val(),
         custId: $('#customer_id').val(),
-        order_id: $('#order_id').val()
+        order_id: $('#order_id').val(),
+        order_inst: $('#order_inst').val(),
+        order_mode: $('#order_mode').val(),
+        tran_no: tran_no // ✅ IMPORTANT
     };
 
     try {
-        // Fire request with fetch (faster than $.post)
         const response = await fetch('{{ route("order.save") }}', {
             method: "POST",
             headers: {
@@ -725,33 +1106,46 @@ function drawItems(items) {
         const data = await response.json();
 
         if (data.success) {
+
             localStorage.setItem('lastOrderId', data.order_id);
-            sendToPrinter(data.html);
+
+            // 🔥 PRINT (optional)
+            if (data.html) {
+                sendToPrinter(data.html);
+            }
+
+            // 🔥 EDIT vs NEW MESSAGE
+            let msg = tran_no ? 'Order Updated!' : 'Order Saved!';
 
             Swal.fire({
-                title: 'Order Saved!',
+                title: msg,
+                icon: 'success',
                 showConfirmButton: false,
-                timer: 800
+                timer: 1000
             });
-
-            // Auto print without waiting
-            if (typeof handlePrint === 'function') {
-              //  handlePrint(data.order_id, 'token');
-            }
 
             $('#manual-print-token, #manual-print-bill').prop('disabled', false);
 
-            // Instead of full reload → clear cart & refresh UI fast
-          //  setTimeout(() => {
+            // 🔥 AFTER SAVE
+            if (tran_no) {
+                // 👉 EDIT MODE → redirect back to order list
+                setTimeout(() => {
+                    window.location.href = "/orders"; // change route if needed
+                }, 1000);
+            } else {
+                // 👉 NEW ORDER → clear cart
                 cart = [];
-                updateCartUI(); // ✅ make a function to refresh only cart area
-           // }, 1000);
+                updateCartUI();
+            }
 
         } else {
             throw new Error("Save failed");
         }
+
     } catch (err) {
+
         Swal.fire("Error", "Something went wrong while saving order", "error");
+
         $saveBtn.prop('disabled', false);
         $('#itemCard').css({
             'pointer-events': 'auto',
@@ -805,27 +1199,37 @@ $('#save-order-only').click(function () {
         'opacity': '0.5'
     });
 
-    const paymode = $('#order_type').val();
+let paymentMode = $('input[name="payment_mode"]:checked').val();
     const mobile = $('#mobile').val();
     const order_id = $('#order_id').val();
     const dsc = $('#discount_percent').val();
     const ft = $('.final_total').val();
     const custId = $('#customer_id').val();
+    const order_mode = $('#order_mode').val()
+    const order_inst = $('#order_inst').val()
+    let tran_no = $('#tran_no').val(); // 🔥 EDIT MODE
+
 
     $.post('{{ route("order.save") }}', {
         _token: '{{ csrf_token() }}',
         cart: cart,
-        paymode: paymode,
+        paymode: paymentMode,
         mobile: mobile,
         dsc: dsc,
         ft: ft,
         custId: custId,
+        orderType: order_mode,
+        order_inst: order_inst,
+        tran_no: tran_no,
         order_id: order_id
     }, function (response) {
         if (response.success) {
             localStorage.setItem('lastOrderId', response.order_id); // ✅ Store it here
+
+              // 🔥 EDIT vs NEW MESSAGE
+            let msg = tran_no ? 'Order Updated!' : 'Order Saved!';
             Swal.fire({
-                title: 'Order Saved!',
+                title: msg,
                 showConfirmButton: false,
                 timer: 1000
             }).then(() => {
@@ -833,6 +1237,10 @@ $('#save-order-only').click(function () {
                 // if (typeof handlePrint === 'function') {
                 //     handlePrint(response.order_id, 'token');
                 // }
+                if(tran_no){
+                      let url = "{{ route('orders.indexp') }}";
+                        window.location.href = url;
+                }
 
                 // Refresh after 2 seconds (adjust if needed)
                // setTimeout(() => {
@@ -1041,13 +1449,24 @@ function addItem(id, name, price) {
     } else {
         if (id === '017') { // Gulab Jamun ID
             // default 4 qty
-            cart.push({ id, name, price, qty: 4 });
+            cart.push({ 
+                id, name, price, qty: 4,
+                item_inst: ''   // ✅ ADD HERE
+            });
+
         } else if (gramBasedItems.includes(id)) {
             // Gram-based item starts at 100g
-            cart.push({ id, name, price, grams: 100, amount: price });
+            cart.push({ 
+                id, name, price, grams: 100, amount: price,
+                item_inst: ''   // ✅ ADD HERE
+            });
+
         } else {
             // Normal item starts with qty 1
-            cart.push({ id, name, price, qty: 1 });
+            cart.push({ 
+                id, name, price, qty: 1,
+                item_inst: ''   // ✅ ADD HERE
+            });
         }
     }
 
@@ -1073,6 +1492,8 @@ function removeItem(id) {
 }
 
 function renderCart() {
+
+
     let html = '';
     let total = 0;
 
@@ -1084,7 +1505,6 @@ function renderCart() {
             let grams = parseFloat(item.grams) || 0;
             let amount = parseFloat(item.amount) || 0;
 
-            // Always sync grams ↔ amount
             if (grams > 0) {
                 amount = (grams / 100) * item.price;
             } else if (amount > 0) {
@@ -1103,27 +1523,46 @@ function renderCart() {
 
         total += lineTotal;
 
+        // ✅ ITEM NAME + INLINE INSTRUCTION EDIT
         html += `<tr data-id="${item.id}">
-            <td>${item.name}</td>`;
+            <td>
+                <div onclick="editInstruction('${item.id}')" style="cursor:pointer;">
+                    <strong>${item.name}</strong>
 
+                    <!-- Display Text -->
+                    <div id="inst-text-${item.id}" style="font-size:12px; color:#666;">
+                        ${item.item_inst 
+                            ? '📝 ' + item.item_inst 
+                            : '<span style="color:#aaa;">+ Add note</span>'}
+                    </div>
+                </div>
+
+                <!-- Input Box -->
+                <input type="text" 
+                       id="inst-input-${item.id}"
+                       class="form-control form-control-sm mt-1"
+                       value="${item.item_inst || ''}"
+                       style="display:none;"
+                       onblur="saveInstruction('${item.id}')">
+            </td>`;
         if (isGramItem) {
             html += `
                 <td style="padding: 0;">
                     <input type="text" class="form-control form-control-sm amount-input" 
-                           data-id="${item.id}" style="width: 70px; margin: 0;" 
-                           placeholder="₹ Amt" step="0.01" value="${item.amount?.toFixed(2) || ''}">
+                           data-id="${item.id}" style="width: 70px;" 
+                           placeholder="₹ Amt" value="${item.amount?.toFixed(2) || ''}">
                 </td>
                 <td style="padding: 0;">
                     <input type="text" class="form-control form-control-sm grams-input" 
-                           data-id="${item.id}" style="width: 70px; margin: 0;" 
+                           data-id="${item.id}" style="width: 70px;" 
                            placeholder="Gram" value="${item.grams?.toFixed(2) || ''}">
                 </td>`;
         } else {
             html += `<td style="padding: 0;">
-                <div class="input-group input-group-sm" style="max-width: 120px; margin: 0;">
+                <div class="input-group input-group-sm" style="max-width: 120px;">
                     <button class="btn btn-outline-secondary px-2 py-1" onclick="changeQty('${item.id}', -1)">-</button>
                     <input type="text" class="form-control text-center qty-direct-input" 
-                           data-id="${item.id}" value="${item.qty}" min="0" style="margin: 0;">
+                           data-id="${item.id}" value="${item.qty}">
                     <button class="btn btn-outline-secondary px-2 py-1" onclick="changeQty('${item.id}', 1)">+</button>
                 </div>
             </td><td></td>`;
@@ -1144,8 +1583,63 @@ function renderCart() {
     $('#total').text(total.toFixed(2));
     $('.final_total').val(total.toFixed(2));
 
-    bindAmountEvents(); // rebind inputs
-    updateFinalTotal(); // recalculate any discounts/tax if needed
+    bindAmountEvents();
+    updateFinalTotal();
+
+    let totalitems = parseFloat($('#total').text()) || 0;
+
+    if (totalitems > 0) {
+        $('#splitBtn').prop('disabled', false);
+    } else {
+        $('#splitBtn').prop('disabled', true);
+    }
+}
+
+function editInstruction(id) {
+    document.getElementById('inst-text-' + id).style.display = 'none';
+
+    let input = document.getElementById('inst-input-' + id);
+    input.style.display = 'block';
+    input.focus();
+}
+
+function saveInstruction(id) {
+    let input = document.getElementById('inst-input-' + id);
+    let value = input.value;
+
+    // Save in cart
+    let item = cart.find(i => i.id == id);
+    if (item) {
+        item.item_inst = value;
+    }
+
+    // Update text
+    let textDiv = document.getElementById('inst-text-' + id);
+    textDiv.innerHTML = value 
+        ? '📝 ' + value 
+        : '<span style="color:#aaa;">+ Add note</span>';
+
+    input.style.display = 'none';
+    textDiv.style.display = 'block';
+}
+
+function toggleInstruction(id) {
+    let box = document.getElementById('inst-box-' + id);
+    box.style.display = (box.style.display === 'none') ? 'block' : 'none';
+}
+
+function bindInstructionEvents() {
+    document.querySelectorAll('.item-inst-input').forEach(input => {
+        input.addEventListener('input', function () {
+            let id = this.dataset.id;
+            let value = this.value;
+
+            let item = cart.find(i => i.id == id);
+            if (item) {
+                item.item_inst = value;
+            }
+        });
+    });
 }
 
 
@@ -1315,7 +1809,23 @@ function updateRow(id) {
 
 
 </script>
+@if(isset($items))
+<script>
+    let items = @json($items);
 
+    cart = items.map(function(item) {
+        return {
+            id: item.item_code,
+            name: item.item_desc || '',
+            price: item.item_rate,
+            qty: item.item_qty,
+            item_inst: item.item_inst || ''
+        };
+    });
+
+    renderCart();
+</script>
+@endif
 
 
 @endsection

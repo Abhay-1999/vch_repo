@@ -68,6 +68,8 @@
         });
     }
 
+    
+
     function updateStatus(tran_no,flag) {
 
         fetch("{{ route('orders.flag') }}", {

@@ -1516,6 +1516,30 @@ public function initiatePayment(Request $request)
         ]);
     }
     
+    public function editOrder($tran_no)
+    {
+        $customers = DB::table('customer_masters')->get();
 
+        $order = DB::table('order_hd')->where('tran_no', $tran_no)->where('tran_date',date('Y-m-d'))->first();
+
+        $items = DB::table('order_dt')
+        ->join('item_master', 'order_dt.item_code', '=', 'item_master.item_code')
+        ->where('order_dt.tran_no', $tran_no)
+        ->where('order_dt.tran_date', date('Y-m-d'))
+        ->select(
+            'order_dt.item_code',
+            'order_dt.item_qty',
+            'order_dt.item_inst',
+            'order_dt.item_gm',
+            'order_dt.amount',
+            'item_master.item_desc',
+            'item_master.item_rate'
+        )
+        ->get();
+
+            // echo"<pre>";print_r($items->toArray());die;  
+
+        return view('orders.pos', compact('order', 'items','customers'));
+    }
 
 }

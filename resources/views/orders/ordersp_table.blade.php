@@ -47,11 +47,36 @@
                             @endif
                         </ul>
                     </div>
-                    <div class="dd-timer-footer ">
-                       
+                 <div class="dd-timer-footer d-flex justify-content-between align-items-center px-2">
 
-                       <a href="javascript:void(0);" onclick="markHold('{{ $order->tran_no }}')" class="dd-big-btn dd-big-green-btn">Mark Hold</a>
-                   </div>
+    <!-- Bill Print -->
+    <a href="javascript:void(0);" 
+       onclick="handlePrint('{{ $order->tran_no }}','{{ $order->tran_date }}','bill')" 
+       class="icon-btn text-dark" title="Print Bill">
+        <i class="fa-solid fa-print"></i>
+    </a>
+
+    <!-- Hold -->
+    <a href="javascript:void(0);" 
+       onclick="markHold('{{ $order->tran_no }}')" 
+       class="icon-btn text-dark" title="Mark Hold">
+        <i class="fa-solid fa-pause"></i>
+    </a>
+
+    <!-- Ready -->
+    <a href="javascript:void(0);" 
+       onclick="markDelivered('{{ $order->tran_no }}')" 
+       class="icon-btn text-dark" title="Ready to Serve">
+        <i class="fa-solid fa-check"></i>
+    </a>
+
+    <!-- Edit -->
+    <a href="{{ url('order/edit/'.$order->tran_no) }}" 
+       class="icon-btn text-dark" title="Edit Order">
+        <i class="fa-solid fa-pen-to-square"></i>
+    </a>
+
+</div>
                    
                 </div>
 
