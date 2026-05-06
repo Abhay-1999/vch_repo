@@ -4,6 +4,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\ItemController;
 use App\Http\Controllers\QRCodeController;
 use App\Http\Controllers\OrderController;
+use App\Http\Controllers\ReservationController;
 use App\Http\Controllers\RazorpayController;
 use Illuminate\Support\Facades\Response;
 use App\Http\Controllers\Auth\AdminAuthController;
@@ -14,6 +15,7 @@ use App\Http\Controllers\ReportController;
 use App\Http\Controllers\CustomerMasterController;
 use App\Http\Controllers\RawMaterialController;
 use App\Http\Controllers\PurchaseEntryController;
+use App\Http\Controllers\InventoryController ;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 
@@ -175,7 +177,9 @@ Route::get('/get-item-stock/{item_code}', [PurchaseEntryController::class, 'getI
     Route::get('/store/request-view/{id}', [PurchaseEntryController::class, 'requestView'])->name('store.request.view');
     Route::post('/store/request-issue-save', [PurchaseEntryController::class, 'issueSave'])->name('store.request.issue.save');
 
-
+    Route::get('/inventory/procurement', [InventoryController::class, 'ProcurementView'])->name('inventory.procurement');
+    Route::get('/create/po', [InventoryController::class, 'CreatePo'])->name('create.po');
+    Route::post('/procurement/po/store', [InventoryController::class, 'storePO'])->name('po.store');
 
     Route::get('dashboard', function () {
         return view('auth.admin.dashboard'); // Ensure this view exists
@@ -262,6 +266,8 @@ Route::post('/change/paymentMode', [OrderController::class, 'UpdatePaymode'])->n
 Route::get('/dashboard', [OrderController::class, 'dashboard'])->name('dashboard');
 
 Route::get('/change-order', [OrderController::class, 'ChangeOrder'])->name('change.order');
+
+Route::get('/table-reservation', [ReservationController::class, 'TableReservationForm'])->name('table.reservation');
 
 
 Route::post('/print-content', [OrderController::class, 'printContent'])->name('print.content');

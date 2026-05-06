@@ -168,6 +168,10 @@ $admin = Auth::guard('admin')->user();
                     <a class="nav-link {{ request()->routeIs('change.order') ? 'active' : '' }}" href="{{ route('change.order') }}">
                         <i class="bi bi-bag-fill me-2"></i><span>Change Order Type</span>
                     </a>
+
+                      <a class="nav-link {{ request()->routeIs('table.reservation') ? 'active' : '' }}" href="{{ route('table.reservation') }}">
+                        <i class="bi bi-bag-fill me-2"></i><span>Table Reservation</span>
+                    </a>
                     <!-- <a class="nav-link {{ request()->routeIs('raw_mat_form') ? 'active' : '' }}" href="{{ route('raw_mat_form') }}">
                         <i class="bi bi-bag-fill me-2"></i><span>Raw Material Master</span>
                     </a>
@@ -193,6 +197,8 @@ $admin = Auth::guard('admin')->user();
                             <li><a class="dropdown-item" href="{{ route('kitchen.request.create') }}"><i class="bi bi-file-earmark-text me-2"></i>Create Kitchen Request</a></li>
 
                             <li><a class="dropdown-item" href="{{ route('store.pending.request') }}"><i class="bi bi-file-earmark-bar-graph me-2"></i>Pending Kitchen Request</a></li>
+
+                              <li><a class="dropdown-item" href="{{ route('inventory.procurement') }}"><i class="bi bi-file-earmark-bar-graph me-2"></i>Procurement</a></li>
                         </ul>
                     </li>
                     
