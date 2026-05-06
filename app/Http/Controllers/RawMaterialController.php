@@ -52,10 +52,12 @@ class RawMaterialController extends Controller
         ]);
     }
 
-    public function supplier_mast_form()
-    {
-        return view('supplier_master.suplr_mast_form');
-    }
+    // public function supplier_mast_form()
+    // { //echo"a";die;
+    //     $suppliers = SupplierMaster::orderByDesc('created_at')->paginate(20);
+
+    //     return view('supplier.index', compact('suppliers'));
+    // }
 
     public function supplier_mast_store(Request $request)
     {

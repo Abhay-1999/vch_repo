@@ -8,6 +8,7 @@ use App\Http\Controllers\RazorpayController;
 use Illuminate\Support\Facades\Response;
 use App\Http\Controllers\Auth\AdminAuthController;
 use App\Http\Controllers\Auth\UserAuthController;
+use App\Http\Controllers\SupplierMasterController;
 use App\Http\Controllers\CashfreeController;
 use App\Http\Controllers\ReportController;
 use App\Http\Controllers\CustomerMasterController;
@@ -68,6 +69,17 @@ Route::get('/fssai', function () {
 
 
 Route::prefix('admin')->group(function () {
+
+    Route::get('/supp-mast', [SupplierMasterController::class, 'index'])->name('supp_mast_form');
+    Route::get('/create', [SupplierMasterController::class, 'create'])->name('supplier.create');
+    Route::post('/store', [SupplierMasterController::class, 'store'])->name('supp_mast_store');
+
+    Route::get('/edit/{supplierMaster}', [SupplierMasterController::class, 'edit'])->name('supplier.edit');
+    Route::post('/update/{supplierMaster}', [SupplierMasterController::class, 'update'])->name('supplier.update');
+
+    Route::delete('/delete/{supplierMaster}', [SupplierMasterController::class, 'destroy'])->name('supplier.delete');
+
+
     Route::get('login', [AdminAuthController::class, 'showLoginForm'])->name('admin.login');
     Route::post('/send-otp-login', [AdminAuthController::class, 'sendOtp']);
     Route::post('/verify-otp-login', [AdminAuthController::class, 'otpSubmit']);
@@ -143,7 +155,7 @@ Route::prefix('admin')->group(function () {
     Route::post('/raw-mast-form-store', [RawMaterialController::class, 'raw_mat_mast_store'])->name('raw_mat_store');
 
     // supplier master
-    Route::get('/supp-mast-form', [RawMaterialController::class, 'supplier_mast_form'])->name('supp_mast_form');
+    // Route::get('/supp-mast-form', [RawMaterialController::class, 'supplier_mast_form'])->name('supp_mast_form');
     Route::post('/supp-mast-form-store', [RawMaterialController::class, 'supplier_mast_store'])->name('supp_mast_store');
     Route::get('/purchase-create', [PurchaseEntryController::class, 'create'])->name('purchase.create');
     Route::post('/purchase-store', [PurchaseEntryController::class, 'store'])->name('purchase.store');
@@ -191,12 +203,13 @@ Route::post('/add-to-cart-item', [ItemController::class, 'addToCartitem'])->name
 Route::post('/order-save', [ItemController::class, 'save'])->name('order.save');
 Route::post('/cart/remove', [ItemController::class, 'removeCartItem'])->name('cart.remove');
 Route::post('/get-combo-items', [ItemController::class, 'getComboItems'])->name('items.combo');
-
+Route::get('/order/edit/{tran_no}', [OrderController::class, 'editOrder'])
+    ->name('order.edit');
 Route::get('/all-items-status', [ItemController::class, 'allItems']);
 Route::get('/all-items', [ItemController::class, 'all']);
 
 Route::get('/items-by-category/{category}', function ($category) {
-    $items = DB::table('item_master')->select('item_desc', 'item_code', 'rest_code','veg_nonveg', 'item_rate', 'item_status', 'start_time', 'end_time')
+    $items = DB::table('item_master')->select('item_desc', 'item_code', 'rest_code','veg_nonveg', 'item_rate', 'item_status', 'start_time', 'end_time','item_srcd')
                 ->where('item_grpcode', $category)
                 ->orderBy('item_desc')
                 ->get();

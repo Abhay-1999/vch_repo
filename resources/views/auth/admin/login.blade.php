@@ -59,6 +59,8 @@
         <div class="mb-3 mt-2">
             <label class="mb-1">User Name</label>
             <select name="userid" id="userid" class="form-control">
+                <option value="">Select</option>
+
                 @foreach($adminData as $d)
                     <option value="{{ $d->userid }}">{{ $d->userid }}</option>
                 @endforeach
