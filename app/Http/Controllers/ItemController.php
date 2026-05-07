@@ -13,6 +13,9 @@ use Illuminate\Support\Facades\Storage;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Spatie\PdfToImage\Pdf as PdfToImage;
 use Illuminate\Support\Facades\Auth;
+use App\Models\IngredientMaster;
+use App\Models\ItemIngredient;
+
 
 
 class ItemController extends Controller
@@ -1168,6 +1171,150 @@ public function generateBillImage($trans_no,$toPhoneNumber)
     }
 }
 
-   
+
+   // LIST
+    public function ingredientindex()
+    {
+       $ingredients = IngredientMaster::orderBy('id', 'desc')->get();
+        return view('ingredient_master.index', compact('ingredients'));
+    }
+
+    public function create()
+    {
+        return view('ingredient_master.create');
+    }
+
+    public function store(Request $request)
+    {
+        $request->validate([
+            'ingredient_name' => 'required|string|max:255',
+            'unit' => 'nullable|string|max:50',
+            'rate' => 'nullable|numeric'  
+        ]);
+
+        IngredientMaster::create([
+            'ingredient_name' => $request->ingredient_name,
+            'unit' => $request->unit,
+            'rate' => $request->rate  
+        ]);
+
+        return redirect()->route('ingredient.index')
+            ->with('success', 'Ingredient added successfully');
+    }
+
+
+    public function edit($id)
+    {
+        $ingredient = IngredientMaster::findOrFail($id);
+        return view('ingredient_master.edit', compact('ingredient'));
+    }
+
+    public function update(Request $request, $id)
+    {
+        $ingredient = IngredientMaster::findOrFail($id);
+
+        $request->validate([
+            'ingredient_name' => 'required|string|max:255',
+            'unit' => 'nullable|string|max:50',
+            'rate' => 'nullable|numeric'   
+            
+        ]);
+
+        $ingredient->update([
+            'ingredient_name' => $request->ingredient_name,
+            'unit' => $request->unit,
+            'rate' => $request->rate  
+            
+        ]);
+
+        return redirect()->route('ingredient.index')
+            ->with('success', 'Ingredient updated successfully');
+    }
+
+    public function destroy($id)
+    {
+        $ingredient = IngredientMaster::findOrFail($id);
+        $ingredient->delete();
+
+        return redirect()->route('ingredient.index')
+            ->with('success', 'Ingredient deleted successfully');
+    }
+
+
+      // LIST
+    public function itemIngredientsIndex()
+    {
+        $data = ItemIngredient::with(['item','ingredient'])->get(); 
+
+        return view('item_ingredients.index', compact('data'));
+    }
+
+    public function itemIngredientsCreate()
+    {
+        $items = Item::all();           
+        $ingredients = IngredientMaster::all();
+
+        return view('item_ingredients.create', compact('items','ingredients'));
+    }
+
+    // STORE
+    public function itemIngredientsStore(Request $request)
+    {
+        $request->validate([
+            'item_code' => 'required|exists:item_master,item_code',
+            'ingredient_id.*' => 'required',
+            'qty.*' => 'required|numeric'
+        ]);
+
+        foreach ($request->ingredient_id as $key => $ingredient) {
+
+            ItemIngredient::create([
+                'item_code' => $request->item_code,
+                'ingredient_id' => $ingredient,
+                'qty' => $request->qty[$key],
+                'unit' => $request->unit[$key]
+            ]);
+        }
+
+        return redirect()->route('item_ingredients.index')
+            ->with('success', 'Multiple Ingredients Added');
+    }
+
+    // EDIT
+    public function itemIngredientsEdit($id)
+    {
+        $item = ItemIngredient::findOrFail($id);
+
+        $items = Item::all();         
+        $ingredients = IngredientMaster::all();
+
+        return view('item_ingredients.edit', compact('item','items','ingredients')); 
+    }
+
+    // UPDATE
+    public function itemIngredientsUpdate(Request $request, $id)
+    {
+        $item = ItemIngredient::findOrFail($id);
+
+        $item->update($request->only([
+            'item_code',
+            'ingredient_id',
+            'qty',
+            'unit'
+        ]));
+
+        return redirect()->route('item_ingredients.index')
+            ->with('success', 'Updated successfully');
+    }
+
+    // DELETE
+    public function itemIngredientsDestroy($id)
+    {
+        ItemIngredient::findOrFail($id)->delete();
+
+        return redirect()->route('item_ingredients.index')
+            ->with('success', 'Deleted successfully');
+    }
+    
     
 }

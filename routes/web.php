@@ -290,3 +290,20 @@ Route::get('/upi/status', [OrderController::class, 'checkStatus'])->name('check.
 
 
 Route::get('/order-status/{order_id}', [OrderController::class, 'checkOrderStatus'])->name('order.status.payment');
+
+
+
+Route::get('/ingredient', [ItemController::class, 'ingredientindex'])->name('ingredient.index');
+Route::get('/ingredient/create', [ItemController::class, 'create'])->name('ingredient.create');
+Route::post('/ingredient/store', [ItemController::class, 'store'])->name('ingredient.store');
+Route::get('/ingredient/edit/{id}', [ItemController::class, 'edit'])->name('ingredient.edit');
+Route::post('/ingredient/update/{id}', [ItemController::class, 'update'])->name('ingredient.update');
+Route::post('/ingredient/delete/{id}', [ItemController::class, 'destroy'])->name('ingredient.delete');
+
+
+Route::get('/item-ingredients', [ItemController::class, 'itemIngredientsIndex'])->name('item_ingredients.index');
+Route::get('/item-ingredients/create', [ItemController::class, 'itemIngredientsCreate'])->name('item_ingredients.create');
+Route::post('/item-ingredients/store', [ItemController::class, 'itemIngredientsStore'])->name('item_ingredients.store');
+Route::get('/item-ingredients/edit/{id}', [ItemController::class, 'itemIngredientsEdit'])->name('item_ingredients.edit');
+Route::post('/item-ingredients/update/{id}', [ItemController::class, 'itemIngredientsUpdate'])->name('item_ingredients.update');
+Route::post('/item-ingredients/delete/{id}', [ItemController::class, 'itemIngredientsDestroy'])->name('item_ingredients.delete');

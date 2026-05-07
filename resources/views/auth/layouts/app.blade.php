@@ -198,7 +198,12 @@ $admin = Auth::guard('admin')->user();
 
                             <li><a class="dropdown-item" href="{{ route('store.pending.request') }}"><i class="bi bi-file-earmark-bar-graph me-2"></i>Pending Kitchen Request</a></li>
 
-                              <li><a class="dropdown-item" href="{{ route('inventory.procurement') }}"><i class="bi bi-file-earmark-bar-graph me-2"></i>Procurement</a></li>
+                            <li><a class="dropdown-item" href="{{ route('inventory.procurement') }}"><i class="bi bi-file-earmark-bar-graph me-2"></i>Procurement</a></li>
+
+                            <li><a class="dropdown-item" href="{{ route('ingredient.index') }}"><i class="bi bi-file-earmark-bar-graph me-2"></i>Ingredient Master</a></li>
+
+                            <li><a class="dropdown-item" href="{{ route('item_ingredients.index') }}"><i class="bi bi-file-earmark-bar-graph me-2"></i>Item Ingredients Master</a></li>
+
                         </ul>
                     </li>
                     
