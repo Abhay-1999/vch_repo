@@ -5,6 +5,10 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Session;
+use App\Models\RawMaterial;
+use App\Models\StockLedger;
+
+
 
 class ReportController extends Controller
 {
@@ -245,5 +249,30 @@ class ReportController extends Controller
         // echo "<pre>";print_r($data->toArray());die;
 
         return view("reports.dailyReport",compact('startDate','endDate','totals','rest_data'));
+    }
+
+
+    public function currentStock()
+    {
+
+        $stocks = RawMaterial::with('unit')->get();
+
+        return view(
+            'reports.current_stock',
+            compact('stocks')
+        );
+    }
+
+    public function stockLedger()
+    {
+
+        $ledgers = StockLedger::with('material')
+                    ->latest()
+                    ->get();
+
+        return view(
+            'reports.stock_ledger',
+            compact('ledgers')
+        );
     }
 }

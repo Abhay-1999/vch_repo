@@ -673,7 +673,7 @@ $(document).ready(function () {
         $('#saveBtn').prop('disabled', true).html('<i class="fas fa-spinner fa-spin"></i> Saving...');
 
         $.ajax({
-            url: "{{ route('supplier.update', $supplier->id) }}",
+            url: "{{ route('supplier.update', $supplier->supplier_id) }}",
             type: 'POST',
             data: $(this).serialize(),
             success: function (response) {

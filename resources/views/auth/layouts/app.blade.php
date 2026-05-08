@@ -203,6 +203,35 @@ $admin = Auth::guard('admin')->user();
                             <li><a class="dropdown-item" href="{{ route('ingredient.index') }}"><i class="bi bi-file-earmark-bar-graph me-2"></i>Ingredient Master</a></li>
 
                             <li><a class="dropdown-item" href="{{ route('item_ingredients.index') }}"><i class="bi bi-file-earmark-bar-graph me-2"></i>Item Ingredients Master</a></li>
+                            <li>
+    <a  class="dropdown-item" href="{{ url('admin/raw-materials') }}" >
+        Raw Materials
+    </a>
+</li>
+
+<li >
+    <a  class="dropdown-item" href="{{ url('admin/grn/create') }}" class="nav-link">
+        Purchase Entry
+    </a>
+</li>
+
+<li >
+    <a  class="dropdown-item" href="{{ url('admin/recipe/create') }}" class="nav-link">
+        Recipe Mapping
+    </a>
+</li>
+
+<li >
+    <a  class="dropdown-item" href="{{ url('admin/reports/current-stock') }}" class="nav-link">
+        Current Stock
+    </a>
+</li>
+
+<li>
+    <a  class="dropdown-item" href="{{ url('admin/reports/stock-ledger') }}" class="nav-link">
+        Stock Ledger
+    </a>
+</li>
 
                         </ul>
                     </li>

@@ -42,8 +42,83 @@
          @include('orders.ordersp_table', ['orders' => $orders,'order_arr'=>$order_arr,'role'=>$role])
          </div>
          </div>
+         <!-- Settle Bill Modal -->
+<div class="modal fade" id="settleBillModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
 
+            <div class="modal-header bg-success text-white">
+                <h5 class="modal-title">Settle Bill</h5>
+
+                <button type="button" class="btn-close btn-close-white"
+                    data-bs-dismiss="modal"></button>
+            </div>
+
+            <div class="modal-body">
+
+                <input type="hidden" id="settle_tran_no">
+
+                <label class="fw-bold mb-3">Select Payment Mode</label>
+
+                <div class="d-flex gap-4">
+
+                    <div class="form-check">
+                        <input class="form-check-input"
+                               type="radio"
+                               name="payment_mode"
+                               value="C"
+                               checked>
+
+                        <label class="form-check-label">Cash</label>
+                    </div>
+
+                    <div class="form-check">
+                        <input class="form-check-input"
+                               type="radio"
+                               name="payment_mode"
+                               value="E">
+
+                        <label class="form-check-label">Card</label>
+                    </div>
+
+                    <div class="form-check">
+                        <input class="form-check-input"
+                               type="radio"
+                               name="payment_mode"
+                               value="U">
+
+                        <label class="form-check-label">UPI</label>
+                    </div>
+
+                </div>
+
+            </div>
+
+            <div class="modal-footer">
+                <button class="btn btn-secondary"
+                        data-bs-dismiss="modal">
+                    Cancel
+                </button>
+
+                <button class="btn btn-success"
+                        onclick="markDelivered()">
+                    Settle Bill
+                </button>
+            </div>
+
+        </div>
+    </div>
+</div>
     <script>
+
+
+function openSettleModal(tran_no)
+{
+    $('#settle_tran_no').val(tran_no);
+
+    $('#settleBillModal').modal('show');
+}
+
 
 
     function markHold(tran_no) {
@@ -143,29 +218,55 @@
 
     setInterval(reloadOrders, 10000);
 
-     function markDelivered(tran_no) {
+   function markDelivered()
+{
+    let tran_no = $('#settle_tran_no').val();
 
-        fetch("{{ route('orders.deliver') }}", {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRF-TOKEN': '{{ csrf_token() }}'
-            },
-            body: JSON.stringify({ tran_no: tran_no })
+    let payment_mode = $('input[name="payment_mode"]:checked').val();
+
+    fetch("{{ route('orders.deliver') }}", {
+
+        method: 'POST',
+
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRF-TOKEN': '{{ csrf_token() }}'
+        },
+
+        body: JSON.stringify({
+            tran_no: tran_no,
+            payment_mode: payment_mode
         })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                reloadOrders(); // Reload full order list
-            } else {
-                alert('Failed to update order.');
-            }
-        })
-        .catch(error => {
-            console.error('Error:', error);
-            alert('Something went wrong.');
-        });
-    }
+
+    })
+
+    .then(response => response.json())
+
+    .then(data => {
+
+        if (data.success)
+        {
+            $('#settleBillModal').modal('hide');
+
+            reloadOrders();
+
+            alert('Bill Settled Successfully');
+        }
+        else
+        {
+            alert('Failed to update order.');
+        }
+
+    })
+
+    .catch(error => {
+
+        console.error('Error:', error);
+
+        alert('Something went wrong.');
+
+    });
+}
     
 </script>
 
