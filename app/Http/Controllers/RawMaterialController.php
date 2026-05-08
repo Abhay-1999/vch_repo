@@ -3,94 +3,37 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
-use App\Models\CategoryMaster;
-use App\Models\UnitMaster;
-use App\Models\RawMaterialMaster;
-use App\Models\SupplierMaster;
+use App\Models\RawMaterial;
+use App\Models\Unit;
 
 class RawMaterialController extends Controller
 {
-    public function raw_mat_mast_form()
+    public function index()
     {
-        $catMast = CategoryMaster::orderBy('catg_name')->get();
-        $suppMast = SupplierMaster::orderBy('supp_name')->get();
-        $unitMast = UnitMaster::get();
-        return view('raw_material.raw_mat_mast_form',compact('catMast','unitMast','suppMast'));
+        $materials = RawMaterial::with('unit')->get();
+
+        return view('raw_material.index',compact('materials'));
     }
 
-    public function raw_mat_mast_store(Request $request)
+    public function create()
     {
-        $request->validate([
-            'item_desc' => 'required|string|max:255',
-            'qty' => 'required|numeric|min:0|regex:/^\d+(\.\d{1,3})?$/',
-            'unit_cd' => 'required|string|max:10',
-            'catg_cd' => 'required',
-        ], [
-            'item_desc.required' => 'Item description is required',
-            'qty.required' => 'Quantity is required',
-            'qty.numeric' => 'Quantity must be a valid number',
-            'qty.regex' => 'Qty allows max 3 decimal digits (ex: 10 or 10.326)',
-            'unit_cd.required' => 'Unit code is required',
-            'catg_cd.required' => 'Category code is required'
-        ]);
+        $units = Unit::get();
 
-        RawMaterialMaster::create([
-            'rest_cd'     => '01',
-            'item_desc'   => $request->item_desc,
-            'qty'         => $request->qty,
-            'unit_cd'     => $request->unit_cd,
-            'remark'      => $request->remark,
-            'supp_cd'   => $request->supp_code,
-            'supp_billno' => $request->supp_billno,
-            'supp_billdt' => $request->supp_billdt,
-            'catg_cd'     => $request->catg_cd,
-        ]);
-
-        return response()->json([
-            'success' => true,
-            'message' => 'Record saved successfully!'
-        ]);
+        return view('raw_material.create',compact('units'));
     }
 
-    // public function supplier_mast_form()
-    // { //echo"a";die;
-    //     $suppliers = SupplierMaster::orderByDesc('created_at')->paginate(20);
-
-    //     return view('supplier.index', compact('suppliers'));
-    // }
-
-    public function supplier_mast_store(Request $request)
+    public function store(Request $request)
     {
-        $request->validate([
-            'supp_name' => 'required|string|max:255',
-            'supp_add1' => 'required',
-            'city' => 'required|string',
-            'gst_no' => 'required',
-            'contact_no' => 'nullable|max:15',
-        ], [
-            'supp_name.required' => 'Supplier Nameis required',
-            'supp_add1.required' => 'Address 1 is required',
-            'city.required' => 'City is required',
-            'gst_no.required' => 'GST No is required',
-            'contact_no.max' => 'Contact no max 15 digit',
+        RawMaterial::create([
+            'material_name'=>$request->material_name,
+            'material_code'=>$request->material_code,
+            'unit_id'=>$request->unit_id,
+            'opening_stock'=>$request->opening_stock,
+            'current_stock'=>$request->opening_stock,
+            'purchase_rate'=>$request->purchase_rate,
+            'min_stock_alert'=>$request->min_stock_alert,
         ]);
 
-        SupplierMaster::create([
-            'rest_cd'     => '01',
-            'supp_name'   => $request->supp_name,
-            'supp_add1'   => $request->supp_add1,
-            'supp_add2'   => $request->supp_add2,
-            'city'        => $request->city,
-            'gst_no'      => $request->gst_no,
-            'contact_person' => $request->contact_person,
-            'contact_no'  => $request->contact_no,
-            'remark'      => $request->remark,
-        ]);
-
-        return response()->json([
-            'success' => true,
-            'message' => 'Record saved successfully!'
-        ]);
+        return redirect('admin/raw-materials');
     }
-
 }

@@ -12,80 +12,199 @@ class SupplierMaster extends Model
     protected $table = 'supplier_masters';
 
     protected $fillable = [
-        // Basic
-        'supp_name', 'supp_code', 'supp_type', 'gst_no',
 
-        // Food Supply
-        'supply_category', 'fssai_no', 'fssai_expiry',
-        'delivery_days', 'delivery_slot',
-        'min_order_value', 'lead_time_days', 'items_supplied',
-        'quality_grade', 'is_organic',
+        /*
+        |--------------------------------------------------------------------------
+        | Basic Details
+        |--------------------------------------------------------------------------
+        */
 
-        // Address
-        'supp_add1', 'supp_add2', 'market_name',
-        'city', 'state', 'pincode', 'country',
+        'supplier_id',
+        'supplier_name',
+        'trade_brand_name',
+        'category',
 
-        // Contact
-        'contact_person', 'contact_no', 'alt_contact_no',
-        'whatsapp_no', 'email', 'pan_no',
+        /*
+        |--------------------------------------------------------------------------
+        | Contact Information
+        |--------------------------------------------------------------------------
+        */
 
-        // Financial
-        'opening_balance', 'credit_limit', 'payment_terms',
-        'payment_mode', 'discount_pct',
+        'contact_person',
+        'designation',
+        'mobile_no',
+        'alt_phone',
+        'email_id',
 
-        // Bank
-        'bank_name', 'account_no', 'ifsc', 'upi_id',
+        /*
+        |--------------------------------------------------------------------------
+        | Address Information
+        |--------------------------------------------------------------------------
+        */
 
-        // Additional
-        'status', 'supplier_rating', 'remark',
+        'address_line1',
+        'address_line2',
+        'city',
+        'state',
+        'pincode',
+        'country',
+
+        /*
+        |--------------------------------------------------------------------------
+        | Tax & Legal Information
+        |--------------------------------------------------------------------------
+        */
+
+        'gstin',
+        'pan',
+        'fssai_license_no',
+        'fssai_expiry',
+        'msme_udyam_no',
+
+        /*
+        |--------------------------------------------------------------------------
+        | Bank Details
+        |--------------------------------------------------------------------------
+        */
+
+        'bank_name',
+        'bank_account_no',
+        'ifsc_code',
+        'account_holder_name',
+
+        /*
+        |--------------------------------------------------------------------------
+        | Payment Settings
+        |--------------------------------------------------------------------------
+        */
+
+        'payment_terms',
+        'credit_limit',
+        'currency',
+        'tds_applicable',
+        'tds_rate',
+        'lead_time_days',
+
+        /*
+        |--------------------------------------------------------------------------
+        | Status & Audit
+        |--------------------------------------------------------------------------
+        */
+
+        'rating',
+        'status',
+        'onboarded_on',
+        'onboarded_by',
+        'remarks',
     ];
+
+    /*
+    |--------------------------------------------------------------------------
+    | Casts
+    |--------------------------------------------------------------------------
+    */
 
     protected $casts = [
-        'fssai_expiry'    => 'date',
-        'opening_balance' => 'decimal:2',
-        'credit_limit'    => 'decimal:2',
-        'min_order_value' => 'decimal:2',
-        'discount_pct'    => 'decimal:2',
-        'lead_time_days'  => 'integer',
-        'payment_terms'   => 'integer',
-        'supplier_rating' => 'integer',
-        'deleted_at'      => 'datetime',
+
+        'credit_limit' => 'decimal:2',
+
+        'tds_rate' => 'decimal:2',
+
+        'lead_time_days' => 'integer',
+
+        'rating' => 'integer',
+
+        'fssai_expiry' => 'date',
+
+        'onboarded_on' => 'date',
+
+        'deleted_at' => 'datetime',
     ];
 
-    // ── Scopes ────────────────────────────────────────────────
+    /*
+    |--------------------------------------------------------------------------
+    | Active Scope
+    |--------------------------------------------------------------------------
+    */
 
     public function scopeActive($query)
     {
         return $query->where('status', 'Active');
     }
 
-    public function scopeByCategory($query, string $category)
-    {
-        return $query->where('supply_category', $category);
+    /*
+    |--------------------------------------------------------------------------
+    | Category Scope
+    |--------------------------------------------------------------------------
+    */
+
+    public function scopeByCategory(
+        $query,
+        string $category
+    ) {
+
+        return $query->where(
+            'category',
+            $category
+        );
     }
 
-    // ── Accessors ─────────────────────────────────────────────
+    /*
+    |--------------------------------------------------------------------------
+    | Full Address Accessor
+    |--------------------------------------------------------------------------
+    */
 
     public function getFullAddressAttribute(): string
     {
         return collect([
-            $this->supp_add1,
-            $this->supp_add2,
+
+            $this->address_line1,
+
+            $this->address_line2,
+
             $this->city,
+
             $this->state,
+
             $this->pincode,
-        ])->filter()->implode(', ');
+
+            $this->country,
+
+        ])
+
+        ->filter()
+
+        ->implode(', ');
     }
 
-    // ── Auto-generate supplier code before creating ───────────
+    /*
+    |--------------------------------------------------------------------------
+    | Auto Supplier ID Generate
+    |--------------------------------------------------------------------------
+    */
 
     protected static function booted(): void
     {
-        static::creating(function (SupplierMaster $supplier) {
-            if (empty($supplier->supp_code)) {
+        static::creating(function (
+            SupplierMaster $supplier
+        ) {
+
+            if (empty($supplier->supplier_id)) {
+
                 $prefix = 'SUP';
-                $last   = static::withTrashed()->max('id') ?? 0;
-                $supplier->supp_code = $prefix . str_pad($last + 1, 4, '0', STR_PAD_LEFT);
+
+                $lastId = static::withTrashed()
+                    ->max('id') ?? 0;
+
+                $supplier->supplier_id =
+                    $prefix .
+                    str_pad(
+                        $lastId + 1,
+                        4,
+                        '0',
+                        STR_PAD_LEFT
+                    );
             }
         });
     }

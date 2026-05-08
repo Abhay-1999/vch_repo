@@ -64,11 +64,13 @@
     </a>
 
     <!-- Ready -->
-    <a href="javascript:void(0);" 
-       onclick="markDelivered('{{ $order->tran_no }}')" 
-       class="icon-btn text-dark" title="Ready to Serve">
-        <i class="fa-solid fa-check"></i>
-    </a>
+ <!-- Ready To Serve Button -->
+<a href="javascript:void(0);" 
+   onclick="openSettleModal('{{ $order->tran_no }}')" 
+   class="icon-btn text-dark" 
+   title="Ready to Serve">
+    <i class="fa-solid fa-check"></i>
+</a>
 
     <!-- Edit -->
     <a href="{{ url('order/edit/'.$order->tran_no) }}" 

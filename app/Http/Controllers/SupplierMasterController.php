@@ -21,7 +21,24 @@ class SupplierMasterController extends Controller
     // ── Create Form ──────────────────────────────────────────────────────────
     public function create(): View
     {
-        return view('supplier.create');
+        $data = SupplierMaster::orderByDesc('created_at')->value('supplier_id');
+        $suppId = '';
+        if(!$data){
+            $suppId = 'SUPP001';
+        }else{
+            $lastNumber = (int) substr($data, 4);
+
+            $newNumber = $lastNumber + 1;
+
+            $suppId =     'SUPP' .
+            str_pad(
+                $newNumber,
+                3,
+                '0',
+                STR_PAD_LEFT
+            );
+        }
+        return view('supplier.create',compact('suppId'));
     }
 
     // ── Store (AJAX) ─────────────────────────────────────────────────────────
@@ -29,25 +46,65 @@ class SupplierMasterController extends Controller
     {
         $validated = $request->validated();
 
-        // Normalise optional numeric fields to null when blank
-        $nullableNumbers = ['opening_balance', 'credit_limit', 'min_order_value', 'discount_pct', 'payment_terms', 'lead_time_days', 'supplier_rating'];
+        /*
+        |--------------------------------------------------------------------------
+        | Convert Blank Numeric Fields To NULL
+        |--------------------------------------------------------------------------
+        */
+
+        $nullableNumbers = [
+            'credit_limit',
+            'tds_rate',
+            'lead_time_days',
+            'rating'
+        ];
+
         foreach ($nullableNumbers as $field) {
-            if (isset($validated[$field]) && $validated[$field] === '') {
+
+            if (
+                array_key_exists($field, $validated)
+                && $validated[$field] === ''
+            ) {
                 $validated[$field] = null;
             }
         }
 
+        /*
+        |--------------------------------------------------------------------------
+        | Auto Default Values
+        |--------------------------------------------------------------------------
+        */
+
+        $validated['currency'] = $validated['currency'] ?? 'INR';
+
+        $validated['status'] = $validated['status'] ?? 'Active';
+
+        /*
+        |--------------------------------------------------------------------------
+        | Create Supplier
+        |--------------------------------------------------------------------------
+        */
+
         $supplier = SupplierMaster::create($validated);
 
         return response()->json([
-            'success'      => true,
-            'message'      => 'Supplier "' . $supplier->supp_name . '" saved successfully! Code: ' . $supplier->supp_code,
-            'supplier_id'  => $supplier->id,
-            'supp_code'    => $supplier->supp_code,
+
+            'success' => true,
+
+            'message' =>
+                'Supplier "' .
+                $supplier->supplier_name .
+                '" saved successfully! Supplier ID: ' .
+                $supplier->supplier_id,
+
+            'supplier_id' => $supplier->id,
+
+            'supplier_code' => $supplier->supplier_id,
+
         ], 201);
     }
 
-    // ── Show (AJAX or View) ──────────────────────────────────────────────────
+    // ── Show ─────────────────────────────────────────────────────────────────
     public function show(SupplierMaster $supplierMaster): JsonResponse
     {
         return response()->json([
@@ -59,51 +116,116 @@ class SupplierMasterController extends Controller
     // ── Edit Form ────────────────────────────────────────────────────────────
     public function edit(SupplierMaster $supplierMaster): View
     {
-        return view('supplier.edit', ['supplier' => $supplierMaster]);
+        return view('supplier.edit', [
+            'supplier' => $supplierMaster
+        ]);
     }
 
     // ── Update ───────────────────────────────────────────────────────────────
-    public function update(StoreSupplierRequest $request, SupplierMaster $supplierMaster): JsonResponse
-    {
+    public function update(
+        StoreSupplierRequest $request,
+        SupplierMaster $supplierMaster
+    ): JsonResponse {
+
         $validated = $request->validated();
 
-        // If supp_code unchanged, ignore unique check on self
-        // (handled below via custom rule override in UpdateSupplierRequest if needed)
+        /*
+        |--------------------------------------------------------------------------
+        | Nullable Numeric Fields
+        |--------------------------------------------------------------------------
+        */
+
+        $nullableNumbers = [
+            'credit_limit',
+            'tds_rate',
+            'lead_time_days',
+            'rating'
+        ];
+
+        foreach ($nullableNumbers as $field) {
+
+            if (
+                array_key_exists($field, $validated)
+                && $validated[$field] === ''
+            ) {
+                $validated[$field] = null;
+            }
+        }
+
+        /*
+        |--------------------------------------------------------------------------
+        | Update Supplier
+        |--------------------------------------------------------------------------
+        */
 
         $supplierMaster->update($validated);
 
         return response()->json([
+
             'success' => true,
-            'message' => 'Supplier "' . $supplierMaster->supp_name . '" updated successfully!',
+
+            'message' =>
+                'Supplier "' .
+                $supplierMaster->supplier_name .
+                '" updated successfully!',
+
         ]);
     }
 
     // ── Soft Delete ──────────────────────────────────────────────────────────
-    public function destroy(SupplierMaster $supplierMaster): JsonResponse
-    {
+    public function destroy(
+        SupplierMaster $supplierMaster
+    ): JsonResponse {
+
         $supplierMaster->delete();
 
         return response()->json([
+
             'success' => true,
+
             'message' => 'Supplier deleted successfully.',
+
         ]);
     }
 
-    // ── Search / Autocomplete (AJAX) ─────────────────────────────────────────
+    // ── Search / Autocomplete ────────────────────────────────────────────────
     public function search(Request $request): JsonResponse
     {
         $term = $request->input('q', '');
 
-        $results = SupplierMaster::active()
+        $results = SupplierMaster::where('status', 'Active')
+
             ->where(function ($query) use ($term) {
-                $query->where('supp_name', 'like', "%{$term}%")
-                      ->orWhere('supp_code', 'like', "%{$term}%")
-                      ->orWhere('contact_no', 'like', "%{$term}%");
+
+                $query->where('supplier_name', 'like', "%{$term}%")
+
+                    ->orWhere('supplier_id', 'like', "%{$term}%")
+
+                    ->orWhere('mobile_no', 'like', "%{$term}%")
+
+                    ->orWhere('gstin', 'like', "%{$term}%");
+
             })
-            ->select('id', 'supp_name', 'supp_code', 'contact_no', 'supply_category')
+
+            ->select(
+                'id',
+                'supplier_id',
+                'supplier_name',
+                'mobile_no',
+                'category',
+                'gstin'
+            )
+
             ->limit(15)
+
             ->get();
 
-        return response()->json(['success' => true, 'data' => $results]);
+        return response()->json([
+
+            'success' => true,
+
+            'data' => $results
+
+        ]);
     }
 }

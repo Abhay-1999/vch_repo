@@ -512,7 +512,7 @@ $monthTotals = $monthlySales->pluck('total');
             $order = DB::table('order_hd')->where('tran_date',date('Y-m-d'))->where('tran_no', $request->tran_no)->first();
 
             if ($order) {
-                DB::table('order_hd')->where('tran_date',date('Y-m-d'))->where('tran_no', $request->tran_no)->update(['flag'=>'D']);
+                DB::table('order_hd')->where('tran_date',date('Y-m-d'))->where('tran_no', $request->tran_no)->update(['flag'=>'D','payment_mode'=>$request->payment_mode]);
 
                 return response()->json(['success' => true]);
             }

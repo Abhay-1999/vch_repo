@@ -15,6 +15,10 @@ use Spatie\PdfToImage\Pdf as PdfToImage;
 use Illuminate\Support\Facades\Auth;
 use App\Models\IngredientMaster;
 use App\Models\ItemIngredient;
+use App\Models\StockLedger;
+use App\Models\RawMaterial;
+use App\Models\Recipe;
+use App\Models\RecipeItem;
 
 
 
@@ -1075,6 +1079,8 @@ class ItemController extends Controller
             'item_gst' => $reverseamt['gst'],
             'tran_date' => date('Y-m-d')
         ]);
+
+      
     }
 
         $hd_data =   DB::table('order_hd')->where('tran_no',$tran_no)->where('tran_date',date('Y-m-d'))->where('status_trans','success')->first();
