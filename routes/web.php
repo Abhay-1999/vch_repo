@@ -16,6 +16,7 @@ use App\Http\Controllers\CustomerMasterController;
 use App\Http\Controllers\RawMaterialController;
 use App\Http\Controllers\PurchaseEntryController;
 use App\Http\Controllers\InventoryController ;
+use App\Http\Controllers\RecipeMappingController ;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 
@@ -153,8 +154,19 @@ Route::prefix('admin')->group(function () {
     Route::get('/check-new-orders', [OrderController::class, 'checkNewOrders'])->name('check.new.orders');
 
     // raw material master
+
+    Route::get('/raw-mast', [RawMaterialController::class, 'raw_mat_mast_index'])->name('raw_mat_index');
     Route::get('/raw-mast-form', [RawMaterialController::class, 'raw_mat_mast_form'])->name('raw_mat_form');
     Route::post('/raw-mast-form-store', [RawMaterialController::class, 'raw_mat_mast_store'])->name('raw_mat_store');
+
+
+      // recipe mapping master
+
+    Route::get('/recipe-mapping', [RecipeMappingController::class, 'recipe_mapping_index'])->name('recipe_mapping_index');
+    Route::get('/recipe-mapping-form', [RecipeMappingController::class, 'recipe_mapping_form'])->name('recipe_mapping_form');
+    Route::post('/recipe-mapping-form-store', [RecipeMappingController::class, 'recipe_mapping_store'])->name('recipe_mapping_store');
+
+
 
     // supplier master
     // Route::get('/supp-mast-form', [RawMaterialController::class, 'supplier_mast_form'])->name('supp_mast_form');
