@@ -3,7 +3,7 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
-use App\Models\RawMaterial;
+use App\Models\RawMaterialMaster;
 use App\Models\Unit;
 
 class RawMaterialController extends Controller
@@ -18,19 +18,16 @@ class RawMaterialController extends Controller
 
     public function raw_mat_mast_form()
     {
-        $catMast = CategoryMaster::orderBy('catg_name')->get();
-        $suppMast = SupplierMaster::orderBy('supp_name')->get();
-        $unitMast = UnitMaster::get();
 
           $last = RawMaterialMaster::orderBy('id', 'desc')->first();
          $nextId = $last ? $last->id + 1 : 1;
          $auto_code = 'RM-' . str_pad($nextId, 4, '0', STR_PAD_LEFT);
-        return view('raw_material.raw_mat_mast_form',compact('catMast','unitMast','suppMast','auto_code'));
-=======
+        return view('raw_material.raw_mat_mast_form',compact('auto_code'));
+
 
     }
 
-    public function create()
+    public function raw_mat_mast_store (Request $request)
     {
        $request->validate([
             'material_code'  => 'required|unique:raw_material_master,material_code|max:50',
@@ -94,18 +91,18 @@ class RawMaterialController extends Controller
  
     }
 
-    public function store(Request $request)
-    {
-        RawMaterial::create([
-            'material_name'=>$request->material_name,
-            'material_code'=>$request->material_code,
-            'unit_id'=>$request->unit_id,
-            'opening_stock'=>$request->opening_stock,
-            'current_stock'=>$request->opening_stock,
-            'purchase_rate'=>$request->purchase_rate,
-            'min_stock_alert'=>$request->min_stock_alert,
-        ]);
+    // public function store(Request $request)
+    // {
+    //     RawMaterial::create([
+    //         'material_name'=>$request->material_name,
+    //         'material_code'=>$request->material_code,
+    //         'unit_id'=>$request->unit_id,
+    //         'opening_stock'=>$request->opening_stock,
+    //         'current_stock'=>$request->opening_stock,
+    //         'purchase_rate'=>$request->purchase_rate,
+    //         'min_stock_alert'=>$request->min_stock_alert,
+    //     ]);
 
-        return redirect('admin/raw-materials');
-    }
+    //     return redirect('admin/raw-materials');
+    // }
 }
