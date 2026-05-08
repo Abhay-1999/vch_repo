@@ -2,76 +2,68 @@
 
 @section('content')
 
-<div class="container">
+<div class="container mt-4">
 
     <div class="d-flex justify-content-between mb-3">
+        <h4>Raw Material List</h4>
 
-        <h4>Raw Materials List</h4>
-
-        <a href="{{ url('admin/raw-materials/create') }}"
-           class="btn btn-primary">
-
-            Add Raw Material
-
+        <a href="{{ route('raw_mat_form') }}" class="btn btn-primary btn-sm">
+            + Add Material
         </a>
 
     </div>
 
     <table class="table table-bordered table-striped">
 
-        <thead class="table-dark">
-
+        <thead>
             <tr>
-
-                <th>ID</th>
-
-                <th>Material Name</th>
-
+                <th>#</th>
                 <th>Code</th>
-
-                <th>Unit</th>
-
-                <th>Opening Stock</th>
-
-                <th>Current Stock</th>
-
-                <th>Purchase Rate</th>
-
-                <th>Minimum Alert</th>
-
+                <th>Name</th>
+                <th>Category</th>
+                <th>GST</th>
+                <th>MRP</th>
+                <th>Min Stock</th>
+                <th>Status</th>
             </tr>
+
 
         </thead>
 
         <tbody>
 
-            @foreach($materials as $material)
-
+            @forelse($materials as $key => $item)
             <tr>
-
-                <td>{{ $material->id }}</td>
-
-                <td>{{ $material->material_name }}</td>
-
-                <td>{{ $material->material_code }}</td>
-
-                <td>{{ $material->unit->short_name ?? '' }}</td>
-
-                <td>{{ $material->opening_stock }}</td>
-
-                <td>{{ $material->current_stock }}</td>
-
-                <td>{{ $material->purchase_rate }}</td>
-
-                <td>{{ $material->min_stock_alert }}</td>
-
+                <td>{{ $key + 1 }}</td>
+                <td>{{ $item->material_code }}</td>
+                <td>{{ $item->material_name }}</td>
+                <td>{{ $item->category }}</td>
+                <td>{{ $item->gst_rate }}%</td>
+                <td>₹{{ $item->mrp }}</td>
+                <td>{{ $item->min_stock_level }}</td>
+                <td>
+                    @if($item->active == 1)
+                        <span class="text-success">Active</span>
+                    @else
+                        <span class="text-danger">Inactive</span>
+                    @endif
+                </td>
             </tr>
-
-            @endforeach
+            @empty
+            <tr>
+                <td colspan="8" class="text-center">No Data Found</td>
+            </tr>
+            @endforelse
+=======
+          
 
         </tbody>
 
     </table>
+
+    <div class="mt-3">
+        {{ $materials->links() }}
+    </div>
 
 </div>
 

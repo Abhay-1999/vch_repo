@@ -190,7 +190,9 @@ $admin = Auth::guard('admin')->user();
                                 <i class="bi bi-file-earmark-bar-graph me-2"></i>Supplier Master</a>
                             </li>
 
-                            <li><a class="dropdown-item" href="{{ route('raw_mat_form') }}"><i class="bi bi-file-earmark-bar-graph me-2"></i>Raw Material Master</a></li>
+                            <li><a class="dropdown-item" href="{{ route('raw_mat_index') }}"><i class="bi bi-file-earmark-bar-graph me-2"></i>Raw Material Master</a></li>
+
+                            <li><a class="dropdown-item" href="{{ route('recipe_mapping_index') }}"><i class="bi bi-file-earmark-bar-graph me-2"></i>Recipe Mapping Master</a></li>
 
                             <li><a class="dropdown-item" href="{{ route('purchase.create') }}"><i class="bi bi-file-earmark-bar-graph me-2"></i>Raw Material Purchase</a></li>
 
