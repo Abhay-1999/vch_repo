@@ -3,10 +3,8 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
-use App\Models\CategoryMaster;
-use App\Models\UnitMaster;
-use App\Models\RawMaterialMaster;
-use App\Models\SupplierMaster;
+use App\Models\RawMaterial;
+use App\Models\Unit;
 
 class RawMaterialController extends Controller
 {
@@ -28,9 +26,11 @@ class RawMaterialController extends Controller
          $nextId = $last ? $last->id + 1 : 1;
          $auto_code = 'RM-' . str_pad($nextId, 4, '0', STR_PAD_LEFT);
         return view('raw_material.raw_mat_mast_form',compact('catMast','unitMast','suppMast','auto_code'));
+=======
+
     }
 
-    public function raw_mat_mast_store(Request $request)
+    public function create()
     {
        $request->validate([
             'material_code'  => 'required|unique:raw_material_master,material_code|max:50',
@@ -91,47 +91,21 @@ class RawMaterialController extends Controller
         $data->save();
 
         return redirect()->back()->with('success', 'Material saved successfully!');
+ 
     }
 
-    // public function supplier_mast_form()
-    // { //echo"a";die;
-    //     $suppliers = SupplierMaster::orderByDesc('created_at')->paginate(20);
-
-    //     return view('supplier.index', compact('suppliers'));
-    // }
-
-    public function supplier_mast_store(Request $request)
+    public function store(Request $request)
     {
-        $request->validate([
-            'supp_name' => 'required|string|max:255',
-            'supp_add1' => 'required',
-            'city' => 'required|string',
-            'gst_no' => 'required',
-            'contact_no' => 'nullable|max:15',
-        ], [
-            'supp_name.required' => 'Supplier Nameis required',
-            'supp_add1.required' => 'Address 1 is required',
-            'city.required' => 'City is required',
-            'gst_no.required' => 'GST No is required',
-            'contact_no.max' => 'Contact no max 15 digit',
+        RawMaterial::create([
+            'material_name'=>$request->material_name,
+            'material_code'=>$request->material_code,
+            'unit_id'=>$request->unit_id,
+            'opening_stock'=>$request->opening_stock,
+            'current_stock'=>$request->opening_stock,
+            'purchase_rate'=>$request->purchase_rate,
+            'min_stock_alert'=>$request->min_stock_alert,
         ]);
 
-        SupplierMaster::create([
-            'rest_cd'     => '01',
-            'supp_name'   => $request->supp_name,
-            'supp_add1'   => $request->supp_add1,
-            'supp_add2'   => $request->supp_add2,
-            'city'        => $request->city,
-            'gst_no'      => $request->gst_no,
-            'contact_person' => $request->contact_person,
-            'contact_no'  => $request->contact_no,
-            'remark'      => $request->remark,
-        ]);
-
-        return response()->json([
-            'success' => true,
-            'message' => 'Record saved successfully!'
-        ]);
+        return redirect('admin/raw-materials');
     }
-
 }

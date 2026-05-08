@@ -10,6 +10,7 @@
         <a href="{{ route('raw_mat_form') }}" class="btn btn-primary btn-sm">
             + Add Material
         </a>
+
     </div>
 
     <table class="table table-bordered table-striped">
@@ -25,6 +26,8 @@
                 <th>Min Stock</th>
                 <th>Status</th>
             </tr>
+
+
         </thead>
 
         <tbody>
@@ -51,6 +54,8 @@
                 <td colspan="8" class="text-center">No Data Found</td>
             </tr>
             @endforelse
+=======
+          
 
         </tbody>
 

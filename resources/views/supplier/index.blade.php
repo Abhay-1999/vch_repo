@@ -25,16 +25,15 @@
             @foreach($suppliers as $key => $sup)
             <tr>
                 <td>{{ $key + 1 }}</td>
-                <td>{{ $sup->supp_code }}</td>
-                <td>{{ $sup->supp_name }}</td>
-                <td>{{ $sup->supply_category }}</td>
-                <td>{{ $sup->contact_no }}</td>
+                <td>{{ $sup->supplier_id }}</td>
+                <td>{{ $sup->supplier_name }}</td>
+                <td>{{ $sup->category }}</td>
+                <td>{{ $sup->mobile_no }}</td>
                 <td>{{ $sup->city }}</td>
                 <td>{{ $sup->status }}</td>
                 <td>
-                    <a href="{{ route('supplier.edit',$sup->id) }}" class="btn btn-sm btn-warning">Edit</a>
 
-                    <button class="btn btn-sm btn-danger deleteBtn" data-id="{{ $sup->id }}">
+                    <button class="btn btn-sm btn-danger deleteBtn" data-id="{{ $sup->supplier_id  }}">
                         Delete
                     </button>
                 </td>
