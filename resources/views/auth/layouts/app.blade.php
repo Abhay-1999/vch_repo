@@ -202,6 +202,10 @@ $admin = Auth::guard('admin')->user();
 
                             <li><a class="dropdown-item" href="{{ route('grn.index') }}"><i class="bi bi-file-earmark-bar-graph me-2"></i>Purchase Entry</a></li>
 
+                            <li><a class="dropdown-item" href="{{ url('admin/reports/current-stock') }}"><i class="bi bi-file-earmark-bar-graph me-2"></i> Current Stock</a></li>
+                            
+                            <li><a class="dropdown-item" href="{{ url('admin/reports/stock-ledger') }}"><i class="bi bi-file-earmark-bar-graph me-2"></i>  Stock Ledger</a></li>
+
                             <!-- <li><a class="dropdown-item" href="{{ route('ingredient.index') }}"><i class="bi bi-file-earmark-bar-graph me-2"></i>Ingredient Master</a></li> -->
 <!-- 
                             <li><a class="dropdown-item" href="{{ route('item_ingredients.index') }}"><i class="bi bi-file-earmark-bar-graph me-2"></i>Item Ingredients Master</a></li> -->
@@ -223,17 +227,17 @@ $admin = Auth::guard('admin')->user();
     </a>
 </li> -->
 
-<li >
+<!-- <li >
     <a  class="dropdown-item" href="{{ url('admin/reports/current-stock') }}" class="nav-link">
         Current Stock
     </a>
-</li>
+</li> -->
 
-<li>
+<!-- <li>
     <a  class="dropdown-item" href="{{ url('admin/reports/stock-ledger') }}" class="nav-link">
         Stock Ledger
     </a>
-</li>
+</li> -->
 
                         </ul>
                     </li>

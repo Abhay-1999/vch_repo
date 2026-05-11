@@ -24,13 +24,12 @@ class RawMaterialController extends Controller
          $auto_code = 'RM-' . str_pad($nextId, 4, '0', STR_PAD_LEFT);
         return view('raw_material.raw_mat_mast_form',compact('auto_code'));
 
-
     }
 
     public function raw_mat_mast_store (Request $request)
     {
+        // echo "<pre>";print_r($request->all());die;
        $request->validate([
-            'material_code'  => 'required|unique:raw_material_master,material_code|max:50',
             'material_name'  => 'required|max:150',
 
             'gst_rate'       => 'nullable|numeric|min:0|max:100',
