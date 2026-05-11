@@ -176,7 +176,7 @@ Route::prefix('admin')->group(function () {
 
     // supplier master
     // Route::get('/supp-mast-form', [RawMaterialController::class, 'supplier_mast_form'])->name('supp_mast_form');
-    // Route::post('/supp-mast-form-store', [RawMaterialController::class, 'supplier_mast_store'])->name('supp_mast_store');
+
 
 Route::get('purchase/create',[PurchaseController::class,'create']);
 Route::post('purchase/store',[PurchaseController::class,'store']);
@@ -199,7 +199,7 @@ Route::get('reports/stock-ledger',[ReportController::class,'stockLedger']);
 
     // // supplier master
     //  Route::get('/supp-mast-form', [RawMaterialController::class, 'supplier_mast_form'])->name('supp_mast_form');
-    // Route::post('/supp-mast-form-store', [RawMaterialController::class, 'supplier_mast_store'])->name('supp_mast_store');
+  
     Route::get('/purchase-create', [PurchaseEntryController::class, 'create'])->name('purchase.create');
     Route::post('/purchase-store', [PurchaseEntryController::class, 'store'])->name('purchase.store');
 

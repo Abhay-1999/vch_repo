@@ -84,9 +84,9 @@
                                 <td>
                                     <select name="item_code[]" class="form-control item_code">
                                         <option value="">Select</option>
-                                        @foreach($items as $i)
-                                            <option value="{{ $i->item_code }}">{{ $i->item_desc }}</option>
-                                        @endforeach
+                                         @foreach($items as $i)
+                        <option value="{{ $i->material_code  }}">{{ $i->material_name }}</option>
+                    @endforeach
                                     </select>
                                     
                                     <!-- Stock Show -->
@@ -199,7 +199,7 @@ $('#addRow').click(function(){
                 <select name="item_code[]" class="form-control item_code">
                     <option value="">Select</option>
                     @foreach($items as $i)
-                        <option value="{{ $i->item_code }}">{{ $i->item_desc }}</option>
+                        <option value="{{ $i->material_code  }}">{{ $i->material_name }}</option>
                     @endforeach
                 </select>
             </td>

@@ -101,7 +101,10 @@
                     <div class="col-md-4 mb-3">
                         <label class="form-label">Material Code</label>
                            <input type="text"
+
                             name="material_code"
+
+
                                     class="form-control"
                                     value="{{ $auto_code ?? '' }}"
                                     readonly
