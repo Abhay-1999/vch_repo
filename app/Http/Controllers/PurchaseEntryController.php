@@ -190,8 +190,8 @@ class PurchaseEntryController extends Controller
         {
             $hd = DB::table('kitchen_material_issue')->where('trans_no',$id)->first();
 
-            $dt =  DB::table('kitchen_material_issue_dt')->select('kitchen_material_issue_dt.*','raw_material_master.item_desc','unit_master.unit_small_desc','raw_material_master.qty as avlQty')->where('trans_no',$id)
-                   ->join('raw_material_master','kitchen_material_issue_dt.item_code','=','raw_material_master.item_code')
+            $dt =  DB::table('kitchen_material_issue_dt')->select('kitchen_material_issue_dt.*','raw_material_master.material_name as item_desc','unit_master.unit_small_desc','raw_material_master.qty as avlQty')->where('trans_no',$id)
+                   ->join('raw_material_master','kitchen_material_issue_dt.item_code','=','raw_material_master.material_code')
                    ->join('unit_master','kitchen_material_issue_dt.unit_cd','=','unit_master.unit_cd')
                    ->get();
 
@@ -209,11 +209,11 @@ class PurchaseEntryController extends Controller
                     'issue_qty' => $request->issue_qty[$key],
                 ]);
 
-                $item = DB::table('raw_material_master')->where('item_code', $request->item_code[$key])->first();
+                $item = DB::table('raw_material_master')->where('material_code', $request->item_code[$key])->first();
 
                 $finalQty = $item->qty - $request->issue_qty[$key];
 
-                DB::table('raw_material_master')->where('item_code', $request->item_code[$key])->update(['qty'=>$finalQty]);
+                DB::table('raw_material_master')->where('material_code', $request->item_code[$key])->update(['qty'=>$finalQty]);
 
 
             }
