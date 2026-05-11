@@ -101,13 +101,12 @@
                     <div class="col-md-4 mb-3">
                         <label class="form-label">Material Code</label>
                            <input type="text"
+                            name="material_code"
                                     class="form-control"
                                     value="{{ $auto_code ?? '' }}"
                                     readonly
                                     style="background:#f8f9fa;">
-                        @error('material_code')
-                            <small class="text-danger">{{ $message }}</small>
-                        @enderror
+                      
                     </div>
 
                     <div class="col-md-4 mb-3">

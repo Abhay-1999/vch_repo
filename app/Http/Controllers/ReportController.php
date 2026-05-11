@@ -5,8 +5,9 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Session;
-use App\Models\RawMaterial;
+use App\Models\RawMaterialMaster;
 use App\Models\StockLedger;
+use App\Models\GrnItem;
 
 
 
@@ -254,8 +255,7 @@ class ReportController extends Controller
 
     public function currentStock()
     {
-
-        $stocks = RawMaterial::with('unit')->get();
+        $stocks = RawMaterialMaster::all();
 
         return view(
             'reports.current_stock',
@@ -263,16 +263,13 @@ class ReportController extends Controller
         );
     }
 
-    public function stockLedger()
-    {
+  public function stockLedger()
+{
+    $stocks = GrnItem::orderBy('created_at', 'asc')->get();
 
-        $ledgers = StockLedger::with('material')
-                    ->latest()
-                    ->get();
-
-        return view(
-            'reports.stock_ledger',
-            compact('ledgers')
-        );
-    }
+    return view(
+        'reports.stock_ledger',
+        compact('stocks')
+    );
+}
 }
