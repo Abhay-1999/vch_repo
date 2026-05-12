@@ -21,14 +21,34 @@ class RecipeCostController extends Controller
         $ingredients = Ingredient::all();
         $subRecipes  = SubRecipe::all();
 
+        $lastIngredient = MenuItem::latest('id')->first();
+
+        if ($lastIngredient) {
+
+            // Get last number
+            $lastNumber = (int) str_replace('ITM-', '', $lastIngredient->item_code);
+
+            // Increment
+            $newNumber = $lastNumber + 1;
+
+        } else {
+
+            $newNumber = 1;
+        }
+
+        // Generate Code
+        $ITEM_CODE = 'ITM-' . str_pad($newNumber, 3, '0', STR_PAD_LEFT);
+
         return view('recipe_cost.create', compact(
             'ingredients',
-            'subRecipes'
+            'subRecipes','ITEM_CODE'
         ));
     }
 
     public function store(Request $request)
     {
+        // echo"<pre>";print_r($request->all());die;
+
         $menuItem = MenuItem::create([
             'item_code' => $request->item_code,
             'item_name' => $request->item_name,
@@ -40,11 +60,15 @@ class RecipeCostController extends Controller
 
         foreach ($request->component_type as $key => $type) {
 
-            if($type == 'INGREDIENT'){
+            //echo $type;die;
+
+            if($type == 'INGREDIENT'){  
 
                 $ingredient = Ingredient::find(
                     $request->component_id[$key]
                 );
+
+                // echo"<pre>";print_r($ingredient);die;
 
                 $costRate = $ingredient->costing_rate;
 
@@ -55,6 +79,8 @@ class RecipeCostController extends Controller
                 $subRecipe = SubRecipe::find(
                     $request->component_id[$key]
                 );
+
+                // echo"<pre>";print_r($subRecipe->toArray());die;
 
                 $costRate = $subRecipe->cost_per_gram;
 

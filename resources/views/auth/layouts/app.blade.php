@@ -210,7 +210,7 @@ $admin = Auth::guard('admin')->user();
         <li>
 
             <a class="dropdown-item"
-               href="{{ route('ingredients.index') }}">
+               href="{{ route('ingredient.index') }}">
 
                 <i class="bi bi-box-seam me-2"></i>
 

@@ -20,7 +20,7 @@
                         <label>Sub Recipe Code</label>
                         <input type="text"
                                name="sub_recipe_code"
-                               class="form-control">
+                               class="form-control" value ="{{ $sub_code }}" readonly>
                     </div>
 
                     <div class="col-md-4 mb-3">

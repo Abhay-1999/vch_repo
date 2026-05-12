@@ -24,7 +24,7 @@
 
                         <input type="text"
                                name="item_code"
-                               class="form-control">
+                               class="form-control" value="{{ $ITEM_CODE }}" readonly>
                     </div>
 
                     <div class="col-md-3">
