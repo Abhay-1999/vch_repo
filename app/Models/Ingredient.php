@@ -30,10 +30,14 @@ class Ingredient extends Model
         'net_cost_per_base_unit',
         'wastage_allowance_percent',
         'costing_rate',
-
         'supplier',
         'last_updated',
         'remarks',
+    ];
+
+    protected $casts = [
+        'last_updated' => 'datetime',
+
     ];
 
 }

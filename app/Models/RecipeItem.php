@@ -9,17 +9,15 @@ class RecipeItem extends Model
 
     protected $fillable = [
 
-        'recipe_id',
-        'material_id',
-        'qty'
+        'menu_item_id',
+        'component_type',
+        'component_code',
+        'component_name',
+        'quantity',
+        'cost_rate',
+        'component_cost'
 
     ];
 
-    public function material()
-    {
-        return $this->belongsTo(
-            RawMaterial::class,
-            'material_id'
-        );
-    }
+    
 }
