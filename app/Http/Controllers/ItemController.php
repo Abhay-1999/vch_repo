@@ -1187,27 +1187,42 @@ public function generateBillImage($trans_no,$toPhoneNumber)
 
     public function create()
     {
-        return view('ingredient_master.create');
+        // Last record by id
+        $lastIngredient = IngredientMaster::latest('id')->first();
+
+        if ($lastIngredient) {
+
+            // Get last number
+            $lastNumber = (int) str_replace('ING-', '', $lastIngredient->ingredient_code);
+
+            // Increment
+            $newNumber = $lastNumber + 1;
+
+        } else {
+
+            $newNumber = 1;
+        }
+
+        // Generate Code
+        $ingredient_code = 'ING-' . str_pad($newNumber, 3, '0', STR_PAD_LEFT);
+
+        return view('ingredient_master.create', compact('ingredient_code'));
     }
 
-    public function store(Request $request)
+        public function store(Request $request)
     {
         $request->validate([
-            'ingredient_name' => 'required|string|max:255',
-            'unit' => 'nullable|string|max:50',
-            'rate' => 'nullable|numeric'  
+        'ingredient_name' => 'required|string|max:255',
+        'category' => 'required|string|max:255',
+        'purchase_qty' => 'required|numeric|min:0.001',
+        'purchase_cost' => 'required|numeric|min:0',
         ]);
 
-        IngredientMaster::create([
-            'ingredient_name' => $request->ingredient_name,
-            'unit' => $request->unit,
-            'rate' => $request->rate  
-        ]);
+        IngredientMaster::create($request->all());
 
-        return redirect()->route('ingredient.index')
+         return redirect()->route('ingredient.index')
             ->with('success', 'Ingredient added successfully');
     }
-
 
     public function edit($id)
     {
