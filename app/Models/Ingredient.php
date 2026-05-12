@@ -9,9 +9,9 @@ class Ingredient extends Model
 {
     use HasFactory;
 
-    protected $table = 'ingredients';
+    protected $table = 'ingredient_masters';
 
-    protected $fillable = [
+ protected $fillable = [
 
         'ingredient_code',
         'ingredient_name',
@@ -20,18 +20,20 @@ class Ingredient extends Model
         'purchase_uom',
         'purchase_qty',
         'purchase_cost',
-
         'cost_per_purchase_unit',
 
         'base_uom',
         'conversion_to_base',
-
         'gross_cost_per_base_unit',
 
         'yield_percent',
-        'wastage_percent',
+        'net_cost_per_base_unit',
+        'wastage_allowance_percent',
+        'costing_rate',
 
-        'costing_rate'
-
+        'supplier',
+        'last_updated',
+        'remarks',
     ];
+
 }

@@ -108,7 +108,6 @@ table td{
 
                             <th>Supplier</th>
 
-                            <th>Updated</th>
 
                         
 
@@ -299,20 +298,7 @@ table td{
 
                                 </td>
 
-                                {{-- Updated --}}
-                                <td class="text-center">
-
-                                    @if($item->last_updated)
-
-                                        {{ \Carbon\Carbon::parse($item->last_updated)->format('d-m-Y') }}
-
-                                    @else
-
-                                        -
-
-                                    @endif
-
-                                </td>
+                             
 
                               
 

@@ -20,6 +20,7 @@ use App\Http\Controllers\PurchaseController;
 use App\Http\Controllers\InventoryController ;
 use App\Http\Controllers\RecipeMappingController ;
 use App\Http\Controllers\GrnController;
+use App\Http\Controllers\YieldWastageController;
 
 use App\Http\Controllers\MenuItemController;
 use App\Http\Controllers\SubRecipeController;
@@ -95,15 +96,24 @@ Route::resource('sales', SalesController::class);
 
 Route::resource('recipe-cost', RecipeCostController::class);
 
-Route::get(
+Route::post(
     'menu-pricing/{id}',
     [MenuPricingController::class, 'calculate']
 );
+Route::get(
+    'menu-pricing',
+    [MenuPricingController::class, 'index']
+)->name('menu.pricing.index');
 
 Route::get(
     'contribution-margin/{id}',
     [ContributionMarginController::class, 'calculate']
 );
+
+Route::get(
+    '/yield-wastage-report',
+    [YieldWastageController::class, 'index']
+)->name('yield.wastage.report');
 
 Route::resource(
     'menu-engineering',

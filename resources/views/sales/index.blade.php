@@ -2,29 +2,45 @@
 
 @section('content')
 
-<div class="container">
+<div class="container-fluid mt-3">
 
     <div class="card shadow">
 
         <div class="card-header bg-dark text-white">
-            <h4>Daily Food Cost Report</h4>
+            <h4 class="mb-0">Daily Food Cost Report</h4>
         </div>
 
-        <div class="card-body">
+        <div class="card-body table-responsive">
 
-            <table class="table table-bordered">
+            <table class="table table-bordered table-striped table-hover">
 
-                <thead class="table-primary">
+                <thead class="table-primary text-center">
 
                     <tr>
 
                         <th>Date</th>
-                        <th>Item</th>
-                        <th>Qty</th>
-                        <th>Sales Value</th>
-                        <th>COGS</th>
-                        <th>Gross Margin</th>
-                        <th>FC %</th>
+
+                        <th>Item Code</th>
+
+                        <th>Item Name</th>
+
+                        <th>Qty Sold</th>
+
+                        <th>Selling Price ex GST (Rs)</th>
+
+                        <th>Plate Cost (Rs)</th>
+
+                        <th>Sales Value (Rs)</th>
+
+                        <th>COGS (Rs)</th>
+
+                        <th>Gross Margin (Rs)</th>
+
+                        <th>Food Cost %</th>
+
+                        <th>Margin %</th>
+
+                        <th>Notes</th>
 
                     </tr>
 
@@ -32,7 +48,7 @@
 
                 <tbody>
 
-                    @foreach($sales as $sale)
+                    @forelse($sales as $sale)
 
                     <tr>
 
@@ -41,34 +57,62 @@
                         </td>
 
                         <td>
-                            {{ $sale->menuItem->item_name }}
+                            {{ $sale->item_code }}
                         </td>
 
                         <td>
+                            {{ $sale->item_name }}
+                        </td>
+
+                        <td class="text-end">
                             {{ $sale->qty_sold }}
                         </td>
 
-                        <td>
-                            ₹ {{ number_format($sale->sales_value,2) }}
+                        <td class="text-end">
+                            ₹ {{ number_format($sale->selling_price, 2) }}
+                        </td>
+
+                        <td class="text-end">
+                            ₹ {{ number_format($sale->plate_cost, 2) }}
+                        </td>
+
+                        <td class="text-end">
+                            ₹ {{ number_format($sale->sales_value, 2) }}
+                        </td>
+
+                        <td class="text-end">
+                            ₹ {{ number_format($sale->cogs, 2) }}
+                        </td>
+
+                        <td class="text-end">
+                            ₹ {{ number_format($sale->gross_margin, 2) }}
+                        </td>
+
+                        <td class="text-end">
+                            {{ number_format($sale->food_cost_percent, 2) }}%
+                        </td>
+
+                        <td class="text-end">
+                            {{ number_format($sale->margin_percent, 2) }}%
                         </td>
 
                         <td>
-                            ₹ {{ number_format($sale->cogs,2) }}
-                        </td>
-
-                        <td>
-                            ₹ {{ number_format($sale->gross_margin,2) }}
-                        </td>
-
-                        <td>
-
-                            {{ number_format($sale->food_cost_percent,2) }} %
-
+                            {{ $sale->notes }}
                         </td>
 
                     </tr>
 
-                    @endforeach
+                    @empty
+
+                    <tr>
+
+                        <td colspan="12" class="text-center text-danger">
+                            No Sales Data Found
+                        </td>
+
+                    </tr>
+
+                    @endforelse
 
                 </tbody>
 
