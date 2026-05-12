@@ -88,7 +88,6 @@ Route::prefix('admin')->group(function () {
     Route::resource('grn', GrnController::class);
 
 
-Route::resource('ingredients', IngredientController::class);
 Route::resource('menu-items', MenuItemController::class);
 Route::resource('sub-recipes', SubRecipeController::class);
 Route::resource('sales', SalesController::class);
