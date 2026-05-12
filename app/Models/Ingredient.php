@@ -11,7 +11,7 @@ class Ingredient extends Model
 
     protected $table = 'ingredient_masters';
 
-    protected $fillable = [
+ protected $fillable = [
 
         'ingredient_code',
         'ingredient_name',
@@ -30,7 +30,6 @@ class Ingredient extends Model
         'net_cost_per_base_unit',
         'wastage_allowance_percent',
         'costing_rate',
-
         'supplier',
         'last_updated',
         'remarks',
@@ -38,5 +37,7 @@ class Ingredient extends Model
 
     protected $casts = [
         'last_updated' => 'datetime',
+
     ];
+
 }

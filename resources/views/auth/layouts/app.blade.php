@@ -249,7 +249,7 @@ $admin = Auth::guard('admin')->user();
         <li>
 
             <a class="dropdown-item"
-               href="{{ url('menu-pricing') }}">
+               href="{{ route('menu.pricing.index') }}">
 
                 <i class="bi bi-currency-rupee me-2"></i>
 
@@ -262,7 +262,7 @@ $admin = Auth::guard('admin')->user();
         <li>
 
             <a class="dropdown-item"
-               href="{{ url('menu-engineering') }}">
+               href="{{ url('admin/menu-engineering') }}">
 
                 <i class="bi bi-bar-chart-line me-2"></i>
 
@@ -288,11 +288,11 @@ $admin = Auth::guard('admin')->user();
         <li>
 
             <a class="dropdown-item"
-               href="{{ url('dashboard') }}">
+               href="{{ route('yield.wastage.report') }}">
 
                 <i class="bi bi-speedometer2 me-2"></i>
 
-                Food Cost Dashboard
+                Yield & Wastage Testing 
 
             </a>
 

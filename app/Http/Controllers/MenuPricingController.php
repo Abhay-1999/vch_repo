@@ -14,37 +14,51 @@ class MenuPricingController extends Controller
         return view('menu_pricing.index', compact('menuItems'));
     }
 
-    public function calculate($id)
+    public function calculate(Request $request, $id)
     {
-        $menuItem = MenuItem::find($id);
+        $menuItem = MenuItem::findOrFail($id);
+
+        // Form Values
+        $targetFoodCost = $request->target_fc;
+        $gstRate = $request->gst_rate;
 
         $plateCost = $menuItem->plate_cost;
 
-        $targetFoodCost = $menuItem->target_food_cost_percent;
-
+        // Suggested Price
         $suggestedPrice = 0;
 
-        if($targetFoodCost > 0){
+        if ($targetFoodCost > 0) {
 
-            $suggestedPrice = $plateCost /
-                ($targetFoodCost / 100);
+            $suggestedPrice =
+                $plateCost / ($targetFoodCost / 100);
         }
 
-        $gstRate = $menuItem->gst_rate;
+        // GST Calculation
+        $gstAmount =
+            ($suggestedPrice * $gstRate) / 100;
 
-        $gstAmount = ($suggestedPrice * $gstRate) / 100;
+        $priceIncludingGST =
+            $suggestedPrice + $gstAmount;
 
-        $priceIncludingGST = $suggestedPrice + $gstAmount;
-
+        // Rounded Price
         $roundedPrice = round($priceIncludingGST);
 
+        // Update
         $menuItem->update([
+
+            'target_food_cost_percent' => $targetFoodCost,
+
+            'gst_rate' => $gstRate,
+
             'suggested_price' => $suggestedPrice,
+
             'price_including_gst' => $priceIncludingGST,
+
             'rounded_price' => $roundedPrice,
         ]);
 
-        return redirect()->back()
-            ->with('success','Menu Price Updated');
+        return redirect()
+            ->back()
+            ->with('success', 'Menu Price Updated Successfully');
     }
 }

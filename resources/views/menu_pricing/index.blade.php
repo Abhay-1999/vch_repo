@@ -44,8 +44,10 @@
 
                         <td>
 
-                            <form action="{{ url('menu-pricing/'.$item->id) }}"
-                                  method="GET">
+                        <form action="{{ url('admin/menu-pricing/'.$item->id) }}"
+                            method="POST">
+
+                            @csrf
 
                                 <input type="number"
                                        step="0.01"
