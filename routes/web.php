@@ -21,6 +21,14 @@ use App\Http\Controllers\InventoryController ;
 use App\Http\Controllers\RecipeMappingController ;
 use App\Http\Controllers\GrnController;
 
+use App\Http\Controllers\MenuItemController;
+use App\Http\Controllers\SubRecipeController;
+use App\Http\Controllers\SalesController;
+use App\Http\Controllers\RecipeCostController;
+use App\Http\Controllers\MenuPricingController;
+use App\Http\Controllers\ContributionMarginController;
+use App\Http\Controllers\MenuEngineeringController;
+
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 
@@ -78,6 +86,29 @@ Route::get('/fssai', function () {
 Route::prefix('admin')->group(function () {
 
     Route::resource('grn', GrnController::class);
+
+
+Route::resource('ingredients', IngredientController::class);
+Route::resource('menu-items', MenuItemController::class);
+Route::resource('sub-recipes', SubRecipeController::class);
+Route::resource('sales', SalesController::class);
+
+Route::resource('recipe-cost', RecipeCostController::class);
+
+Route::get(
+    'menu-pricing/{id}',
+    [MenuPricingController::class, 'calculate']
+);
+
+Route::get(
+    'contribution-margin/{id}',
+    [ContributionMarginController::class, 'calculate']
+);
+
+Route::resource(
+    'menu-engineering',
+    MenuEngineeringController::class
+);
 
     Route::get('/supp-mast', [SupplierMasterController::class, 'index'])->name('supp_mast_form');
     Route::get('/create', [SupplierMasterController::class, 'create'])->name('supplier.create');

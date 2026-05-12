@@ -124,6 +124,22 @@ $admin = Auth::guard('admin')->user();
       z-index: 9999;
       display: none;
     }
+    .dropdown-menu{
+    border:none;
+    border-radius:12px;
+    box-shadow:0 5px 25px rgba(0,0,0,0.15);
+    padding:10px;
+}
+
+.dropdown-item{
+    border-radius:8px;
+    padding:10px 15px;
+    font-weight:500;
+}
+
+.dropdown-item:hover{
+    background:#f1f5f9;
+}
   </style>
 </head>
 <body>
@@ -172,6 +188,119 @@ $admin = Auth::guard('admin')->user();
                       <a class="nav-link {{ request()->routeIs('table.reservation') ? 'active' : '' }}" href="{{ route('table.reservation') }}">
                         <i class="bi bi-bag-fill me-2"></i><span>Table Reservation</span>
                     </a>
+                    <li class="nav-item dropdown">
+
+    <a class="nav-link dropdown-toggle d-flex justify-content-between align-items-center"
+       href="#"
+       id="dropdownFoodCost"
+       role="button"
+       data-bs-toggle="dropdown"
+       aria-expanded="false">
+
+        <span>
+            <i class="bi bi-calculator-fill me-2"></i>
+            <span>Food Costing ERP</span>
+        </span>
+
+    </a>
+
+    <ul class="dropdown-menu"
+        aria-labelledby="dropdownFoodCost">
+
+        <li>
+
+            <a class="dropdown-item"
+               href="{{ route('ingredients.index') }}">
+
+                <i class="bi bi-box-seam me-2"></i>
+
+                Ingredient Master
+
+            </a>
+
+        </li>
+
+        <li>
+
+            <a class="dropdown-item"
+               href="{{ route('sub-recipes.index') }}">
+
+                <i class="bi bi-bezier2 me-2"></i>
+
+                Sub Recipes
+
+            </a>
+
+        </li>
+
+        <li>
+
+            <a class="dropdown-item"
+               href="{{ route('recipe-cost.index') }}">
+
+                <i class="bi bi-journal-check me-2"></i>
+
+                Recipe Costing
+
+            </a>
+
+        </li>
+
+        <li>
+
+            <a class="dropdown-item"
+               href="{{ url('menu-pricing') }}">
+
+                <i class="bi bi-currency-rupee me-2"></i>
+
+                Menu Pricing
+
+            </a>
+
+        </li>
+
+        <li>
+
+            <a class="dropdown-item"
+               href="{{ url('menu-engineering') }}">
+
+                <i class="bi bi-bar-chart-line me-2"></i>
+
+                Menu Engineering
+
+            </a>
+
+        </li>
+
+        <li>
+
+            <a class="dropdown-item"
+               href="{{ route('sales.index') }}">
+
+                <i class="bi bi-receipt-cutoff me-2"></i>
+
+                Daily Food Cost
+
+            </a>
+
+        </li>
+
+        <li>
+
+            <a class="dropdown-item"
+               href="{{ url('dashboard') }}">
+
+                <i class="bi bi-speedometer2 me-2"></i>
+
+                Food Cost Dashboard
+
+            </a>
+
+        </li>
+
+    </ul>
+
+</li>
                     <!-- <a class="nav-link {{ request()->routeIs('raw_mat_form') ? 'active' : '' }}" href="{{ route('raw_mat_form') }}">
                         <i class="bi bi-bag-fill me-2"></i><span>Raw Material Master</span>
                     </a>
@@ -192,52 +321,22 @@ $admin = Auth::guard('admin')->user();
 
                             <li><a class="dropdown-item" href="{{ route('raw_mat_index') }}"><i class="bi bi-file-earmark-bar-graph me-2"></i>Raw Material Master</a></li>
 
+                              <li><a class="dropdown-item" href="{{ route('grn.index') }}"><i class="bi bi-file-earmark-bar-graph me-2"></i>Purchase Entry</a></li>
+
                             <li><a class="dropdown-item" href="{{ route('recipe_mapping_index') }}"><i class="bi bi-file-earmark-bar-graph me-2"></i>Recipe Mapping Master</a></li>
 
-                            <!-- <li><a class="dropdown-item" href="{{ route('purchase.create') }}"><i class="bi bi-file-earmark-bar-graph me-2"></i>Raw Material Purchase</a></li> -->
-
-                            <li><a class="dropdown-item" href="{{ route('kitchen.request.create') }}"><i class="bi bi-file-earmark-text me-2"></i>Create Kitchen Request</a></li>
-
-                            <li><a class="dropdown-item" href="{{ route('store.pending.request') }}"><i class="bi bi-file-earmark-bar-graph me-2"></i>Pending Kitchen Request</a></li>
-
-                            <li><a class="dropdown-item" href="{{ route('grn.index') }}"><i class="bi bi-file-earmark-bar-graph me-2"></i>Purchase Entry</a></li>
-
                             <li><a class="dropdown-item" href="{{ url('admin/reports/current-stock') }}"><i class="bi bi-file-earmark-bar-graph me-2"></i> Current Stock</a></li>
-                            
+
                             <li><a class="dropdown-item" href="{{ url('admin/reports/stock-ledger') }}"><i class="bi bi-file-earmark-bar-graph me-2"></i>  Stock Ledger</a></li>
 
-                            <!-- <li><a class="dropdown-item" href="{{ route('ingredient.index') }}"><i class="bi bi-file-earmark-bar-graph me-2"></i>Ingredient Master</a></li> -->
-<!-- 
-                            <li><a class="dropdown-item" href="{{ route('item_ingredients.index') }}"><i class="bi bi-file-earmark-bar-graph me-2"></i>Item Ingredients Master</a></li> -->
-                            <!-- <li>
-    <a  class="dropdown-item" href="{{ url('admin/raw-materials') }}" >
-        Raw Materials
-    </a>
-</li> -->
-<!-- 
-<li>
-    <a class="dropdown-item" href="{{ route('grn.index') }}">
-        Purchase Entry
-    </a>
-</li> -->
+                            <li><a class="dropdown-item" href="{{ route('kitchen.request.create') }}"><i class="bi bi-file-earmark-text me-2"></i>Create Kitchen Request</a></li>
+                            
+                            <li><a class="dropdown-item" href="{{ route('store.pending.request') }}"><i class="bi bi-file-earmark-bar-graph me-2"></i>Pending Kitchen Request</a></li>
 
-<!-- <li >
-    <a  class="dropdown-item" href="{{ url('admin/recipe/create') }}" class="nav-link">
-        Recipe Mapping
-    </a>
-</li> -->
+                          
 
-<!-- <li >
-    <a  class="dropdown-item" href="{{ url('admin/reports/current-stock') }}" class="nav-link">
-        Current Stock
-    </a>
-</li> -->
+                        
 
-<!-- <li>
-    <a  class="dropdown-item" href="{{ url('admin/reports/stock-ledger') }}" class="nav-link">
-        Stock Ledger
-    </a>
-</li> -->
 
                         </ul>
                     </li>
