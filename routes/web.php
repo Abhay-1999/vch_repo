@@ -294,10 +294,16 @@ Route::get('/all-items-status', [ItemController::class, 'allItems']);
 Route::get('/all-items', [ItemController::class, 'all']);
 
 Route::get('/items-by-category/{category}', function ($category) {
-    $items = DB::table('item_master')->select('item_desc', 'item_code', 'rest_code','veg_nonveg', 'item_rate', 'item_status', 'start_time', 'end_time','item_srcd')
-                ->where('item_grpcode', $category)
-                ->orderBy('item_desc')
-                ->get();
+
+    // $items = DB::table('item_master')->select('item_desc', 'item_code', 'rest_code','veg_nonveg', 'item_rate', 'item_status', 'start_time', 'end_time','item_srcd')
+    //             ->where('item_grpcode', $category)
+    //             ->orderBy('item_desc')
+    //             ->get();
+
+                $items =  DB::table('menu_items')->select('item_name as item_desc', 'item_code', 'rounded_price as item_rate','veg_nonveg')
+        ->where('item_grpcode', $category)
+        ->orderBy('item_name')
+        ->get();
 
     return response()->json(['items' => $items], 200, [], JSON_UNESCAPED_UNICODE);
 });

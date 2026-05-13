@@ -908,8 +908,7 @@ $(document).ready(function () {
     $.get('/all-items', function (res) {
     let categoryHtml = '';
     let firstCategory = null;
-
-    // --- Add custom categories first ---
+  // --- Add custom categories first ---
 
 
     // --- Build Category List from DB ---

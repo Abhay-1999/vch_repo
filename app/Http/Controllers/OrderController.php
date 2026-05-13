@@ -306,13 +306,13 @@ $monthTotals = $monthlySales->pluck('total');
 
         foreach($orders as $order){
 
-                $details = DB::table('order_dt')->select('order_dt.item_qty','order_dt.customise_flag','order_dt.item_code','item_master.item_desc','order_hd.flag')
-                ->join('order_hd','order_dt.tran_no','=','order_hd.tran_no')
-                ->join('item_master','order_dt.item_code','=','item_master.item_code')
-                ->where('order_hd.tran_date',date('Y-m-d'))
-                ->where('order_dt.tran_date',date('Y-m-d'))
-                ->where('order_dt.tran_no',$order->tran_no)
-                ->get();
+            $details = DB::table('order_dt')->select('order_dt.item_qty','order_dt.customise_flag','order_dt.item_code','menu_items.item_name as item_desc','order_hd.flag')
+            ->join('order_hd','order_dt.tran_no','=','order_hd.tran_no')
+            ->join('menu_items','order_dt.item_code','=','menu_items.item_code')
+            ->where('order_dt.tran_no',$order->tran_no)
+            ->where('order_hd.tran_date',date('Y-m-d'))
+            ->where('order_dt.tran_date',date('Y-m-d'))
+            ->get();
 
                 foreach($details as $detail){
                     $order_arr[$order->tran_no][] = $detail->item_desc  . ' - ' . $detail->item_qty;
@@ -362,13 +362,13 @@ $monthTotals = $monthlySales->pluck('total');
 
         foreach($orders as $order){
 
-                $details = DB::table('order_dt')->select('order_dt.item_qty','order_dt.customise_flag','order_dt.item_code','item_master.item_desc','order_hd.flag')
-                ->join('order_hd','order_dt.tran_no','=','order_hd.tran_no')
-                ->join('item_master','order_dt.item_code','=','item_master.item_code')
-                ->where('order_hd.tran_date',date('Y-m-d'))
-                ->where('order_dt.tran_date',date('Y-m-d'))
-                ->where('order_dt.tran_no',$order->tran_no)
-                ->get();
+            $details = DB::table('order_dt')->select('order_dt.item_qty','order_dt.customise_flag','order_dt.item_code','menu_items.item_name as item_desc','order_hd.flag')
+            ->join('order_hd','order_dt.tran_no','=','order_hd.tran_no')
+            ->join('menu_items','order_dt.item_code','=','menu_items.item_code')
+            ->where('order_dt.tran_no',$order->tran_no)
+            ->where('order_hd.tran_date',date('Y-m-d'))
+            ->where('order_dt.tran_date',date('Y-m-d'))
+            ->get();
 
                 foreach($details as $detail){
                     $order_arr[$order->tran_no][] = $detail->item_desc  . ' - ' . $detail->item_qty;
@@ -418,13 +418,13 @@ $monthTotals = $monthlySales->pluck('total');
 
         foreach($orders as $order){
 
-                $details = DB::table('order_dt')->select('order_dt.item_qty','order_dt.customise_flag','order_dt.item_code','item_master.item_desc','order_hd.flag')
-                ->join('order_hd','order_dt.tran_no','=','order_hd.tran_no')
-                ->join('item_master','order_dt.item_code','=','item_master.item_code')
-                ->where('order_hd.tran_date',date('Y-m-d'))
-                ->where('order_dt.tran_date',date('Y-m-d'))
-                ->where('order_dt.tran_no',$order->tran_no)
-                ->get();
+            $details = DB::table('order_dt')->select('order_dt.item_qty','order_dt.customise_flag','order_dt.item_code','menu_items.item_name as item_desc','order_hd.flag')
+            ->join('order_hd','order_dt.tran_no','=','order_hd.tran_no')
+            ->join('menu_items','order_dt.item_code','=','menu_items.item_code')
+            ->where('order_dt.tran_no',$order->tran_no)
+            ->where('order_hd.tran_date',date('Y-m-d'))
+            ->where('order_dt.tran_date',date('Y-m-d'))
+            ->get();;
 
                 foreach($details as $detail){
                     $order_arr[$order->tran_no][] = $detail->item_desc  . ' - ' . $detail->item_qty;
@@ -474,13 +474,13 @@ $monthTotals = $monthlySales->pluck('total');
 
         foreach($orders as $order){
 
-                $details = DB::table('order_dt')->select('order_dt.item_qty','order_dt.customise_flag','order_dt.item_code','item_master.item_desc','order_hd.flag')
-                ->join('order_hd','order_dt.tran_no','=','order_hd.tran_no')
-                ->join('item_master','order_dt.item_code','=','item_master.item_code')
-                ->where('order_hd.tran_date',date('Y-m-d'))
-                ->where('order_dt.tran_date',date('Y-m-d'))
-                ->where('order_dt.tran_no',$order->tran_no)
-                ->get();
+            $details = DB::table('order_dt')->select('order_dt.item_qty','order_dt.customise_flag','order_dt.item_code','menu_items.item_name as item_desc','order_hd.flag')
+            ->join('order_hd','order_dt.tran_no','=','order_hd.tran_no')
+            ->join('menu_items','order_dt.item_code','=','menu_items.item_code')
+            ->where('order_dt.tran_no',$order->tran_no)
+            ->where('order_hd.tran_date',date('Y-m-d'))
+            ->where('order_dt.tran_date',date('Y-m-d'))
+            ->get();
 
                 foreach($details as $detail){
                     $order_arr[$order->tran_no][] = $detail->item_desc  . ' - ' . $detail->item_qty;
@@ -573,9 +573,9 @@ $monthTotals = $monthlySales->pluck('total');
 
             foreach($orders as $order){
     
-                    $details = DB::table('order_dt')->select('order_dt.item_qty','order_dt.customise_flag','order_dt.item_code','item_master.item_desc','order_hd.flag')
+                    $details = DB::table('order_dt')->select('order_dt.item_qty','order_dt.customise_flag','order_dt.item_code','menu_items.item_name as item_desc','order_hd.flag')
                     ->join('order_hd','order_dt.tran_no','=','order_hd.tran_no')
-                    ->join('item_master','order_dt.item_code','=','item_master.item_code')
+                    ->join('menu_items','order_dt.item_code','=','menu_items.item_code')
                     ->where('order_dt.tran_no',$order->tran_no)
                     ->where('order_hd.tran_date',date('Y-m-d'))
                     ->where('order_dt.tran_date',date('Y-m-d'))
@@ -643,9 +643,9 @@ $monthTotals = $monthlySales->pluck('total');
 
         foreach($orders as $order){
 
-                $details = DB::table('order_dt')->select('order_dt.item_qty','item_master.item_desc','order_hd.flag')
+                  $details =  DB::table('order_dt')->select('order_dt.item_qty','menu_items.item_name as item_desc','order_hd.flag')
                 ->join('order_hd','order_dt.tran_no','=','order_hd.tran_no')
-                ->join('item_master','order_dt.item_code','=','item_master.item_code')
+                ->join('menu_items','order_dt.item_code','=','menu_items.item_code')
                 ->where('order_dt.tran_no',$order->tran_no)
                 ->where('order_hd.tran_date',date('Y-m-d'))
                 ->where('order_dt.tran_date',date('Y-m-d'))
@@ -680,9 +680,9 @@ $monthTotals = $monthlySales->pluck('total');
 
         foreach($orders as $order){
 
-                $details =  DB::table('order_dt')->select('order_dt.item_qty','item_master.item_desc','order_hd.flag')
+                $details =  DB::table('order_dt')->select('order_dt.item_qty','menu_items.item_name as item_desc','order_hd.flag')
                 ->join('order_hd','order_dt.tran_no','=','order_hd.tran_no')
-                ->join('item_master','order_dt.item_code','=','item_master.item_code')
+                ->join('menu_items','order_dt.item_code','=','menu_items.item_code')
                 ->where('order_dt.tran_no',$order->tran_no)
                 ->where('order_hd.tran_date',date('Y-m-d'))
                 ->where('order_dt.tran_date',date('Y-m-d'))
@@ -921,8 +921,8 @@ public function updateOrderItem(Request $request)
     
         // Detail data
         $dt_data = DB::table('order_dt')
-            ->select('order_dt.*', 'item_master.item_desc', 'item_master.item_hdesc', 'item_master.item_gst as igst','item_master.item_rate','item_master.store')
-            ->join('item_master', 'order_dt.item_code', '=', 'item_master.item_code')
+            ->select('order_dt.*', 'menu_items.item_name as item_desc', 'menu_items.item_name as item_hdesc', 'menu_items.gst_rate as igst','menu_items.rounded_price as item_rate','menu_items.store')
+            ->join('menu_items', 'order_dt.item_code', '=', 'menu_items.item_code')
             ->join('order_hd', 'order_dt.tran_no', '=', 'order_hd.tran_no')
             ->where('order_hd.tran_no', $trans_no)
             ->where('order_hd.tran_date',$date)
