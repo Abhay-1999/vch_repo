@@ -19,6 +19,7 @@ use App\Models\StockLedger;
 use App\Models\RawMaterial;
 use App\Models\Recipe;
 use App\Models\RecipeItem;
+use App\Models\MenuItem;
 
 
 
@@ -38,12 +39,57 @@ class ItemController extends Controller
     }
     
 
+    // public function allItems()
+    // {
+   
+    //     // Get items for the first category
+    //     $items = Item::select('item_desc', 'item_code', 'rest_code', 'item_rate', 'item_status','veg_nonveg', 'start_time', 'end_time','item_srcd')
+    //                 ->orderBy('item_desc')
+    //                 ->get();
+    
+    //     return response()->json([
+    //         'items' => $items
+    //     ], 200, [], JSON_UNESCAPED_UNICODE);
+    // }
+    
+
+    // public function all()
+    // {
+    //     // Get distinct categories from items
+    //     $categories = Item::select('item_grpcode', 'item_grpdesc')
+    //     ->whereNotNull('item_grpcode')
+    //     ->distinct()
+    //     ->orderBy('item_grpcode')
+    //     ->get();
+
+    //                    // echo"<pre>";print_r($categories);die;
+    
+    //     $firstCategory = $categories->first();
+
+    
+    //     // Get items for the first category
+    //     $items = Item::select('item_desc', 'item_code', 'rest_code', 'item_rate', 'item_status', 'start_time', 'end_time')
+    //                 ->where('item_grpcode', $firstCategory)
+    //                 ->orderBy('item_desc')
+    //                 ->get();
+
+    //                 // echo"<pre>";print_r($items);die;
+
+    
+    //     return response()->json([
+    //         'categories' => $categories,
+    //         'first_category' => $firstCategory,
+    //         'items' => $items
+    //     ], 200, [], JSON_UNESCAPED_UNICODE);
+    // }
+
+    
     public function allItems()
     {
    
         // Get items for the first category
-        $items = Item::select('item_desc', 'item_code', 'rest_code', 'item_rate', 'item_status','veg_nonveg', 'start_time', 'end_time','item_srcd')
-                    ->orderBy('item_desc')
+        $items = DB::table('menu_items')->select('item_name as item_desc', 'item_code', 'rounded_price as item_rate','veg_nonveg')
+                    ->orderBy('item_name')
                     ->get();
     
         return response()->json([
@@ -55,21 +101,36 @@ class ItemController extends Controller
     public function all()
     {
         // Get distinct categories from items
-        $categories = Item::select('item_grpcode', 'item_grpdesc')
+        $categories = MenuItem::select('item_grpcode','category as item_grpdesc')
         ->whereNotNull('item_grpcode')
         ->distinct()
         ->orderBy('item_grpcode')
         ->get();
 
-                       // echo"<pre>";print_r($categories);die;
+    //    $categories = Item::select('item_grpcode', 'item_grpdesc')
+    //     ->whereNotNull('item_grpcode')
+    //     ->distinct()
+    //     ->orderBy('item_grpcode')
+    //     ->get();
+
+                    
     
         $firstCategory = $categories->first();
+
+      
     
         // Get items for the first category
-        $items = Item::select('item_desc', 'item_code', 'rest_code', 'item_rate', 'item_status', 'start_time', 'end_time')
-                    ->where('item_grpcode', $firstCategory)
-                    ->orderBy('item_desc')
-                    ->get();
+        // $items = Item::select('item_desc', 'item_code', 'rest_code', 'item_rate', 'item_status', 'start_time', 'end_time')
+        //             ->where('item_grpcode', $firstCategory)
+        //             ->orderBy('item_desc')
+        //             ->get();
+
+        $items = DB::table('menu_items')->select('item_name as item_desc', 'item_code', 'rounded_price as item_rate','veg_nonveg')
+        ->where('item_grpcode', $firstCategory)
+        ->orderBy('item_name')
+        ->get();
+
+        // $firstCategory = null;
     
         return response()->json([
             'categories' => $categories,
@@ -964,11 +1025,9 @@ class ItemController extends Controller
     $taxes = 0;
 
     foreach ($cart as $item) {
-        $item_gst = DB::table('item_master')
-            ->where('group_code', $group_code)
-            ->where('rest_code', $rest_code)
+        $item_gst = DB::table('menu_items')
             ->where('item_code', $item['id'])
-            ->value('item_gst');
+            ->value('gst_rate');
 
         $line_amt = isset($item['qty']) 
             ? $item['qty'] * $item['price'] 
@@ -1054,11 +1113,9 @@ class ItemController extends Controller
 
     foreach ($cart as $item) {
 
-        $item_gst = DB::table('item_master')
-            ->where('group_code', $group_code)
-            ->where('rest_code', $rest_code)
+        $item_gst = DB::table('menu_items')
             ->where('item_code', $item['id'])
-            ->value('item_gst');
+            ->value('gst_rate');
 
         $item_amt = isset($item['qty']) 
             ? $item['qty'] * $item['price'] 
@@ -1089,8 +1146,8 @@ class ItemController extends Controller
 
         $date = date('Y-m-d');
         $dt_data = DB::table('order_dt')
-        ->select('order_dt.*', 'item_master.item_desc', 'item_master.item_hdesc', 'item_master.item_gst as igst','item_master.item_rate','item_master.store')
-        ->join('item_master', 'order_dt.item_code', '=', 'item_master.item_code')
+        ->select('order_dt.*', 'menu_items.item_name as item_desc', 'menu_items.item_name as item_hdesc', 'menu_items.gst_rate as igst','menu_items.rounded_price as item_rate','menu_items.store')
+        ->join('menu_items', 'order_dt.item_code', '=', 'menu_items.item_code')
         ->join('order_hd', 'order_dt.tran_no', '=', 'order_hd.tran_no')
         ->where('order_hd.tran_no', $tran_no)
         ->where('order_hd.tran_date',$date)
