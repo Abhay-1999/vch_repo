@@ -298,6 +298,20 @@ $admin = Auth::guard('admin')->user();
 
         </li>
 
+        
+        <li>
+
+            <a class="dropdown-item"
+               href="{{ route('wastage.report') }}">
+
+                <i class="bi bi-speedometer2 me-2"></i>
+
+               Ingredient Usage
+
+            </a>
+
+        </li>
+
     </ul>
 
 </li>

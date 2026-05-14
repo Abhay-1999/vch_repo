@@ -114,6 +114,12 @@ Route::get(
     [YieldWastageController::class, 'index']
 )->name('yield.wastage.report');
 
+Route::get(
+    '/wastage-report',
+    [YieldWastageController::class, 'ingredientWastageReport']
+)->name('wastage.report');
+
+
 Route::resource(
     'menu-engineering',
     MenuEngineeringController::class

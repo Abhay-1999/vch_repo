@@ -2,85 +2,231 @@
 
 @section('content')
 
-<div class="container">
+<style>
+
+    .report-table th{
+        background:#1f3b73;
+        color:#fff;
+        text-align:center;
+        vertical-align:middle;
+        font-size:14px;
+    }
+
+    .report-table td{
+        font-size:13px;
+        vertical-align:middle;
+    }
+
+    .star{
+        background:#f3d46b;
+        font-weight:700;
+    }
+
+    .puzzle{
+        background:#d9c7ff;
+        font-weight:700;
+        color:#6f42c1;
+    }
+
+    .plowhorse{
+        background:#cfe2ff;
+        font-weight:700;
+        color:#0d47a1;
+    }
+
+    .dog{
+        background:#f8c8c8;
+        font-weight:700;
+        color:#c00000;
+    }
+
+    .legend-title{
+        background:#c99700;
+        color:#fff;
+        font-weight:700;
+    }
+
+</style>
+
+<div class="container-fluid">
 
     <div class="card shadow">
 
-        <div class="card-header bg-info text-white">
-            <h4>Menu Engineering Report</h4>
+        <div class="card-header text-white"
+             style="background:#1f3b73;">
+
+            <h4 class="mb-0">
+                Menu Engineering Report
+            </h4>
+
         </div>
 
         <div class="card-body">
 
-            <table class="table table-bordered">
+            <div class="table-responsive">
 
-                <thead class="table-dark">
+                <table class="table table-bordered report-table">
 
-                    <tr>
+                    <thead>
 
-                        <th>Item</th>
-                        <th>Qty Sold</th>
-                        <th>Sales Mix %</th>
-                        <th>Contribution Margin</th>
-                        <th>Class</th>
+                        <tr>
 
-                    </tr>
+                            <th>Item Code</th>
+                            <th>Item Name</th>
+                            <th>Units Sold<br>(period)</th>
+                            <th>Plate Cost (Rs)</th>
+                            <th>Selling Price ex GST (Rs)</th>
+                            <th>Contribution Margin (Rs)</th>
+                            <th>Total Sales (Rs)</th>
+                            <th>Total Cost (Rs)</th>
+                            <th>Total Margin (Rs)</th>
+                            <th>Sales Mix %</th>
+                            <th>Margin Mix %</th>
+                            <th>Popularity</th>
+                            <th>Profitability</th>
+                            <th>Classification</th>
+                            <th>Action</th>
 
-                </thead>
+                        </tr>
 
-                <tbody>
+                    </thead>
 
-                    @foreach($report as $row)
+                    <tbody>
 
-                    <tr>
+                        @php
+                            $grandSales = 0;
+                            $grandCost = 0;
+                            $grandMargin = 0;
+                        @endphp
 
-                        <td>{{ $row['item_name'] }}</td>
+                        @foreach($report as $row)
 
-                        <td>{{ $row['qty_sold'] }}</td>
+                        @php
+                            $grandSales += $row['total_sales'];
+                            $grandCost += $row['total_cost'];
+                            $grandMargin += $row['total_margin'];
+                        @endphp
 
-                        <td>{{ $row['sales_mix'] }}</td>
+                        <tr>
 
-                        <td>
-                            ₹ {{ number_format($row['contribution_margin'],2) }}
-                        </td>
+                            <td>{{ $row['item_code'] }}</td>
 
-                        <td>
+                            <td>{{ $row['item_name'] }}</td>
 
-                            @if($row['menu_class'] == 'STAR')
+                            <td class="text-end">
+                                {{ $row['units_sold'] }}
+                            </td>
 
-                                <span class="badge bg-success">
-                                    STAR
-                                </span>
+                            <td class="text-end">
+                                {{ number_format($row['plate_cost'],2) }}
+                            </td>
 
-                            @elseif($row['menu_class'] == 'PUZZLE')
+                            <td class="text-end">
+                                {{ number_format($row['selling_price'],2) }}
+                            </td>
 
-                                <span class="badge bg-warning">
-                                    PUZZLE
-                                </span>
+                            <td class="text-end">
+                                {{ number_format($row['contribution_margin'],2) }}
+                            </td>
 
-                            @elseif($row['menu_class'] == 'PLOWHORSE')
+                            <td class="text-end">
+                                {{ number_format($row['total_sales'],2) }}
+                            </td>
 
-                                <span class="badge bg-primary">
-                                    PLOWHORSE
-                                </span>
+                            <td class="text-end">
+                                {{ number_format($row['total_cost'],2) }}
+                            </td>
 
-                            @else
+                            <td class="text-end">
+                                {{ number_format($row['total_margin'],2) }}
+                            </td>
 
-                                <span class="badge bg-danger">
-                                    DOG
-                                </span>
+                            <td class="text-end">
+                                {{ $row['sales_mix'] }}%
+                            </td>
 
-                            @endif
+                            <td class="text-end">
+                                {{ $row['margin_mix'] }}%
+                            </td>
 
-                        </td>
+                            <td>
+                                {{ $row['popularity'] }}
+                            </td>
 
-                    </tr>
+                            <td>
+                                {{ $row['profitability'] }}
+                            </td>
 
-                    @endforeach
+                            <td
+                                class="
+                                @if($row['classification']=='STAR')
+                                    star
+                                @elseif($row['classification']=='PUZZLE')
+                                    puzzle
+                                @elseif($row['classification']=='PLOWHORSE')
+                                    plowhorse
+                                @else
+                                    dog
+                                @endif
+                                "
+                            >
+                                {{ $row['classification'] }}
+                            </td>
 
-                </tbody>
+                            <td>
+                                {{ $row['action'] }}
+                            </td>
 
-            </table>
+                        </tr>
+
+                        @endforeach
+
+                        <tr style="font-weight:700;">
+
+                            <td></td>
+
+                            <td>TOTAL</td>
+
+                            <td class="text-end">
+                                {{ $totalUnitsSold }}
+                            </td>
+
+                            <td></td>
+                            <td></td>
+                            <td></td>
+
+                            <td class="text-end">
+                                {{ number_format($grandSales,2) }}
+                            </td>
+
+                            <td class="text-end">
+                                {{ number_format($grandCost,2) }}
+                            </td>
+
+                            <td class="text-end">
+                                {{ number_format($grandMargin,2) }}
+                            </td>
+
+                            <td class="text-end">
+                                100.0%
+                            </td>
+
+                            <td class="text-end">
+                                100.0%
+                            </td>
+
+                            <td colspan="4"></td>
+
+                        </tr>
+
+                    </tbody>
+
+                </table>
+
+            </div>
+
+            <br>
+
 
         </div>
 
