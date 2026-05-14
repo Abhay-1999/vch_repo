@@ -7,75 +7,350 @@ use Illuminate\Support\Facades\DB;
 
 class YieldWastageController extends Controller
 {
-    public function index()
-    {
+   public function index()
+{
 
-        $reports = DB::table('ingredient_masters')
+    $reports = DB::table('ingredient_masters')
 
-            ->select(
+        ->select(
 
-                'ingredient_code',
+            'ingredient_code',
+            'ingredient_name',
+            'purchase_uom',
+            'purchase_cost',
+            'yield_percent',
+            'wastage_allowance_percent',
+            'supplier',
+            'remarks',
+            'last_updated',
 
-                'ingredient_name',
+            // AP WEIGHT IN GM
+            DB::raw('
+                ROUND(
+                    CASE
 
-                'purchase_qty as ap_weight',
+                        WHEN LOWER(purchase_uom) = "kg"
+                        THEN purchase_qty * 1000
 
-                DB::raw('ROUND((purchase_qty * wastage_allowance_percent / 100),3) as trim_loss'),
+                        WHEN LOWER(purchase_uom) = "ltr"
+                        THEN purchase_qty * 1000
 
-                DB::raw('ROUND((purchase_qty * (100 - yield_percent) / 100),3) as cooking_loss'),
+                        ELSE purchase_qty
 
-                DB::raw('ROUND((purchase_qty * yield_percent / 100),3) as ep_weight'),
+                    END
+                ,2) as ap_weight
+            '),
 
-                'yield_percent',
+            // EP WEIGHT
+            DB::raw('
+                ROUND(
+                    (
+                        CASE
 
-                'purchase_cost as ap_cost',
+                            WHEN LOWER(purchase_uom) = "kg"
+                            THEN purchase_qty * 1000
 
-                DB::raw('
-                    ROUND(
-                        purchase_cost /
-                        NULLIF((purchase_qty * yield_percent / 100),0)
-                    ,9)
-                    as ep_cost_per_gm
-                '),
+                            WHEN LOWER(purchase_uom) = "ltr"
+                            THEN purchase_qty * 1000
 
-                DB::raw('
-                    ROUND(
-                        purchase_cost /
-                        NULLIF(purchase_qty,0)
-                    ,9)
-                    as ap_cost_per_gm
-                '),
+                            ELSE purchase_qty
 
-                DB::raw('
-                    ROUND(
+                        END
+                    )
+                    *
+                    (yield_percent / 100)
+                ,2) as ep_weight
+            '),
+
+            // TOTAL LOSS
+            DB::raw('
+                ROUND(
+                    (
+                        CASE
+
+                            WHEN LOWER(purchase_uom) = "kg"
+                            THEN purchase_qty * 1000
+
+                            WHEN LOWER(purchase_uom) = "ltr"
+                            THEN purchase_qty * 1000
+
+                            ELSE purchase_qty
+
+                        END
+                    )
+                    -
+                    (
                         (
-                            purchase_cost /
-                            NULLIF((purchase_qty * yield_percent / 100),0)
+                            CASE
+
+                                WHEN LOWER(purchase_uom) = "kg"
+                                THEN purchase_qty * 1000
+
+                                WHEN LOWER(purchase_uom) = "ltr"
+                                THEN purchase_qty * 1000
+
+                                ELSE purchase_qty
+
+                            END
                         )
+                        *
+                        (yield_percent / 100)
+                    )
+                ,2) as total_loss
+            '),
+
+            // TRIM LOSS
+            DB::raw('
+                ROUND(
+                    (
+                        CASE
+
+                            WHEN LOWER(purchase_uom) = "kg"
+                            THEN purchase_qty * 1000
+
+                            WHEN LOWER(purchase_uom) = "ltr"
+                            THEN purchase_qty * 1000
+
+                            ELSE purchase_qty
+
+                        END
+                    )
+                    *
+                    (wastage_allowance_percent / 100)
+                ,2) as trim_loss
+            '),
+
+            // COOKING LOSS
+            DB::raw('
+                ROUND(
+                    (
+                        (
+                            CASE
+
+                                WHEN LOWER(purchase_uom) = "kg"
+                                THEN purchase_qty * 1000
+
+                                WHEN LOWER(purchase_uom) = "ltr"
+                                THEN purchase_qty * 1000
+
+                                ELSE purchase_qty
+
+                            END
+                        )
+                        -
+                        (
+                            (
+                                CASE
+
+                                    WHEN LOWER(purchase_uom) = "kg"
+                                    THEN purchase_qty * 1000
+
+                                    WHEN LOWER(purchase_uom) = "ltr"
+                                    THEN purchase_qty * 1000
+
+                                    ELSE purchase_qty
+
+                                END
+                            )
+                            *
+                            (yield_percent / 100)
+                        )
+                    )
+                    -
+                    (
+                        (
+                            CASE
+
+                                WHEN LOWER(purchase_uom) = "kg"
+                                THEN purchase_qty * 1000
+
+                                WHEN LOWER(purchase_uom) = "ltr"
+                                THEN purchase_qty * 1000
+
+                                ELSE purchase_qty
+
+                            END
+                        )
+                        *
+                        (wastage_allowance_percent / 100)
+                    )
+                ,2) as cooking_loss
+            '),
+
+            // AP COST
+            DB::raw('
+                ROUND(
+                    purchase_cost
+                ,2) as ap_cost
+            '),
+
+            // AP COST PER GM
+            DB::raw('
+                ROUND(
+                    purchase_cost
+                    /
+                    NULLIF(
+                        (
+                            CASE
+
+                                WHEN LOWER(purchase_uom) = "kg"
+                                THEN purchase_qty * 1000
+
+                                WHEN LOWER(purchase_uom) = "ltr"
+                                THEN purchase_qty * 1000
+
+                                ELSE purchase_qty
+
+                            END
+                        )
+                    ,0)
+                ,9) as ap_cost_per_gm
+            '),
+
+            // EP COST PER GM
+            DB::raw('
+                ROUND(
+                    purchase_cost
+                    /
+                    NULLIF(
+                        (
+                            (
+                                CASE
+
+                                    WHEN LOWER(purchase_uom) = "kg"
+                                    THEN purchase_qty * 1000
+
+                                    WHEN LOWER(purchase_uom) = "ltr"
+                                    THEN purchase_qty * 1000
+
+                                    ELSE purchase_qty
+
+                                END
+                            )
+                            *
+                            (yield_percent / 100)
+                        )
+                    ,0)
+                ,9) as ep_cost_per_gm
+            '),
+
+            // COST INCREASE FACTOR
+            DB::raw('
+                ROUND(
+                    (
+                        purchase_cost
                         /
-                        (
-                            purchase_cost /
-                            NULLIF(purchase_qty,0)
-                        )
-                    ,3)
-                    as cost_increase_factor
-                '),
+                        NULLIF(
+                            (
+                                (
+                                    CASE
 
-                'supplier',
+                                        WHEN LOWER(purchase_uom) = "kg"
+                                        THEN purchase_qty * 1000
 
-                'last_updated',
+                                        WHEN LOWER(purchase_uom) = "ltr"
+                                        THEN purchase_qty * 1000
 
-                'remarks'
+                                        ELSE purchase_qty
 
-            )
+                                    END
+                                )
+                                *
+                                (yield_percent / 100)
+                            )
+                        ,0)
+                    )
+                    /
+                    (
+                        purchase_cost
+                        /
+                        NULLIF(
+                            (
+                                CASE
 
-            ->orderBy('ingredient_name')
+                                    WHEN LOWER(purchase_uom) = "kg"
+                                    THEN purchase_qty * 1000
 
-            ->get();
+                                    WHEN LOWER(purchase_uom) = "ltr"
+                                    THEN purchase_qty * 1000
 
-        return view(
-            'yield_wastage.index',
-            compact('reports')
-        );
-    }
+                                    ELSE purchase_qty
+
+                                END
+                            )
+                        ,0)
+                    )
+                ,3) as cost_increase_factor
+            ')
+
+        )
+
+        ->orderBy('ingredient_name')
+
+        ->get();
+
+    return view(
+        'yield_wastage.index',
+        compact('reports')
+    );
+}
+
+
+public function ingredientWastageReport()
+{
+    $reports = DB::table('recipe_items as ri')
+
+        // MENU ITEMS
+        ->leftJoin(
+            'menu_items as mi',
+            'ri.menu_item_id',
+            '=',
+            'mi.id'
+        )
+
+        // INGREDIENT MASTER
+        ->leftJoin('ingredient_masters as im', function ($join) {
+
+            $join->on(
+                DB::raw('ri.component_name COLLATE utf8mb4_unicode_ci'),
+                '=',
+                DB::raw('im.ingredient_name COLLATE utf8mb4_unicode_ci')
+            );
+
+        })
+
+        ->select(
+
+            'mi.item_name',
+
+            'ri.component_name as ingredient_name',
+
+            'ri.quantity as used_qty',
+
+            'im.purchase_qty',
+
+            // REMAINING
+            DB::raw('
+                ROUND(
+                    IFNULL(im.purchase_qty,0)
+                    -
+                    IFNULL(ri.quantity,0),
+                2)
+                as remaining_qty
+            ')
+        )
+
+        ->where('ri.component_type', 'INGREDIENT')
+
+        ->orderBy('mi.item_name')
+
+        ->get();
+
+    return view(
+        'yield_wastage.Ingredient',
+        compact('reports')
+    );
+}
+
+
 }

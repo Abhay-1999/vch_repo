@@ -4,78 +4,162 @@ namespace App\Http\Controllers;
 
 use App\Models\MenuItem;
 use App\Models\Sale;
-
+use Illuminate\Support\Facades\DB;
 class MenuEngineeringController extends Controller
 {
-    public function index()
+        public function index()
     {
         $items = MenuItem::all();
 
-        $totalQtySold = Sale::sum('qty_sold');
+        // Total Units Sold
+        $totalUnitsSold = DB::table('order_dt')
+            ->sum('item_qty');
 
-        $avgContribution = MenuItem::avg('contribution_margin');
+        // Total Margin
+        $totalMarginAll = 0;
 
-        $report = [];
+        $tempRows = [];
 
         foreach ($items as $item) {
 
-            $qtySold = Sale::where(
-                'menu_item_id',
-                $item->id
-            )->sum('qty_sold');
+            // Units Sold
+            $unitsSold = DB::table('order_dt')
+                ->where('item_code', $item->item_code)
+                ->sum('item_qty');
 
+            // Selling Price ex GST
+            $sellingPrice = $item->actual_price ?? 0;
+
+            // Plate Cost
+            $plateCost = $item->plate_cost ?? 0;
+
+            // Contribution Margin
+            $contributionMargin = $sellingPrice - $plateCost;
+
+            // Total Sales
+            $totalSales = $unitsSold * $sellingPrice;
+
+            // Total Cost
+            $totalCost = $unitsSold * $plateCost;
+
+            // Total Margin
+            $totalMargin = $totalSales - $totalCost;
+
+            $totalMarginAll += $totalMargin;
+
+            $tempRows[] = [
+                'item_code' => $item->item_code,
+                'item_name' => $item->item_name,
+                'units_sold' => $unitsSold,
+                'plate_cost' => $plateCost,
+                'selling_price' => $sellingPrice,
+                'contribution_margin' => $contributionMargin,
+                'total_sales' => $totalSales,
+                'total_cost' => $totalCost,
+                'total_margin' => $totalMargin,
+            ];
+        }
+
+        // Average values
+        $avgSalesMix = 100 / max(count($items), 1);
+
+        $avgMargin = 0;
+
+        if(count($items) > 0){
+            $avgMargin = collect($tempRows)->avg('contribution_margin');
+        }
+
+        $report = [];
+
+        foreach ($tempRows as $row) {
+
+            // Sales Mix %
             $salesMix = 0;
 
-            if($totalQtySold > 0){
-                $salesMix = ($qtySold / $totalQtySold) * 100;
+            if($totalUnitsSold > 0){
+                $salesMix = ($row['units_sold'] / $totalUnitsSold) * 100;
             }
 
-            $popularityStatus = 'LOW';
+            // Margin Mix %
+            $marginMix = 0;
 
-            if($salesMix >= 70){
-                $popularityStatus = 'HIGH';
+            if($totalMarginAll > 0){
+                $marginMix = ($row['total_margin'] / $totalMarginAll) * 100;
             }
 
-            $profitStatus = 'LOW';
+            // Popularity
+            $popularity = $salesMix >= $avgSalesMix
+                ? 'HIGH'
+                : 'LOW';
 
-            if($item->contribution_margin >= $avgContribution){
-                $profitStatus = 'HIGH';
+            // Profitability
+            $profitability = $row['contribution_margin'] >= $avgMargin
+                ? 'HIGH'
+                : 'LOW';
+
+            // Classification
+            $classification = '';
+            $action = '';
+
+            if($popularity == 'HIGH' && $profitability == 'HIGH') {
+
+                $classification = 'STAR';
+
+                $action =
+                    'Maintain quality, feature on menu prominently';
+
             }
+            elseif($popularity == 'LOW' && $profitability == 'HIGH') {
 
-            $menuClass = '';
+                $classification = 'PUZZLE';
 
-            if($popularityStatus == 'HIGH' &&
-                $profitStatus == 'HIGH'){
+                $action =
+                    'Reposition / promote / rename / re-photograph';
 
-                $menuClass = 'STAR';
             }
-            elseif($popularityStatus == 'LOW' &&
-                $profitStatus == 'HIGH'){
+            elseif($popularity == 'HIGH' && $profitability == 'LOW') {
 
-                $menuClass = 'PUZZLE';
-            }
-            elseif($popularityStatus == 'HIGH' &&
-                $profitStatus == 'LOW'){
+                $classification = 'PLOWHORSE';
 
-                $menuClass = 'PLOWHORSE';
+                $action =
+                    'Re-engineer recipe to cut cost, or raise price gently';
+
             }
-            else{
-                $menuClass = 'DOG';
+            else {
+
+                $classification = 'DOG';
+
+                $action =
+                    'Consider removing from menu or re-conceive';
             }
 
             $report[] = [
-                'item_name' => $item->item_name,
-                'qty_sold' => $qtySold,
-                'sales_mix' => round($salesMix,2),
-                'contribution_margin' =>
-                    round($item->contribution_margin,2),
-                'menu_class' => $menuClass,
+
+                'item_code' => $row['item_code'],
+                'item_name' => $row['item_name'],
+                'units_sold' => $row['units_sold'],
+                'plate_cost' => $row['plate_cost'],
+                'selling_price' => $row['selling_price'],
+                'contribution_margin' => $row['contribution_margin'],
+                'total_sales' => $row['total_sales'],
+                'total_cost' => $row['total_cost'],
+                'total_margin' => $row['total_margin'],
+                'sales_mix' => round($salesMix,1),
+                'margin_mix' => round($marginMix,1),
+                'popularity' => $popularity,
+                'profitability' => $profitability,
+                'classification' => $classification,
+                'action' => $action,
             ];
         }
 
         return view(
             'menu_engineering.index',
-            compact('report')
+            compact(
+                'report',
+                'totalUnitsSold',
+                'totalMarginAll'
+            )
         );
     }
 }
