@@ -17,7 +17,8 @@ class SubRecipeItem extends Model
         'ingredient_id',
         'quantity_used',
         'costing_rate',
-        'line_cost'
+        'line_cost',
+        'base_uom'
 
     ];
 

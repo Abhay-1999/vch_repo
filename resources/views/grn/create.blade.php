@@ -137,13 +137,13 @@
                   <label class="form-label">Material Code</label>
                   <select name="material_code"
                      id="material_code"
-                     class="form-select @error('material_code') is-invalid @enderror">
+                     class="form-select @error('ingredient_code') is-invalid @enderror">
                      <option value="">Select Material</option>
                      @foreach($materials as $material)
-                     <option value="{{ $material->material_code }}"
-                     data-name="{{ $material->material_name }}"
-                     {{ old('material_code') == $material->material_code ? 'selected' : '' }}>
-                     {{ $material->material_code }}
+                     <option value="{{ $material->ingredient_code }}"
+                     data-name="{{ $material->ingredient_name }}"
+                     {{ old('material_code') == $material->ingredient_code ? 'selected' : '' }}>
+                     {{ $material->ingredient_code }}
                      </option>
                      @endforeach
                   </select>
@@ -156,9 +156,9 @@
                   <input type="text"
                      name="material_name"
                      id="material_name"
-                     value="{{ old('material_name') }}"
+                     value="{{ old('ingredient_name') }}"
                      readonly
-                     class="form-control @error('material_name') is-invalid @enderror">
+                     class="form-control @error('ingredient_name') is-invalid @enderror">
                   @error('material_name')
                   <small class="text-danger">{{ $message }}</small>
                   @enderror

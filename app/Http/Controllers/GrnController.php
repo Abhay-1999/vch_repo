@@ -8,6 +8,7 @@ use App\Models\GrnItem;
 use DB;
 use App\Models\RawMaterialMaster;
 use App\Models\SupplierMaster;
+use App\Models\IngredientMaster;
 
 
 class GrnController extends Controller
@@ -36,22 +37,21 @@ class GrnController extends Controller
 
             $grn_no = 'GRN001';
         }
-
-        // MATERIALS
-        $materials = RawMaterialMaster::select(
-                        'material_code',
-                        'material_name'
-                    )->get();
+        // INGREDIENTS
+        $materials = IngredientMaster::select(
+                            'ingredient_code',
+                            'ingredient_name'
+                        )->get();
             // SUPPLIERS
             $suppliers = SupplierMaster::select(
                             'supplier_id',
                             'supplier_name'
                         )->get();
 
-// echo "<pre>";
-// print_r($suppliers->toArray());
-// die;
-                                
+        // echo "<pre>";
+        // print_r($suppliers->toArray());
+        // die;
+                                        
         return view('grn.create', compact(
             'grn_no',
             'materials',
@@ -59,59 +59,63 @@ class GrnController extends Controller
         ));
     }
     
-    public function store(Request $request)
-    {
 
+        public function store(Request $request)
+    {
         $request->validate([
 
-        'grn_no'         => 'required|unique:grn_headers,grn_no',
+            'grn_no'         => 'required|unique:grn_headers,grn_no',
 
-        'grn_date'       => 'required|date',
+            'grn_date'       => 'required|date',
 
-        'invoice_no'     => 'required',
+            'invoice_no'     => 'required',
 
-        'supplier_name'  => 'required',
+            'supplier_name'  => 'required',
 
-        'material_code'  => 'required',
+            'material_code'  => 'required',
 
-        'material_name'  => 'required',
+            'material_name'  => 'required',
 
-        'purchase_qty'   => 'required|numeric|min:0',
+            'purchase_qty'   => 'required|numeric|min:0',
 
-        'purchase_uom'   => 'required',
+            'purchase_uom'   => 'required',
 
-        'rate'           => 'required|numeric|min:0',
+            'rate'           => 'required|numeric|min:0',
 
-        'total_amount'   => 'required|numeric|min:0',
+            'total_amount'   => 'required|numeric|min:0',
 
-    ], [
+        ], [
 
-        'grn_no.required'        => 'GRN No is required',
-        'grn_no.unique'          => 'GRN No already exists',
+            'grn_no.required'        => 'GRN No is required',
+            'grn_no.unique'          => 'GRN No already exists',
 
-        'grn_date.required'      => 'GRN Date is required',
+            'grn_date.required'      => 'GRN Date is required',
 
-        'invoice_no.required'    => 'Invoice No is required',
+            'invoice_no.required'    => 'Invoice No is required',
 
-        'supplier_name.required' => 'Supplier Name is required',
+            'supplier_name.required' => 'Supplier Name is required',
 
-        'material_code.required' => 'Material Code is required',
+            'material_code.required' => 'Material Code is required',
 
-        'material_name.required' => 'Material Name is required',
+            'material_name.required' => 'Material Name is required',
 
-        'purchase_qty.required'  => 'Purchase Quantity is required',
+            'purchase_qty.required'  => 'Purchase Quantity is required',
 
-        'purchase_uom.required'  => 'Purchase UOM is required',
+            'purchase_uom.required'  => 'Purchase UOM is required',
 
-        'rate.required'          => 'Rate is required',
+            'rate.required'          => 'Rate is required',
 
-        'total_amount.required'  => 'Total Amount is required',
+            'total_amount.required'  => 'Total Amount is required',
 
-    ]);
+        ]);
 
         DB::beginTransaction();
 
         try {
+
+            // =====================================
+            // GRN HEADER SAVE
+            // =====================================
 
             $header = GrnHeader::create([
 
@@ -135,7 +139,6 @@ class GrnController extends Controller
 
                 'remark'               => $request->remarks,
 
-                // totals
                 'total_taxable_value'  => $request->taxable_value,
                 'total_gst_amount'     => $request->total_gst,
                 'total_other_charges'  => $request->other_charges,
@@ -143,6 +146,10 @@ class GrnController extends Controller
                 'item_count'           => 1,
 
             ]);
+
+            // =====================================
+            // GRN ITEM SAVE
+            // =====================================
 
             GrnItem::create([
 
@@ -208,11 +215,75 @@ class GrnController extends Controller
 
             ]);
 
+        // =====================================
+        // RAW MATERIAL MASTER UPDATE
+        // =====================================
+
+        $material = RawMaterialMaster::where(
+            'material_code',
+            $request->material_code
+        )->first();
+
+        if ($material) {
+
+            $oldQty = $material->reorder_quantity ?? 0;
+
+            $newQty = $oldQty + $request->base_qty;
+
+            $material->update([
+
+                // REPLACE / UPDATE
+
+                'purchase_uom'        => $request->purchase_uom,
+
+                'conversion_factor'   => $request->conversion_factor,
+
+                'base_uom'            => $request->base_uom,
+
+                'gst_rate'            => $request->gst_rate,
+
+                'standard_cost'       => $request->effective_cost,
+
+                'mrp'                 => $request->rate,
+
+                'storage_location'    => $request->storage_location,
+
+                'primary_supplier_id' => $request->supplier_id,
+
+                'remarks'             => $request->remarks,
+
+                // PLUS
+                'reorder_quantity'    => $newQty,
+
+                'last_updated'        => now()->toDateString(),
+
+            ]);
+        }
+
+        // =====================================
+        // INGREDIENT MASTER UPDATE
+        // =====================================
+
+        IngredientMaster::where(
+            'ingredient_code',
+            $request->material_code
+        )->update([
+
+            // Current stock increase
+            'current_stock' => DB::raw(
+                'IFNULL(current_stock,0) + ' . $request->base_qty
+            ),
+
+            // Minimum stock
+            'min_stock' => $request->base_qty,
+
+        ]);
+
             DB::commit();
 
-        return redirect()
-        ->route('grn.index')
-        ->with('success', 'GRN Created Successfully');
+            return redirect()
+                ->route('grn.index')
+                ->with('success', 'GRN Created Successfully');
 
         } catch (\Exception $e) {
 
