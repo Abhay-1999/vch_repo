@@ -64,6 +64,9 @@ class SubRecipeController extends Controller
                 'sub_recipe_id' => $subRecipe->id,
                 'ingredient_id' => $ingredientId,
                 'quantity_used' => $qty,
+                // BASE UOM SAVE
+                'base_uom' => $request->base_uom[$key],
+
                 'costing_rate'  => $ingredient->costing_rate,
                 'line_cost'     => $lineCost,
             ]);
