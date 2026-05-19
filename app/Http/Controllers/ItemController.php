@@ -20,6 +20,7 @@ use App\Models\RawMaterial;
 use App\Models\Recipe;
 use App\Models\RecipeItem;
 use App\Models\MenuItem;
+use App\Services\InventoryService;
 
 
 
@@ -1136,6 +1137,12 @@ class ItemController extends Controller
             'item_gst' => $reverseamt['gst'],
             'tran_date' => date('Y-m-d')
         ]);
+
+        InventoryService::deductStock(
+            $item['id'],
+            $item['qty'],
+            $tran_no
+        );
 
       
     }

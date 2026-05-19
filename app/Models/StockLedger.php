@@ -8,23 +8,13 @@ class StockLedger extends Model
 {
 
     protected $fillable = [
-
         'material_id',
         'type',
+        'reference_no',
         'qty',
         'stock_before',
-        'stock_after',
-        'reference_no',
-        'remarks'
-
+        'stock_after'
     ];
 
-    public function material()
-    {
-
-        return $this->belongsTo(
-            RawMaterial::class,
-            'material_id'
-        );
-    }
+  
 }

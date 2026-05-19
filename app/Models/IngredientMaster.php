@@ -32,6 +32,8 @@ class IngredientMaster extends Model
 
         'supplier',
         'last_updated',
+        'current_stock',
+        'min_stock',
         'remarks',
     ];
 
