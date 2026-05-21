@@ -258,6 +258,10 @@ Route::get('reports/stock-ledger',[ReportController::class,'stockLedger']);
 Route::get('/get-item-stock/{item_code}', [PurchaseEntryController::class, 'getItemStock'])
      ->name('item.stock');
 
+     Route::get('yield-wastage/create',[YieldWastageController::class,'create'])->name('yield.create');
+Route::post('yield-wastage/store',[YieldWastageController::class,'store'])->name('yield.store');
+Route::get('yield-wastage/report',[YieldWastageController::class,'report'])->name('yield.report');
+
 
 
     Route::get('/store/pending-request', [PurchaseEntryController::class, 'pendingRequest'])->name('store.pending.request');
