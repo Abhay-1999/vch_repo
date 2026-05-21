@@ -297,6 +297,30 @@ $admin = Auth::guard('admin')->user();
             </a>
 
         </li>
+          <li>
+
+            <a class="dropdown-item"
+               href="{{ route('yield.create') }}">
+
+                <i class="bi bi-speedometer2 me-2"></i>
+
+                Yield & Wastage Create 
+
+            </a>
+
+        </li>
+          <li>
+
+            <a class="dropdown-item"
+               href="{{ route('yield.report') }}">
+
+                <i class="bi bi-speedometer2 me-2"></i>
+
+                Yield & Wastage Report 
+
+            </a>
+
+        </li>
 
         
         <li>
