@@ -392,6 +392,23 @@ $admin = Auth::guard('admin')->user();
                             <li><a class="dropdown-item" href="{{ route('cancel_form') }}"><i class="bi bi-file-earmark-bar-graph me-2"></i>Cancel Register</a></li>
                         </ul>
                     </li>
+
+
+
+                            
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle d-flex justify-content-between align-items-center"
+                        href="#" id="dropdownReports" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                            <span> <i class="bi bi-percent me-2"></i><span>Discount Module</span>
+                        </a>
+                        <ul class="dropdown-menu" aria-labelledby="dropdownReports">
+                            <li><a class="dropdown-item" href="{{ route('discount-master.index') }}"><i class="bi bi-file-earmark-bar-graph me-2"></i> <span>Discount Master</span></a></li>
+                            <li><a class="dropdown-item" href="{{ route('discount-conditions.index') }}"><i class="bi bi-file-earmark-bar-graph me-2"></i>Discount Conditions</a></li>
+                            <li><a class="dropdown-item" href="#"><i class="bi bi-file-earmark-bar-graph me-2"></i>Coupon Codes</a></li>
+                            <li><a class="dropdown-item" href="#"><i class="bi bi-file-earmark-text me-2"></i>Customer Loyalty Tiers</a></li>
+                           
+                        </ul>
+                    </li>
                 @else
                     <a class="nav-link {{ request()->routeIs('orders.index') ? 'active' : '' }}" href="{{ route('orders.index') }}">
                         <i class="bi bi-bag-fill me-2"></i><span>All Orders</span>
@@ -407,6 +424,9 @@ $admin = Auth::guard('admin')->user();
                     </a> -->
                 @endif
             </li>
+
+
+
             <li class="nav-item mt-4">
                 <form action="{{ route('admin.logout') }}" method="POST">
                     @csrf

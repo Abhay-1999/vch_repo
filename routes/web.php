@@ -29,6 +29,8 @@ use App\Http\Controllers\RecipeCostController;
 use App\Http\Controllers\MenuPricingController;
 use App\Http\Controllers\ContributionMarginController;
 use App\Http\Controllers\MenuEngineeringController;
+use App\Http\Controllers\DiscountMasterController;
+use App\Http\Controllers\DiscountConditionController;
 
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -86,7 +88,8 @@ Route::get('/fssai', function () {
 
 Route::prefix('admin')->group(function () {
 
-    Route::resource('grn', GrnController::class);
+Route::resource('grn', GrnController::class);
+Route::resource('grn', GrnController::class);
 
 
 Route::resource('menu-items', MenuItemController::class);
@@ -124,6 +127,21 @@ Route::resource(
     'menu-engineering',
     MenuEngineeringController::class
 );
+
+/*
+|--------------------------------------------------------------------------
+| Discount Master Routes
+|--------------------------------------------------------------------------
+*/
+
+Route::get('/discount-master',[DiscountMasterController::class, 'index'])->name('discount-master.index');
+Route::get('/discount-master/create',[DiscountMasterController::class, 'create'])->name('discount-master.create');
+Route::post('/discount-master/store',[DiscountMasterController::class, 'store'])->name('discount-master.store');
+
+
+Route::get('/discount-conditions',[DiscountConditionController::class, 'index'])->name('discount-conditions.index');
+Route::get('/discount-conditions/create',[DiscountConditionController::class, 'create'])->name('discount-conditions.create');
+Route::post('/discount-conditions/store',[DiscountConditionController::class, 'store'])->name('discount-conditions.store');
 
     Route::get('/supp-mast', [SupplierMasterController::class, 'index'])->name('supp_mast_form');
     Route::get('/create', [SupplierMasterController::class, 'create'])->name('supplier.create');
