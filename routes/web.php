@@ -29,6 +29,9 @@ use App\Http\Controllers\RecipeCostController;
 use App\Http\Controllers\MenuPricingController;
 use App\Http\Controllers\ContributionMarginController;
 use App\Http\Controllers\MenuEngineeringController;
+use App\Http\Controllers\CouponController;
+use App\Http\Controllers\CustomerTierController;
+
 
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -124,6 +127,10 @@ Route::resource(
     'menu-engineering',
     MenuEngineeringController::class
 );
+
+Route::resource('coupons', CouponController::class);
+Route::resource('tiers', CustomerTierController::class);
+
 
     Route::get('/supp-mast', [SupplierMasterController::class, 'index'])->name('supp_mast_form');
     Route::get('/create', [SupplierMasterController::class, 'create'])->name('supplier.create');

@@ -321,6 +321,22 @@ $admin = Auth::guard('admin')->user();
             </a>
 
         </li>
+          <li>
+
+              <a class="dropdown-item" href="{{ route('coupons.index') }}">
+        <i class="fa fa-ticket-alt"></i>
+        <span>Coupon Codes</span>
+    </a>
+
+        </li>
+            <li>
+
+              <a class="dropdown-item" href="{{ route('tiers.index') }}">
+        <i class="fas fa-layer-group"></i>
+        <span>Loyalty Tiers</span>
+    </a>
+
+        </li>
 
         
         <!-- <li>
