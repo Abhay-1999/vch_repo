@@ -323,7 +323,7 @@ $admin = Auth::guard('admin')->user();
         </li>
 
         
-        <li>
+        <!-- <li>
 
             <a class="dropdown-item"
                href="{{ route('wastage.report') }}">
@@ -334,7 +334,7 @@ $admin = Auth::guard('admin')->user();
 
             </a>
 
-        </li>
+        </li> -->
 
     </ul>
 
