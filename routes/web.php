@@ -33,6 +33,8 @@ use App\Http\Controllers\DiscountMasterController;
 use App\Http\Controllers\DiscountConditionController;
 use App\Http\Controllers\CouponController;
 use App\Http\Controllers\CustomerTierController;
+use App\Http\Controllers\DiscountApprovalRuleController;
+
 
 
 use Illuminate\Support\Facades\DB;
@@ -131,6 +133,9 @@ Route::resource(
     MenuEngineeringController::class
 );
 
+
+
+Route::resource('discount-rules', DiscountApprovalRuleController::class);
 /*
 |--------------------------------------------------------------------------
 | Discount Master Routes
