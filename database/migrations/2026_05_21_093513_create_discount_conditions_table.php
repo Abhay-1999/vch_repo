@@ -7,21 +7,27 @@ use Illuminate\Support\Facades\Schema;
 return new class extends Migration
 {
   
-     public function up(): void
+ public function up(): void
     {
-       Schema::create('discount_conditions', function (Blueprint $table) {
-    $table->id(); // PRIMARY KEY AUTO INCREMENT
+        Schema::create('discount_conditions', function (Blueprint $table) {
 
-    $table->string('condition_group_id'); // CND-0001 (GROUP ID)
+            // AUTO INCREMENT PRIMARY KEY
+            $table->bigIncrements('condition_id');
 
-    $table->string('discount_id', 12);
-    $table->string('condition_type', 30);
-    $table->string('operator', 10);
-    $table->string('value', 120);
-    $table->string('note', 160)->nullable();
+            // DISCOUNT CODE
+            $table->string('discount_id', 12);
 
-    $table->timestamps();
-});
+            // CONDITION DETAILS
+            $table->string('condition_type', 30);
+            $table->string('operator', 10);
+            $table->string('value', 120);
+
+            // OPTIONAL NOTE
+            $table->string('note', 160)->nullable();
+
+            // TIMESTAMPS
+            $table->timestamps();
+        });
     }
 
     /**

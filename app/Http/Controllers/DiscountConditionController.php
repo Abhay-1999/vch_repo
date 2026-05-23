@@ -4,61 +4,133 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\DiscountCondition;
-
+use App\Models\DiscountMaster;
 class DiscountConditionController extends Controller
 {
     public function index()
     {
       $conditions = DiscountCondition::with('discount')
-    ->orderBy('id', 'desc')
+    ->orderBy('condition_id', 'desc')
     ->get();
 
         return view('discount_conditions.index', compact('conditions'));
     }
+
+
     public function create()
     {
-        $last = \App\Models\DiscountCondition::whereNotNull('condition_group_id')
-            ->orderBy('id', 'desc')
-            ->first();
-
-        if (!$last) {
-            $newId = 'CND-0001';
-        } else {
-            $number = (int) str_replace('CND-', '', $last->condition_group_id);
-            $number++;
-            $newId = 'CND-' . str_pad($number, 4, '0', STR_PAD_LEFT);
-        }
 
         $discountMasters = \App\Models\DiscountMaster::select('discount_id', 'name', 'type')->get();
 
-        return view('discount_conditions.create', compact('newId', 'discountMasters'));
+        return view('discount_conditions.create', compact('discountMasters'));
     }
 
-
+    
     public function store(Request $request)
-{
-    $request->validate([
-        'condition_id'    => 'required',
-        'discount_id'     => 'required',
-        'condition_type'  => 'required|array',
-        'operator'        => 'required|array',
-        'value'           => 'required|array',
-    ]);
-
-    foreach ($request->condition_type as $i => $type) {
-
-        DiscountCondition::create([
-            'condition_group_id' => $request->condition_id, // FIXED (string only)
-            'discount_id'        => $request->discount_id,
-            'condition_type'     => $type,
-            'operator'           => $request->operator[$i] ?? null,
-            'value'              => $request->value[$i] ?? null,
-            'note'               => $request->note[$i] ?? null,
+    {
+        $request->validate([
+            'discount_id'    => 'required',
+            'condition_type' => 'required|array',
+            'operator'       => 'required|array',
+            'value'          => 'required|array',
         ]);
+
+        foreach ($request->condition_type as $i => $type) {
+
+            \App\Models\DiscountCondition::create([
+                'discount_id'    => $request->discount_id,
+                'condition_type' => $type,
+                'operator'       => $request->operator[$i] ?? null,
+                'value'          => $request->value[$i] ?? null,
+                'note'           => $request->note[$i] ?? null,
+            ]);
+        }
+
+             return redirect()
+                ->route('discount-conditions.index')
+                ->with(
+                    'success',
+                    'Saved successfully'
+                );
     }
 
-    return redirect()
-        ->route('discount-conditions.index')
-        ->with('success', 'Discount conditions saved successfully');
-}
+
+       /**
+     * EDIT
+     */
+    public function edit($id)
+    {
+        $firstCondition = DiscountCondition::findOrFail($id);
+
+        // Same discount_id ki saari rows
+        $conditions = DiscountCondition::where(
+            'discount_id',
+            $firstCondition->discount_id
+        )->get();
+
+        $discountMasters = DiscountMaster::select(
+            'discount_id',
+            'name',
+            'type'
+        )->get();
+
+        return view(
+            'discount_conditions.edit',
+            compact(
+                'conditions',
+                'discountMasters'
+            )
+        );
+    }
+
+    public function update(Request $request, $id)
+    {
+        $request->validate([
+            'discount_id'    => 'required',
+            'condition_type' => 'required|array',
+            'operator'       => 'required|array',
+            'value'          => 'required|array',
+        ]);
+
+        $firstCondition = DiscountCondition::findOrFail($id);
+
+        // OLD CONDITIONS DELETE
+        DiscountCondition::where(
+            'discount_id',
+            $firstCondition->discount_id
+        )->delete();
+
+        // NEW INSERT
+        foreach ($request->condition_type as $i => $type) {
+
+            DiscountCondition::create([
+
+                'discount_id'    => $request->discount_id,
+                'condition_type' => $type,
+                'operator'       => $request->operator[$i] ?? null,
+                'value'          => $request->value[$i] ?? null,
+                'note'           => $request->note[$i] ?? null,
+                'active'         => $request->active,
+
+            ]);
+        }
+
+        return redirect()
+            ->route('discount-conditions.index')
+            ->with('success', 'Conditions updated successfully');
+    }
+
+    public function destroy($id)
+    {
+        $condition = DiscountCondition::findOrFail($id);
+
+        DiscountCondition::where(
+            'discount_id',
+            $condition->discount_id
+        )->delete();
+
+        return redirect()
+            ->route('discount-conditions.index')
+            ->with('success', 'Conditions deleted successfully');
+    }
 }

@@ -124,6 +124,7 @@
                             <th>Status</th>
 
                             <th>Created Info</th>
+                            <th>Action</th>
 
                         </tr>
 
@@ -420,6 +421,37 @@
                                 </div>
 
                             </td>
+
+                            {{-- Action --}}
+<td class="text-center">
+
+    {{-- Edit --}}
+    <a href="{{ route('discount-master.edit', $discount->id) }}"
+       class="btn btn-sm btn-primary mb-1">
+
+        Edit
+
+    </a>
+
+    {{-- Delete --}}
+    <form action="{{ route('discount-master.destroy', $discount->id) }}"
+          method="POST"
+          style="display:inline-block;">
+
+        @csrf
+        @method('DELETE')
+
+        <button type="submit"
+                class="btn btn-sm btn-danger"
+                onclick="return confirm('Are you sure to delete this discount?')">
+
+            Delete
+
+        </button>
+
+    </form>
+
+</td>
 
                         </tr>
 

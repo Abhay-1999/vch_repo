@@ -33,6 +33,7 @@ use App\Http\Controllers\DiscountMasterController;
 use App\Http\Controllers\DiscountConditionController;
 use App\Http\Controllers\CouponController;
 use App\Http\Controllers\CustomerTierController;
+use App\Http\Controllers\ReportCatalogueController;
 
 
 use Illuminate\Support\Facades\DB;
@@ -141,10 +142,26 @@ Route::get('/discount-master',[DiscountMasterController::class, 'index'])->name(
 Route::get('/discount-master/create',[DiscountMasterController::class, 'create'])->name('discount-master.create');
 Route::post('/discount-master/store',[DiscountMasterController::class, 'store'])->name('discount-master.store');
 
+Route::get('/discount-master/{id}/edit',[DiscountMasterController::class, 'edit'])->name('discount-master.edit');
+Route::put('/discount-master/{id}',[DiscountMasterController::class, 'update'])->name('discount-master.update');
+Route::delete('/discount-master/{id}',[DiscountMasterController::class, 'destroy'])->name('discount-master.destroy');
+
 
 Route::get('/discount-conditions',[DiscountConditionController::class, 'index'])->name('discount-conditions.index');
 Route::get('/discount-conditions/create',[DiscountConditionController::class, 'create'])->name('discount-conditions.create');
 Route::post('/discount-conditions/store',[DiscountConditionController::class, 'store'])->name('discount-conditions.store');
+Route::get('/discount-conditions/{id}/edit',[DiscountConditionController::class, 'edit'])->name('discount-conditions.edit');
+Route::put('/discount-conditions/{id}',[DiscountConditionController::class, 'update'])->name('discount-conditions.update');
+Route::delete('/discount-conditions/{id}',[DiscountConditionController::class, 'destroy'])->name('discount-conditions.destroy');
+
+
+Route::get('report-catalogues',[ReportCatalogueController::class, 'index'])->name('report-catalogues.index');
+Route::get('report-catalogues/create',[ReportCatalogueController::class, 'create'])->name('report-catalogues.create');
+Route::post('report-catalogues/store',[ReportCatalogueController::class, 'store'])->name('report-catalogues.store');
+Route::get('report-catalogues/edit/{id}',[ReportCatalogueController::class, 'edit'])->name('report-catalogues.edit');
+Route::put('report-catalogues/update/{id}',[ReportCatalogueController::class, 'update'])->name('report-catalogues.update');
+Route::delete('report-catalogues/delete/{id}',[ReportCatalogueController::class, 'destroy'])->name('report-catalogues.destroy');
+
 Route::resource('coupons', CouponController::class);
 Route::resource('tiers', CustomerTierController::class);
 

@@ -18,14 +18,6 @@
             <form action="{{ route('discount-conditions.store') }}" method="POST">
                 @csrf
 
-                <!-- CONDITION ID -->
-                <div class="col-md-4 mb-3">
-                    <label>Condition ID</label>
-                    <input type="text" name="condition_id"
-                           class="form-control"
-                           value="{{ $newId }}"
-                           readonly>
-                </div>
 
                 <!-- DISCOUNT MASTER (ONCE ONLY) -->
                 <div class="col-md-4 mb-3">

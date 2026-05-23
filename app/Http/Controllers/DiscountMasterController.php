@@ -183,4 +183,84 @@ class DiscountMasterController extends Controller
                     'Discount Created Successfully'
                 );
     }
+
+
+  
+    public function edit($id)
+    {
+        $discount = DiscountMaster::findOrFail($id);
+        $items = DB::table('menu_items')
+                    ->select('id', 'item_name', 'category')
+                    ->orderBy('item_name', 'ASC')
+                    ->get();
+        return view(
+            'discount_master.edit',
+            compact(
+                'discount',
+                'items'
+            )
+        );
+    }
+
+
+    public function update(Request $request, $id)
+    {
+        $request->validate([
+
+            'name'            => 'required|max:80',
+            'type'            => 'required|max:50',
+            'value'           => 'required|numeric',
+            'unit'            => 'required|max:10',
+            'max_cap'         => 'nullable|numeric',
+            'min_bill'        => 'nullable|numeric',
+            'applies_to'      => 'required|max:100',
+            'approval_level'  => 'nullable|max:20',
+            'valid_from'      => 'required|date',
+            'valid_to'        => 'required|date',
+            'status'          => 'required|max:20',
+
+        ]);
+        $discount = DiscountMaster::findOrFail($id);
+        $discount->update([
+            'name'            => $request->name,
+            'type'            => $request->type,
+            'value'           => $request->value,
+            'unit'            => $request->unit,
+            'max_cap'         => $request->max_cap ?? 0,
+            'min_bill'        => $request->min_bill ?? 0,
+            'applies_to'      => $request->applies_to,
+            'stackable'       => $request->stackable ?? 0,
+            'auto_apply'      => $request->auto_apply ?? 0,
+            'approval_req'    => $request->approval_req ?? 0,
+            'approval_level'  => $request->approval_level ?? 'Auto',
+            'valid_from'      => $request->valid_from,
+            'valid_to'        => $request->valid_to,
+            'active_days'     => $request->active_days ?? 'All',
+            'active_hours'    => $request->active_hours ?? 'All',
+            'channel'         => $request->channel ?? 'All',
+            'outlet'          => $request->outlet ?? 'All Outlets',
+            'status'          => $request->status,
+            'remarks'         => $request->remarks,
+        ]);
+        return redirect()
+                ->route('discount-master.index')
+                ->with(
+                    'success',
+                    'Discount Updated Successfully'
+                );
+    }
+
+
+
+    public function destroy($id)
+    {
+        $discount = DiscountMaster::findOrFail($id);
+        $discount->delete();
+        return redirect()
+                ->route('discount-master.index')
+                ->with(
+                    'success',
+                    'Discount Deleted Successfully'
+                );
+    }
 }

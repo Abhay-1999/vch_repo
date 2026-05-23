@@ -8,17 +8,15 @@ use App\Models\DiscountMaster;
 class DiscountCondition extends Model
 {
     protected $table = 'discount_conditions';
-
+    protected $primaryKey = 'condition_id';
     protected $fillable = [
-        'condition_group_id',
+        'condition_id',
         'discount_id',
         'condition_type',
         'operator',
         'value',
-        'note',
-        'active'
+        'note'
     ];
-
 
     public function discount()
     {

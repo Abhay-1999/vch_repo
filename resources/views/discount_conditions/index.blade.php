@@ -4,6 +4,18 @@
 
 <div class="container-fluid">
 
+    {{-- SUCCESS MESSAGE --}}
+    @if(session('success'))
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            {{ session('success') }}
+
+            <button type="button"
+                    class="btn-close"
+                    data-bs-dismiss="alert">
+            </button>
+        </div>
+    @endif
+
     <div class="card shadow">
 
         <div class="card-header bg-dark text-white d-flex justify-content-between">
@@ -32,6 +44,7 @@
                             <th>Value</th>
                             <th>Description</th>
                             <th>Active</th>
+                            <th width="150">Action</th>
                         </tr>
 
                     </thead>
@@ -42,7 +55,9 @@
 
                         <tr>
 
-                            <td>{{ $condition->condition_group_id ?? $condition->id }}</td>
+                            <td>
+                                {{ 'CND-' . str_pad($condition->condition_id, 4, '0', STR_PAD_LEFT) }}
+                            </td>
 
                             <td>{{ $condition->discount_id }}</td>
 
@@ -65,6 +80,32 @@
                                     Yes
                                 @endif
                             </td>
+
+                            <td>
+
+    <a href="{{ route('discount-conditions.edit', $condition->condition_id) }}"
+       class="btn btn-primary btn-sm">
+        Edit
+    </a>
+
+    <form action="{{ route('discount-conditions.destroy', $condition->condition_id) }}"
+          method="POST"
+          style="display:inline-block;">
+
+        @csrf
+        @method('DELETE')
+
+        <button type="submit"
+                class="btn btn-danger btn-sm"
+                onclick="return confirm('Are you sure?')">
+
+            Delete
+
+        </button>
+
+    </form>
+
+</td>
 
                         </tr>
 

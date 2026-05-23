@@ -323,18 +323,18 @@ $admin = Auth::guard('admin')->user();
         </li>
           <li>
 
-              <a class="dropdown-item" href="{{ route('coupons.index') }}">
+              <!-- <a class="dropdown-item" href="{{ route('coupons.index') }}">
         <i class="fa fa-ticket-alt"></i>
         <span>Coupon Codes</span>
-    </a>
+    </a> -->
 
         </li>
             <li>
 
-              <a class="dropdown-item" href="{{ route('tiers.index') }}">
+              <!-- <a class="dropdown-item" href="{{ route('tiers.index') }}">
         <i class="fas fa-layer-group"></i>
         <span>Loyalty Tiers</span>
-    </a>
+    </a> -->
 
         </li>
 
@@ -406,6 +406,7 @@ $admin = Auth::guard('admin')->user();
                             <li><a class="dropdown-item" href="{{ route('sale_form') }}"><i class="bi bi-file-earmark-bar-graph me-2"></i>GST Summary</a></li>
                             <li><a class="dropdown-item" href="{{ route('item_ws_form') }}"><i class="bi bi-file-earmark-text me-2"></i>Item Wise Sale</a></li>
                             <li><a class="dropdown-item" href="{{ route('cancel_form') }}"><i class="bi bi-file-earmark-bar-graph me-2"></i>Cancel Register</a></li>
+                            <li><a class="dropdown-item" href="{{ route('report-catalogues.index') }}"><i class="bi bi-file-earmark-bar-graph me-2"></i>Report Catalogues</a></li>
                         </ul>
                     </li>
 
@@ -420,8 +421,8 @@ $admin = Auth::guard('admin')->user();
                         <ul class="dropdown-menu" aria-labelledby="dropdownReports">
                             <li><a class="dropdown-item" href="{{ route('discount-master.index') }}"><i class="bi bi-file-earmark-bar-graph me-2"></i> <span>Discount Master</span></a></li>
                             <li><a class="dropdown-item" href="{{ route('discount-conditions.index') }}"><i class="bi bi-file-earmark-bar-graph me-2"></i>Discount Conditions</a></li>
-                            <li><a class="dropdown-item" href="#"><i class="bi bi-file-earmark-bar-graph me-2"></i>Coupon Codes</a></li>
-                            <li><a class="dropdown-item" href="#"><i class="bi bi-file-earmark-text me-2"></i>Customer Loyalty Tiers</a></li>
+                            <li><a class="dropdown-item" href="{{ route('coupons.index') }}"><i class="bi bi-file-earmark-bar-graph me-2"></i>Coupon Codes</a></li>
+                            <li><a class="dropdown-item" href="{{ route('tiers.index') }}"><i class="bi bi-file-earmark-text me-2"></i>Customer Loyalty Tiers</a></li>
                            
                         </ul>
                     </li>
