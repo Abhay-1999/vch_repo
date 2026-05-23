@@ -321,22 +321,7 @@ $admin = Auth::guard('admin')->user();
             </a>
 
         </li>
-          <li>
-
-              <a class="dropdown-item" href="{{ route('coupons.index') }}">
-        <i class="fa fa-ticket-alt"></i>
-        <span>Coupon Codes</span>
-    </a>
-
-        </li>
-            <li>
-
-              <a class="dropdown-item" href="{{ route('tiers.index') }}">
-        <i class="fas fa-layer-group"></i>
-        <span>Loyalty Tiers</span>
-    </a>
-
-        </li>
+          
 
         
         <!-- <li>
@@ -420,8 +405,16 @@ $admin = Auth::guard('admin')->user();
                         <ul class="dropdown-menu" aria-labelledby="dropdownReports">
                             <li><a class="dropdown-item" href="{{ route('discount-master.index') }}"><i class="bi bi-file-earmark-bar-graph me-2"></i> <span>Discount Master</span></a></li>
                             <li><a class="dropdown-item" href="{{ route('discount-conditions.index') }}"><i class="bi bi-file-earmark-bar-graph me-2"></i>Discount Conditions</a></li>
-                            <li><a class="dropdown-item" href="#"><i class="bi bi-file-earmark-bar-graph me-2"></i>Coupon Codes</a></li>
-                            <li><a class="dropdown-item" href="#"><i class="bi bi-file-earmark-text me-2"></i>Customer Loyalty Tiers</a></li>
+
+                            <li><a class="dropdown-item" href="{{ route('coupons.index') }}">        <i class="fa fa-ticket-alt"></i>
+Coupon Codes</a></li>
+
+                            <li><a class="dropdown-item" href="{{ route('tiers.index') }}">        <i class="fas fa-layer-group"></i>
+Customer Loyalty Tiers</a></li>
+                             <li><a class="dropdown-item" href="{{ route('discount-rules.index') }}">                <i class="nav-icon fas fa-percent"></i>
+
+Discount Approval</a></li>
+                            
                            
                         </ul>
                     </li>
