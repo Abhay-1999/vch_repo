@@ -9,15 +9,19 @@ class DiscountCondition extends Model
 {
     protected $table = 'discount_conditions';
 
-    protected $fillable = [
-        'condition_group_id',
-        'discount_id',
-        'condition_type',
-        'operator',
-        'value',
-        'note',
-        'active'
-    ];
+   protected $fillable = [
+
+    'discount_id',
+
+    'condition_type',
+
+    'operator',
+
+    'value',
+
+    'note',
+
+];
 
 
     public function discount()
