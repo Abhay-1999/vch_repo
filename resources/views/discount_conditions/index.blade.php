@@ -42,7 +42,9 @@
 
                         <tr>
 
-                            <td>{{ $condition->condition_group_id ?? $condition->id }}</td>
+                            <td>
+    CND-{{ str_pad($condition->condition_id, 4, '0', STR_PAD_LEFT) }}
+</td>
 
                             <td>{{ $condition->discount_id }}</td>
 
