@@ -177,7 +177,7 @@
                     </tr>
                     <tr id="discount_row" style="display: none;">
                         <td colspan="2" class="text-end">
-                            <label class="form-label">Discount (%)</label>
+                            <label class="form-label">Discount </label>
                         </td>
                         <td colspan="2">
                             <input type="number" id="discount_percent" name="discount_percent" class="form-control" value="0" min="0" max="100" disabled>
@@ -251,12 +251,15 @@
     <!-- Return Input -->
     <input type="text" id="return_amount" 
            class="form-control setl" placeholder="Return" readonly>
-
+<input type="hidden" id="discount_code">
+<input type="hidden" id="discount_name">
+<input type="hidden" id="discount_amount" value="0">
     <!-- Offers Button -->
     <button class="btn btn-danger px-3" id="offersBtn">
         Offers
     </button>
 
+   
     <!-- Split Button -->
     <button class="btn btn-danger px-3" id="splitBtn" disabled>
         Split
@@ -379,6 +382,37 @@
     </div>
   </div>
 </div>
+ <div class="modal fade" id="offersModal">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+
+            <div class="modal-header">
+                <h5>Available Offers</h5>
+                <button class="btn-close"
+                        data-bs-dismiss="modal"></button>
+            </div>
+
+            <div class="modal-body">
+
+                <table class="table table-bordered">
+                    <thead>
+                    <tr>
+                        <th>Select</th>
+                        <th>Name</th>
+                        <th>Discount</th>
+                        <th>Min Bill</th>
+                    </tr>
+                    </thead>
+
+                    <tbody id="offersList"></tbody>
+
+                </table>
+
+            </div>
+
+        </div>
+    </div>
+</div>
 
 
 <!-- Scripts -->
@@ -387,6 +421,167 @@
 
 
 <script>
+
+$('#offersBtn').click(function () {
+
+    let total =
+        parseFloat($('#total').text()) || 0;
+
+    let mode =
+        $('#order_mode').val();
+
+    let channel = 'ALL';
+
+    // delivery aggregator mapping
+    if ($('#zomato').is(':checked')) {
+        channel = 'Online-Zomato';
+    }
+    else if ($('#swiggy').is(':checked')) {
+        channel = 'Online-Swiggy';
+    }
+    else if (mode === 'T') {
+        channel = 'Dine-In';
+    }
+    else if (mode === 'P') {
+        channel = 'Pickup';
+    }
+
+    $.post('{{ route("offers.get") }}', {
+
+        _token: '{{ csrf_token() }}',
+
+        bill_amount: total,
+
+        channel: channel
+
+    }, function (res) {
+
+        let html = '';
+
+        res.forEach(o => {
+
+            html += `
+                <tr>
+
+                    <td>
+
+                        <button
+                          class="btn btn-success apply-offer"
+    data-code="${o.discount_id}"
+
+                       data-name="${o.name}"
+
+data-value="${o.value}"
+
+data-unit="${o.unit}"
+
+data-max="${o.max_cap}"
+
+>
+
+                            Apply
+
+                        </button>
+
+                    </td>
+
+                    <td>${o.name}</td>
+
+                    <td>${o.value} ${o.unit}</td>
+
+                    <td>₹${o.min_bill}</td>
+
+                </tr>
+            `;
+        });
+
+        $('#offersList').html(html);
+
+        new bootstrap.Modal(
+            document.getElementById('offersModal')
+        ).show();
+    });
+});
+
+
+$(document).on(
+    'click',
+    '.apply-offer',
+    function () {
+
+        let total =
+            parseFloat($('#total').text()) || 0;
+
+        let code =
+            $(this).attr('data-code');
+
+        let name =
+            $(this).attr('data-name');
+
+        let value =
+            parseFloat($(this).attr('data-value')) || 0;
+
+        let unit =
+            $(this).attr('data-unit');
+
+        let max =
+            parseFloat($(this).attr('data-max')) || 0;
+
+        let discount = 0;
+
+        if (unit === '%') {
+
+            discount =
+                (total * value) / 100;
+
+            if (
+                max > 0 &&
+                discount > max
+            ) {
+                discount = max;
+            }
+
+        } else {
+
+            discount = value;
+        }
+
+        let finalAmount =
+            total - discount;
+
+        // save hidden fields
+        $('#discount_code').val(code);
+
+        $('#discount_name').val(name);
+
+        $('#discount_amount')
+            .val(discount.toFixed(2));
+
+        // show rows
+        $('#discount_row').show();
+
+        $('#final_row').show();
+
+        // display
+        $('#discount_percent')
+            .val(discount.toFixed(2));
+
+        $('#final_total')
+            .text(finalAmount.toFixed(2));
+
+        $('.final_total')
+            .val(finalAmount.toFixed(2));
+
+        // close modal
+        $('#offersModal').modal('hide');
+
+        console.log(
+            code,
+            name,
+            discount
+        );
+    }
+);
 
 
 $('input[name="payment_mode"]').on('change', function () {
@@ -1084,6 +1279,8 @@ function drawItems(items) {
         paymode: paymentMode,
         mobile: $('#mobile').val(),
         dsc: $('#discount_percent').val(),
+        dscnm: $('#discount_name').val(),
+        dsccd: $('#discount_code').val(),
         ft: $('.final_total').val(),
         custId: $('#customer_id').val(),
         order_id: $('#order_id').val(),
@@ -1202,6 +1399,8 @@ let paymentMode = $('input[name="payment_mode"]:checked').val();
     const mobile = $('#mobile').val();
     const order_id = $('#order_id').val();
     const dsc = $('#discount_percent').val();
+    const dscnm = $('#discount_name').val();
+    const dsccd = $('#discount_code').val();
     const ft = $('.final_total').val();
     const custId = $('#customer_id').val();
     const order_mode = $('#order_mode').val()
@@ -1215,6 +1414,8 @@ let paymentMode = $('input[name="payment_mode"]:checked').val();
         paymode: paymentMode,
         mobile: mobile,
         dsc: dsc,
+        dscnm: dscnm,
+        dsccd: dsccd,
         ft: ft,
         custId: custId,
         orderType: order_mode,

@@ -1010,7 +1010,9 @@ class ItemController extends Controller
     $order_id = $request->order_id;
     $mobile = $request->mobile;
     $finalAmt = $request->ft;
-    $discount = $request->dsc;
+    $discountamt = $request->dsc;
+    $discountnm = $request->dscnm;
+    $discountcd = $request->dsccd;
     $custId = $request->custId;
     $order_inst = $request->order_inst;
     $order_mode = $request->order_mode;
@@ -1074,7 +1076,6 @@ class ItemController extends Controller
         'rest_code' => $rest_code,
         'tran_no' => $tran_no,
         'user_id' => $id,
-        'discount' => $discount,
         'net_amt' => $amount,
         'cgst_amt' => $cgst,
         'sgst_amt' => $cgst,
@@ -1094,6 +1095,9 @@ class ItemController extends Controller
         'confirm_order' => $confirm_order,
         'transaction_no' => $transactionNumber,
         'payment_mode' => $paymode_mode,
+        'discount_code' =>  $discountcd,
+        'discount_name' =>  $discountnm,
+        'discount_amount' => $discountamt,
         'updated_at' => now()
     ];
 
