@@ -272,4 +272,63 @@ class ReportController extends Controller
         compact('stocks')
     );
 }
+
+public function discountUsageReport(Request $request)
+{
+    $from = $request->from_date;
+    $to   = $request->to_date;
+
+    // total discount for percentage
+    $totalDiscount = DB::table('order_hd')
+        ->whereNotNull('discount_code')
+        ->whereBetween('tran_date', [$from, $to])
+        ->sum('discount_amount');
+
+    $rows = DB::table('order_hd')
+        ->select(
+            'discount_code',
+
+            DB::raw('COUNT(*) as bill_count'),
+
+            DB::raw('SUM(discount_amount) as total_discount')
+        )
+        ->whereNotNull('discount_code')
+        ->whereBetween('tran_date', [$from, $to])
+
+        ->groupBy('discount_code')
+
+        ->orderByDesc(DB::raw('SUM(discount_amount)'))
+
+        ->get();
+
+    // percentage + rank
+    $report = [];
+    $rank = 1;
+
+    foreach ($rows as $row) {
+
+        $percent =
+            $totalDiscount > 0
+                ? round(($row->total_discount / $totalDiscount) * 100, 1)
+                : 0;
+
+        $report[] = [
+
+            'discount_code' => $row->discount_code,
+
+            'bill_count' => $row->bill_count,
+
+            'discount_amount' => number_format($row->total_discount, 2),
+
+            'percent' => $percent . '%',
+
+            'rank' => $rank++
+        ];
+    }
+
+    return view(
+        'reports.discount_usage_by_code',
+        compact('report','from','to')
+    );
+}
 }

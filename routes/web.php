@@ -35,7 +35,11 @@ use App\Http\Controllers\DiscountConditionController;
 use App\Http\Controllers\CouponController;
 use App\Http\Controllers\CustomerTierController;
 use App\Http\Controllers\DiscountApprovalRuleController;
+
 use App\Http\Controllers\DayEndSalesReportController;
+
+use App\Http\Controllers\DiscountController;
+
 
 
 
@@ -98,6 +102,12 @@ Route::prefix('admin')->group(function () {
 Route::resource('grn', GrnController::class);
 Route::resource('grn', GrnController::class);
 
+Route::post('/get-offers', [DiscountController::class, 'getOffers'])
+    ->name('offers.get');
+Route::get(
+        '/reports/discount-usage',
+        [ReportController::class, 'discountUsageReport']
+    )->name('reports.discount-usage');
 
 Route::resource('menu-items', MenuItemController::class);
 Route::resource('sub-recipes', SubRecipeController::class);

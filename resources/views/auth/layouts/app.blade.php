@@ -393,6 +393,7 @@ $admin = Auth::guard('admin')->user();
                             <li><a class="dropdown-item" href="{{ route('cancel_form') }}"><i class="bi bi-file-earmark-bar-graph me-2"></i>Cancel Register</a></li>
                                <li><a class="dropdown-item" href="{{ route('report-catalogues.index') }}"><i class="bi bi-file-earmark-bar-graph me-2"></i>Report Catalogues</a></li>
 
+
                                     {{-- NEW REPORT --}}
         <li>
             <a class="dropdown-item"
@@ -403,6 +404,9 @@ $admin = Auth::guard('admin')->user();
                 Day-End Sales Summary
             </a>
         </li>
+
+                                  <li><a class="dropdown-item" href="{{ route('reports.discount-usage') }}"><i class="bi bi-file-earmark-bar-graph me-2"></i>DISCOUNT USAGE </a></li>
+
                         </ul>
                     </li>
 
