@@ -35,6 +35,7 @@ use App\Http\Controllers\DiscountConditionController;
 use App\Http\Controllers\CouponController;
 use App\Http\Controllers\CustomerTierController;
 use App\Http\Controllers\DiscountApprovalRuleController;
+use App\Http\Controllers\DayEndSalesReportController;
 
 
 
@@ -169,6 +170,15 @@ Route::post('report-catalogues/store',[ReportCatalogueController::class, 'store'
 Route::get('report-catalogues/edit/{id}',[ReportCatalogueController::class, 'edit'])->name('report-catalogues.edit');
 Route::put('report-catalogues/update/{id}',[ReportCatalogueController::class, 'update'])->name('report-catalogues.update');
 Route::delete('report-catalogues/delete/{id}',[ReportCatalogueController::class, 'destroy'])->name('report-catalogues.destroy');
+
+
+
+Route::prefix('reports')->group(function () {
+
+    Route::get('/day-end-sales',[DayEndSalesReportController::class, 'index'])->name('reports.day-end-sales');
+    Route::post('/day-end-sales/generate',[DayEndSalesReportController::class, 'generate'])->name('reports.day-end-sales.generate');
+
+});
 
 
     Route::get('/supp-mast', [SupplierMasterController::class, 'index'])->name('supp_mast_form');
