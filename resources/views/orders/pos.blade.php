@@ -1386,83 +1386,168 @@ function updateCartUI() {
 
 
 $('#save-order-only').click(function () {
-    if (cart.length === 0) return alert("Cart is empty!");
+
+    if (cart.length === 0) {
+        alert("Cart is empty!");
+        return;
+    }
 
     const $saveBtn = $(this);
+
     $saveBtn.prop('disabled', true);
+
     $('#itemCard').css({
         'pointer-events': 'none',
         'opacity': '0.5'
     });
 
-let paymentMode = $('input[name="payment_mode"]:checked').val();
-    const mobile = $('#mobile').val();
-    const order_id = $('#order_id').val();
-    const dsc = $('#discount_percent').val();
-    const dscnm = $('#discount_name').val();
-    const dsccd = $('#discount_code').val();
-    const ft = $('.final_total').val();
-    const custId = $('#customer_id').val();
-    const order_mode = $('#order_mode').val()
-    const order_inst = $('#order_inst').val()
-    let tran_no = $('#tran_no').val(); // 🔥 EDIT MODE
+    let paymentMode =
+        $('input[name="payment_mode"]:checked').val();
 
+    const mobile =
+        $('#mobile').val();
 
-    $.post('{{ route("order.save") }}', {
-        _token: '{{ csrf_token() }}',
-        cart: cart,
-        paymode: paymentMode,
-        mobile: mobile,
-        dsc: dsc,
-        dscnm: dscnm,
-        dsccd: dsccd,
-        ft: ft,
-        custId: custId,
-        orderType: order_mode,
-        order_inst: order_inst,
-        tran_no: tran_no,
-        order_id: order_id
-    }, function (response) {
-        if (response.success) {
-            localStorage.setItem('lastOrderId', response.order_id); // ✅ Store it here
+    const order_id =
+        $('#order_id').val();
 
-              // 🔥 EDIT vs NEW MESSAGE
-            let msg = tran_no ? 'Order Updated!' : 'Order Saved!';
-            Swal.fire({
-                title: msg,
-                showConfirmButton: false,
-                timer: 1000
-            }).then(() => {
-                // Automatically print the bill/token
-                // if (typeof handlePrint === 'function') {
-                //     handlePrint(response.order_id, 'token');
-                // }
-                if(tran_no){
-                      let url = "{{ route('orders.indexp') }}";
+    const dsc =
+        $('#discount_percent').val();
+
+    const dscnm =
+        $('#discount_name').val();
+
+    const dsccd =
+        $('#discount_code').val();
+
+    const ft =
+        $('.final_total').val();
+
+    const custId =
+        $('#customer_id').val();
+
+    const order_mode =
+        $('#order_mode').val();
+
+    const order_inst =
+        $('#order_inst').val();
+
+    let tran_no =
+        $('#tran_no').val();
+
+    $.post(
+        '{{ route("order.save") }}',
+        {
+            _token: '{{ csrf_token() }}',
+            cart: cart,
+            paymode: paymentMode,
+            mobile: mobile,
+            dsc: dsc,
+            dscnm: dscnm,
+            dsccd: dsccd,
+            ft: ft,
+            custId: custId,
+            orderType: order_mode,
+            order_inst: order_inst,
+            tran_no: tran_no,
+            order_id: order_id
+        },
+
+        function (response) {
+
+            // SUCCESS
+            if (response.success) {
+
+                localStorage.setItem(
+                    'lastOrderId',
+                    response.order_id
+                );
+
+                let msg =
+                    tran_no
+                    ? 'Order Updated!'
+                    : 'Order Saved!';
+
+                Swal.fire({
+                    title: msg,
+                    icon: 'success',
+                    showConfirmButton: false,
+                    timer: 1000
+                }).then(() => {
+
+                    // edit mode redirect
+                    if (tran_no) {
+
+                        let url =
+                            "{{ route('orders.indexp') }}";
+
                         window.location.href = url;
-                }
 
-                // Refresh after 2 seconds (adjust if needed)
-               // setTimeout(() => {
-                cart = [];
-                  updateCartUI();
-              //  }, 1000);
-            });
+                        return;
+                    }
 
-            $('#manual-print-token').removeAttr('disabled');
-            $('#manual-print-bill').removeAttr('disabled');
-            lastOrderId = response.order_id;
-        } else {
-            Swal.fire("Error", "Failed to save order", "error");
-            $saveBtn.prop('disabled', false);
-            $('#itemCard').css({
-                'pointer-events': 'auto',
-                'opacity': '1'
-            });
+                    // new order clear cart
+                    cart = [];
+
+                    updateCartUI();
+                });
+
+                $('#manual-print-token')
+                    .removeAttr('disabled');
+
+                $('#manual-print-bill')
+                    .removeAttr('disabled');
+
+                lastOrderId =
+                    response.order_id;
+
+            } else {
+
+                // controller message
+                Swal.fire({
+                    title: 'Stock Alert',
+                    text:
+                        response.message ||
+                        'Failed to save order',
+                    icon: 'error'
+                });
+
+                $saveBtn.prop(
+                    'disabled',
+                    false
+                );
+
+                $('#itemCard').css({
+                    'pointer-events': 'auto',
+                    'opacity': '1'
+                });
+            }
         }
-    }).fail(function () {
-        Swal.fire("Error", "Something went wrong while saving order", "error");
-        $saveBtn.prop('disabled', false);
+    )
+
+    .fail(function (xhr) {
+
+        let msg =
+            'Something went wrong while saving order';
+
+        if (
+            xhr.responseJSON &&
+            xhr.responseJSON.message
+        ) {
+            msg =
+                xhr.responseJSON.message;
+        }
+
+        Swal.fire({
+            title: 'Error',
+            text: msg,
+            icon: 'error'
+        });
+
+        $saveBtn.prop(
+            'disabled',
+            false
+        );
+
         $('#itemCard').css({
             'pointer-events': 'auto',
             'opacity': '1'

@@ -998,198 +998,372 @@ class ItemController extends Controller
     //     return response()->json(['success' => true, 'order_id' => $trans_no,'html'=>$html]);
     // }
 
-    public function save(Request $request)
+//     public function save(Request $request)
+// {
+
+//     // echo"<pre>";print_r($request->all());die;
+//     $admin = Auth::guard('admin')->user();
+//     $id = $admin->id;
+
+//     $cart = $request->cart;
+//     $paymode_mode = $request->paymode;
+//     $order_id = $request->order_id;
+//     $mobile = $request->mobile;
+//     $finalAmt = $request->ft;
+//     $discountamt = $request->dsc;
+//     $discountnm = $request->dscnm;
+//     $discountcd = $request->dsccd;
+//     $custId = $request->custId;
+//     $order_inst = $request->order_inst;
+//     $order_mode = $request->orderType;
+
+//     $tran_no = $request->tran_no; // 🔥 EDIT MODE CHECK
+
+//     $group_code = '01';
+//     $rest_code ='01';
+//     $confirm_order = 'Y';
+
+//     $amount = 0;
+//     $itemWiseAmt = 0;
+//     $taxes = 0;
+
+//     foreach ($cart as $item) {
+//         $item_gst = DB::table('menu_items')
+//             ->where('item_code', $item['id'])
+//             ->value('gst_rate');
+
+//         $line_amt = isset($item['qty']) 
+//             ? $item['qty'] * $item['price'] 
+//             : $item['amount'];
+
+//         $itemWiseAmt += $line_amt;
+//         $taxes += ($item_gst * $itemWiseAmt / 100);
+//     }
+
+//     $amount = $itemWiseAmt;
+//     $paid_amt = $finalAmt ? $finalAmt : $amount;
+
+//     $cgst = 0;
+//     $transactionNumber = str_pad(rand(0, 99999999), 8, '0', STR_PAD_LEFT);
+//     $status = 'success';
+
+//     // ================================
+//     // 🔥 NEW ORDER vs UPDATE ORDER
+//     // ================================
+
+//     if (!$tran_no) {
+//         // 👉 NEW ORDER
+//         $last = DB::table('order_hd')
+//             ->where(['rest_code' => $rest_code, 'tran_date'=>date('Y-m-d')])
+//             ->orderby('tran_no','desc')
+//             ->value('tran_no');
+
+//         $tran_no = $last ? $last + 1 : 1;
+//     } else {
+//         // 👉 UPDATE MODE → delete old items
+//         DB::table('order_dt')
+//             ->where('tran_no', $tran_no)
+//             ->where('tran_date', date('Y-m-d'))
+//             ->delete();
+//     }
+
+//     // ================================
+//     // 🔥 HEADER SAVE / UPDATE
+//     // ================================
+
+//     $order_hd = [
+//         'group_code' => $group_code,
+//         'rest_code' => $rest_code,
+//         'tran_no' => $tran_no,
+//         'user_id' => $id,
+//         'net_amt' => $amount,
+//         'cgst_amt' => $cgst,
+//         'sgst_amt' => $cgst,
+//         'gross_amt' => $amount,
+//         'paid_amt' => $paid_amt,
+//         'order_inst' => $order_inst,
+//         'order_id' => $order_id,
+//         'order_mode' => $order_mode,
+//         'customer_id' => $custId,
+//         'otp' => $mobile,
+//         'service_charge' => 0,
+//         'service_cgst' => 0,
+//         'service_sgst' => 0,
+//         'email' => 'test@gmail.com',
+//         'status_trans' => $status,
+//         'flag' => 'S',
+//         'confirm_order' => $confirm_order,
+//         'transaction_no' => $transactionNumber,
+//         'payment_mode' => $paymode_mode,
+//         'discount_code' =>  $discountcd,
+//         'discount_name' =>  $discountnm,
+//         'discount_amount' => $discountamt,
+//         'updated_at' => now()
+//     ];
+
+//     if ($request->tran_no) {
+//         // 👉 UPDATE
+//         DB::table('order_hd')
+//             ->where('tran_no', $tran_no)
+//             ->where('tran_date', date('Y-m-d'))
+//             ->update($order_hd);
+//     } else {
+//         // 👉 INSERT
+//         DB::table('order_hd')->insert($order_hd);
+//     }
+
+//     // ================================
+//     // 🔥 INSERT UPDATED ITEMS
+//     // ================================
+
+//     foreach ($cart as $item) {
+
+//         $item_gst = DB::table('menu_items')
+//             ->where('item_code', $item['id'])
+//             ->value('gst_rate');
+
+//         $item_amt = isset($item['qty']) 
+//             ? $item['qty'] * $item['price'] 
+//             : $item['amount'];
+
+//         $reverseamt = $this->reverseGST($item_amt, $item_gst);
+
+//         DB::table('order_dt')->insert([
+//             'group_code' => $group_code,
+//             'rest_code' => $rest_code,
+//             'tran_no' => $tran_no,
+//             'item_code' => $item['id'],
+//             'item_qty' => $item['qty'] ?? 0,
+//             'item_inst' => $item['item_inst'] ?? null,
+//             'item_gm' => round($item['grams'] ?? 0),
+//             'customise_flag' => 'S',
+//             'amount' => $reverseamt['base'],
+//             'item_gst' => $reverseamt['gst'],
+//             'tran_date' => date('Y-m-d')
+//         ]);
+
+//         InventoryService::deductStock(
+//             $item['id'],
+//             $item['qty'],
+//             $tran_no
+//         );
+
+      
+//     }
+
+//         $hd_data =   DB::table('order_hd')->where('tran_no',$tran_no)->where('tran_date',date('Y-m-d'))->where('status_trans','success')->first();
+
+//         $rest_data =  DB::table('chain_master')->where('group_code',$group_code)->where('rest_code',$rest_code)->first();
+
+//         $date = date('Y-m-d');
+//         $dt_data = DB::table('order_dt')
+//         ->select('order_dt.*', 'menu_items.item_name as item_desc', 'menu_items.item_name as item_hdesc', 'menu_items.gst_rate as igst','menu_items.rounded_price as item_rate','menu_items.store')
+//         ->join('menu_items', 'order_dt.item_code', '=', 'menu_items.item_code')
+//         ->join('order_hd', 'order_dt.tran_no', '=', 'order_hd.tran_no')
+//         ->where('order_hd.tran_no', $tran_no)
+//         ->where('order_hd.tran_date',$date)
+//         ->where('order_dt.tran_date',$date)
+//         ->where('order_hd.status_trans', 'success')
+//         ->where('order_dt.tran_no', $tran_no)
+//         ->get();
+
+//       // $this->generateBillImage($trans_no,$mobile);
+
+//     //   echo"<pre>";print_r($hd_data);die;
+
+
+//         // $tokenHtml = $this->printContent($trans_no,'token',date('Y-m-d'));
+
+//         if($hd_data->payment_mode=='O'){
+//             $paymentMode = 'Online';
+//         }elseif($hd_data->payment_mode=='C'){
+//             $paymentMode = 'Cash';
+//         }elseif($hd_data->payment_mode=='U'){
+//             $paymentMode = 'Counter UPI';
+//         }elseif($hd_data->payment_mode=='Z'){
+//             $paymentMode = 'Zomato';
+//         }elseif($hd_data->payment_mode=='S'){
+//             $paymentMode = 'Swiggy';
+//         }
+        
+//         $html = view('items.bill', compact('dt_data', 'hd_data', 'rest_data','paymentMode'))->render(); // You must create this view
+
+//          session()->forget('cart');
+//         return response()->json(['success' => true, 'order_id' => $tran_no,'html'=>$html]);
+// }
+
+
+public function save(Request $request)
 {
+    DB::beginTransaction();
 
-    // echo"<pre>";print_r($request->all());die;
-    $admin = Auth::guard('admin')->user();
-    $id = $admin->id;
+    try {
 
-    $cart = $request->cart;
-    $paymode_mode = $request->paymode;
-    $order_id = $request->order_id;
-    $mobile = $request->mobile;
-    $finalAmt = $request->ft;
-    $discountamt = $request->dsc;
-    $discountnm = $request->dscnm;
-    $discountcd = $request->dsccd;
-    $custId = $request->custId;
-    $order_inst = $request->order_inst;
-    $order_mode = $request->order_mode;
+        $admin = Auth::guard('admin')->user();
+        $id = $admin->id;
 
-    $tran_no = $request->tran_no; // 🔥 EDIT MODE CHECK
+        $cart = $request->cart;
+        $paymode_mode = $request->paymode;
+        $order_id = $request->order_id;
+        $mobile = $request->mobile;
+        $finalAmt = $request->ft;
+        $discountamt = $request->dsc;
+        $discountnm = $request->dscnm;
+        $discountcd = $request->dsccd;
+        $custId = $request->custId;
+        $order_inst = $request->order_inst;
+        $order_mode = $request->orderType;
 
-    $group_code = '01';
-    $rest_code ='01';
-    $confirm_order = 'Y';
+        $tran_no = $request->tran_no;
 
-    $amount = 0;
-    $itemWiseAmt = 0;
-    $taxes = 0;
+        $group_code = '01';
+        $rest_code = '01';
+        $confirm_order = 'Y';
 
-    foreach ($cart as $item) {
-        $item_gst = DB::table('menu_items')
-            ->where('item_code', $item['id'])
-            ->value('gst_rate');
+        $amount = 0;
+        $itemWiseAmt = 0;
+        $taxes = 0;
 
-        $line_amt = isset($item['qty']) 
-            ? $item['qty'] * $item['price'] 
-            : $item['amount'];
+        foreach ($cart as $item) {
 
-        $itemWiseAmt += $line_amt;
-        $taxes += ($item_gst * $itemWiseAmt / 100);
-    }
+            $item_gst = DB::table('menu_items')
+                ->where('item_code', $item['id'])
+                ->value('gst_rate');
 
-    $amount = $itemWiseAmt;
-    $paid_amt = $finalAmt ? $finalAmt : $amount;
+            $line_amt =
+                isset($item['qty'])
+                    ? $item['qty'] * $item['price']
+                    : $item['amount'];
 
-    $cgst = 0;
-    $transactionNumber = str_pad(rand(0, 99999999), 8, '0', STR_PAD_LEFT);
-    $status = 'success';
+            $itemWiseAmt += $line_amt;
+        }
 
-    // ================================
-    // 🔥 NEW ORDER vs UPDATE ORDER
-    // ================================
+        $amount = $itemWiseAmt;
+        $paid_amt = $finalAmt ?: $amount;
 
-    if (!$tran_no) {
-        // 👉 NEW ORDER
-        $last = DB::table('order_hd')
-            ->where(['rest_code' => $rest_code, 'tran_date'=>date('Y-m-d')])
-            ->orderby('tran_no','desc')
-            ->value('tran_no');
+        $cgst = 0;
 
-        $tran_no = $last ? $last + 1 : 1;
-    } else {
-        // 👉 UPDATE MODE → delete old items
-        DB::table('order_dt')
-            ->where('tran_no', $tran_no)
-            ->where('tran_date', date('Y-m-d'))
-            ->delete();
-    }
+        $transactionNumber =
+            str_pad(rand(0, 99999999), 8, '0', STR_PAD_LEFT);
 
-    // ================================
-    // 🔥 HEADER SAVE / UPDATE
-    // ================================
+        $status = 'success';
 
-    $order_hd = [
-        'group_code' => $group_code,
-        'rest_code' => $rest_code,
-        'tran_no' => $tran_no,
-        'user_id' => $id,
-        'net_amt' => $amount,
-        'cgst_amt' => $cgst,
-        'sgst_amt' => $cgst,
-        'gross_amt' => $amount,
-        'paid_amt' => $paid_amt,
-        'order_inst' => $order_inst,
-        'order_id' => $order_id,
-        'order_mode' => $order_mode,
-        'customer_id' => $custId,
-        'otp' => $mobile,
-        'service_charge' => 0,
-        'service_cgst' => 0,
-        'service_sgst' => 0,
-        'email' => 'test@gmail.com',
-        'status_trans' => $status,
-        'flag' => 'S',
-        'confirm_order' => $confirm_order,
-        'transaction_no' => $transactionNumber,
-        'payment_mode' => $paymode_mode,
-        'discount_code' =>  $discountcd,
-        'discount_name' =>  $discountnm,
-        'discount_amount' => $discountamt,
-        'updated_at' => now()
-    ];
+        // NEW ORDER
+        if (!$tran_no) {
 
-    if ($request->tran_no) {
-        // 👉 UPDATE
-        DB::table('order_hd')
-            ->where('tran_no', $tran_no)
-            ->where('tran_date', date('Y-m-d'))
-            ->update($order_hd);
-    } else {
-        // 👉 INSERT
-        DB::table('order_hd')->insert($order_hd);
-    }
+            $last = DB::table('order_hd')
+                ->where([
+                    'rest_code' => $rest_code,
+                    'tran_date' => date('Y-m-d')
+                ])
+                ->orderBy('tran_no', 'desc')
+                ->value('tran_no');
 
-    // ================================
-    // 🔥 INSERT UPDATED ITEMS
-    // ================================
+            $tran_no = $last ? $last + 1 : 1;
 
-    foreach ($cart as $item) {
+        } else {
 
-        $item_gst = DB::table('menu_items')
-            ->where('item_code', $item['id'])
-            ->value('gst_rate');
+            DB::table('order_dt')
+                ->where('tran_no', $tran_no)
+                ->where('tran_date', date('Y-m-d'))
+                ->delete();
+        }
 
-        $item_amt = isset($item['qty']) 
-            ? $item['qty'] * $item['price'] 
-            : $item['amount'];
+        // HEADER SAVE
+        $order_hd = [
 
-        $reverseamt = $this->reverseGST($item_amt, $item_gst);
-
-        DB::table('order_dt')->insert([
             'group_code' => $group_code,
             'rest_code' => $rest_code,
             'tran_no' => $tran_no,
-            'item_code' => $item['id'],
-            'item_qty' => $item['qty'] ?? 0,
-            'item_inst' => $item['item_inst'] ?? null,
-            'item_gm' => round($item['grams'] ?? 0),
-            'customise_flag' => 'S',
-            'amount' => $reverseamt['base'],
-            'item_gst' => $reverseamt['gst'],
-            'tran_date' => date('Y-m-d')
+            'user_id' => $id,
+            'net_amt' => $amount,
+            'cgst_amt' => $cgst,
+            'sgst_amt' => $cgst,
+            'gross_amt' => $amount,
+            'paid_amt' => $paid_amt,
+            'order_inst' => $order_inst,
+            'order_id' => $order_id,
+            'order_mode' => $order_mode,
+            'customer_id' => $custId,
+            'otp' => $mobile,
+            'status_trans' => $status,
+            'confirm_order' => $confirm_order,
+            'transaction_no' => $transactionNumber,
+            'payment_mode' => $paymode_mode,
+            'discount_code' => $discountcd,
+            'discount_name' => $discountnm,
+            'discount_amount' => $discountamt,
+            'updated_at' => now(),
+        ];
+
+        if ($request->tran_no) {
+
+            DB::table('order_hd')
+                ->where('tran_no', $tran_no)
+                ->where('tran_date', date('Y-m-d'))
+                ->update($order_hd);
+
+        } else {
+
+            DB::table('order_hd')->insert($order_hd);
+        }
+
+        // DETAILS + STOCK CHECK
+        foreach ($cart as $item) {
+
+            $item_gst = DB::table('menu_items')
+                ->where('item_code', $item['id'])
+                ->value('gst_rate');
+
+            $item_amt =
+                isset($item['qty'])
+                    ? $item['qty'] * $item['price']
+                    : $item['amount'];
+
+            $reverseamt =
+                $this->reverseGST($item_amt, $item_gst);
+
+            DB::table('order_dt')->insert([
+
+                'group_code' => $group_code,
+                'rest_code' => $rest_code,
+                'tran_no' => $tran_no,
+                'item_code' => $item['id'],
+                'item_qty' => $item['qty'] ?? 0,
+                'item_inst' => $item['item_inst'] ?? null,
+                'item_gm' => round($item['grams'] ?? 0),
+                'customise_flag' => 'S',
+                'amount' => $reverseamt['base'],
+                'item_gst' => $reverseamt['gst'],
+                'tran_date' => date('Y-m-d')
+            ]);
+
+            // stock kam hua to yahin exception
+            InventoryService::deductStock(
+                $item['id'],
+                $item['qty'],
+                $tran_no
+            );
+        }
+
+        DB::commit();
+
+        session()->forget('cart');
+
+        return response()->json([
+            'success' => true,
+            'order_id' => $tran_no
         ]);
 
-        InventoryService::deductStock(
-            $item['id'],
-            $item['qty'],
-            $tran_no
-        );
+    } catch (\Exception $e) {
 
-      
+        DB::rollBack();
+
+        return response()->json([
+            'success' => false,
+            'message' => $e->getMessage()
+        ], 422);
     }
-
-        $hd_data =   DB::table('order_hd')->where('tran_no',$tran_no)->where('tran_date',date('Y-m-d'))->where('status_trans','success')->first();
-
-        $rest_data =  DB::table('chain_master')->where('group_code',$group_code)->where('rest_code',$rest_code)->first();
-
-        $date = date('Y-m-d');
-        $dt_data = DB::table('order_dt')
-        ->select('order_dt.*', 'menu_items.item_name as item_desc', 'menu_items.item_name as item_hdesc', 'menu_items.gst_rate as igst','menu_items.rounded_price as item_rate','menu_items.store')
-        ->join('menu_items', 'order_dt.item_code', '=', 'menu_items.item_code')
-        ->join('order_hd', 'order_dt.tran_no', '=', 'order_hd.tran_no')
-        ->where('order_hd.tran_no', $tran_no)
-        ->where('order_hd.tran_date',$date)
-        ->where('order_dt.tran_date',$date)
-        ->where('order_hd.status_trans', 'success')
-        ->where('order_dt.tran_no', $tran_no)
-        ->get();
-
-      // $this->generateBillImage($trans_no,$mobile);
-
-    //   echo"<pre>";print_r($hd_data);die;
-
-
-        // $tokenHtml = $this->printContent($trans_no,'token',date('Y-m-d'));
-
-        if($hd_data->payment_mode=='O'){
-            $paymentMode = 'Online';
-        }elseif($hd_data->payment_mode=='C'){
-            $paymentMode = 'Cash';
-        }elseif($hd_data->payment_mode=='U'){
-            $paymentMode = 'Counter UPI';
-        }elseif($hd_data->payment_mode=='Z'){
-            $paymentMode = 'Zomato';
-        }elseif($hd_data->payment_mode=='S'){
-            $paymentMode = 'Swiggy';
-        }
-        
-        $html = view('items.bill', compact('dt_data', 'hd_data', 'rest_data','paymentMode'))->render(); // You must create this view
-
-         session()->forget('cart');
-        return response()->json(['success' => true, 'order_id' => $tran_no,'html'=>$html]);
 }
 
 

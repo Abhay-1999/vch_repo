@@ -23,6 +23,8 @@ class DayEndSalesReportController extends Controller
 
     public function generate(Request $request)
     {
+
+        // echo"<pre>";print_r($request->all());die;
         $request->validate([
             'business_date' => 'required|date',
             'report_code'   => 'required',
@@ -743,6 +745,218 @@ class DayEndSalesReportController extends Controller
                     'drawerCount',
                     'difference',
                     'differenceStatus'
+                )
+            );
+        }
+
+        if ($request->report_code == 'RPT-015') {
+
+            $fromDate = $request->from_date;
+            $toDate   = $request->to_date;
+        
+            $topN = $request->top_n ?? 10;
+        
+            // Quantity / Revenue / Margin
+            $rankBy = $request->rank_by ?? 'Quantity';
+        
+            $query = DB::table('order_dt as od')
+                ->select(
+                    'od.item_code',
+        
+                    // qty sold
+                    DB::raw('SUM(IFNULL(od.item_qty,0)) as total_qty'),
+        
+                    // sales amount
+                    DB::raw('SUM(IFNULL(od.amount,0)) as total_revenue'),
+        
+                    // margin (example)
+                    DB::raw('SUM(IFNULL(od.amount,0) - IFNULL(od.item_gst,0)) as total_margin')
+                )
+                ->whereBetween(
+                    'od.tran_date',
+                    [$fromDate, $toDate]
+                )
+                ->groupBy('od.item_code');
+        
+            // sorting
+            if ($rankBy == 'Revenue') {
+        
+                $query->orderByDesc('total_revenue');
+        
+            } elseif ($rankBy == 'Margin') {
+        
+                $query->orderByDesc('total_margin');
+        
+            } else {
+        
+                $query->orderByDesc('total_qty');
+            }
+        
+            $reportData =
+                $query
+                ->limit($topN)
+                ->get();
+        
+                return view(
+                    'reports.top_selling_items.report',
+                    compact(
+                        'fromDate',
+                        'toDate',
+                        'topN',
+                        'rankBy',
+                        'reportData'
+                    )
+                );
+        }
+
+        if ($request->report_code == 'RPT-0004') {
+
+            $fromDate =
+                $request->from_date;
+        
+            $toDate =
+                $request->to_date;
+        
+            $type =
+                $request->order_type;
+        
+            $query =
+                DB::table('order_hd')
+                    ->select(
+        
+                        DB::raw("
+                            CASE
+                                WHEN order_mode = 'D'
+                                    THEN 'Dine In'
+        
+                                WHEN order_mode = 'T'
+                                    THEN 'Takeaway'
+        
+                                WHEN order_mode = 'O'
+                                    THEN 'Online'
+        
+                                ELSE 'Other'
+                            END
+                            as order_type
+                        "),
+        
+                        DB::raw(
+                            'COUNT(*) as total_orders'
+                        ),
+        
+                        DB::raw(
+                            'SUM(IFNULL(net_amt,0)) as total_sales'
+                        )
+                    )
+                    ->whereBetween(
+                        'tran_date',
+                        [$fromDate, $toDate]
+                    );
+        
+            if (!empty($type)) {
+        
+                $query->where(
+                    'order_mode',
+                    $type
+                );
+            }
+        
+            $reportData =
+                $query
+                    ->groupBy('order_mode')
+                    ->orderByDesc('total_sales')
+                    ->get();
+        
+            $grandSales =
+                $reportData->sum('total_sales');
+        
+            foreach ($reportData as $row) {
+        
+                $row->share_percent =
+                    $grandSales > 0
+                    ? round(
+                        ($row->total_sales * 100)
+                        / $grandSales,
+                        2
+                    )
+                    : 0;
+            }
+        
+            return view(
+                'reports.sales_by_order_type.report',
+                compact(
+                    'reportData',
+                    'fromDate',
+                    'toDate',
+                    'type'
+                )
+            );
+        }
+
+        if ($request->report_code == 'RPT-0005') {
+
+            $fromDate = $request->from_date;
+        
+            $toDate = $request->to_date;
+        
+            $reportData =
+                DB::table('order_hd')
+                    ->select(
+        
+                        DB::raw("
+                            HOUR(tran_time)
+                            as hour_no
+                        "),
+        
+                        DB::raw("
+                            DATE_FORMAT(
+                                MIN(tran_time),
+                                '%h:00 %p'
+                            ) as sale_hour
+                        "),
+        
+                        DB::raw("
+                            COUNT(*)
+                            as total_orders
+                        "),
+        
+                        DB::raw("
+                            SUM(
+                                IFNULL(net_amt,0)
+                            ) as total_sales
+                        "),
+        
+                        DB::raw("
+                            ROUND(
+                                AVG(
+                                    IFNULL(net_amt,0)
+                                ),
+                                2
+                            ) as avg_order
+                        ")
+                    )
+        
+                    ->whereBetween(
+                        'tran_date',
+                        [$fromDate, $toDate]
+                    )
+        
+                    ->groupBy(
+                        DB::raw('HOUR(tran_time)')
+                    )
+        
+                    ->orderBy(
+                        'hour_no'
+                    )
+        
+                    ->get();
+        
+            return view(
+                'reports.sales_by_hour.report',
+                compact(
+                    'reportData',
+                    'fromDate',
+                    'toDate'
                 )
             );
         }

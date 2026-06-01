@@ -188,6 +188,10 @@ Route::prefix('reports')->group(function () {
     Route::get('/day-end-sales',[DayEndSalesReportController::class, 'index'])->name('reports.day-end-sales');
     Route::post('/day-end-sales/generate',[DayEndSalesReportController::class, 'generate'])->name('reports.day-end-sales.generate');
 
+
+
+
+
 });
 
 
