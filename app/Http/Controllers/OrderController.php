@@ -8,7 +8,8 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 use SimpleSoftwareIO\QrCode\Facades\QrCode;
-
+use App\Models\Admin;
+use Illuminate\Support\Facades\Hash;
 class OrderController extends Controller
 {
     
@@ -259,20 +260,47 @@ $monthlySales = DB::table('order_hd')
     ->orderBy(DB::raw("MIN(tran_date)"))
     ->get();
 
-$monthLabels = $monthlySales->pluck('month');
-$monthTotals = $monthlySales->pluck('total');
-    
+    $monthLabels = $monthlySales->pluck('month');
+    $monthTotals = $monthlySales->pluck('total');
+
+       $admin = Auth::guard('admin')->user();
+        $approvalRules = DB::table('discount_approval_rules as r')
+            ->leftJoin(
+                DB::raw('(
+                    SELECT rule_id, status, approved_at, mobile_no
+                    FROM discount_approval_logs
+                    WHERE approval_role = "ADMIN"
+                    AND id IN (
+                        SELECT MAX(id)
+                        FROM discount_approval_logs
+                        WHERE approval_role = "ADMIN"
+                        GROUP BY rule_id
+                    )
+                ) as l'),
+                'r.rule_id',
+                '=',
+                'l.rule_id'
+            )
+            ->where('r.status', 1)
+            ->whereRaw('FIND_IN_SET(?, r.otp_admin_id)', [$admin->role])
+            ->select(
+                'r.rule_id',
+                'r.condition',
+                'r.threshold',
+                'r.approval_required',
+                'r.otp_password',
+                'l.status as approval_status',
+                'l.approved_at',
+                'l.mobile_no'
+            )
+            ->orderByDesc('r.id')
+            ->get();
+
+
         return view('dashboard', ['itemWiseSales' => $itemWiseSales,'paymodeLabels'=>$paymodeLabels,'paymodeTotals'=>$paymodeTotals,'todaySales' => $todaySales,
         'monthLabels' => $monthLabels,
-        'monthTotals' => $monthTotals,]);
+        'monthTotals' => $monthTotals, 'approvalRules' => $approvalRules]);
     }
-    
-    
-
-
-    
-    
-
 
     public function index()
     {
@@ -322,12 +350,263 @@ $monthTotals = $monthlySales->pluck('total');
 
         }
 
-       
-        // echo"<pre>";print_r($order_arr_item_f);die;
+        $admin = Auth::guard('admin')->user();
+        $adminId = $admin->id;
 
-        return view('orders.index', compact('orders','order_arr','role','order_arr_item','order_arr_item_f')); // Pass orders to the view
+       $approvalRules = DB::table('discount_approval_rules as r')
+            ->join('discount_approval_logs as l', function ($join) use ($adminId) {
+                $join->on('r.rule_id', '=', 'l.rule_id')
+                    ->where('l.user_id', '=', $adminId);
+            })
+            ->where('r.status', 1)
+            ->whereRaw('FIND_IN_SET(?, r.otp_admin_id)', [$adminId])
+            ->select(
+                'r.rule_id',
+                'r.condition',
+                'r.threshold',
+                'r.approval_required',
+                'r.otp_password',
+                'l.status as approval_status',
+                'l.approved_at',
+                'l.mobile_no'
+            )
+            ->get();
+            // echo"<pre>";print_r($approvalRules);die;
+
+            return view('orders.index', compact('orders','order_arr','role','order_arr_item','order_arr_item_f','approvalRules')); // Pass orders to the view
+        }
+
+
+    // public function verifyApproval(Request $request)
+    // {
+    //     $user = Auth::guard('admin')->user();
+
+    //     // 1. Rule fetch
+    //     $rule = DB::table('discount_approval_rules')
+    //         ->where('rule_id', $request->rule_id)
+    //         ->first();
+
+    //     if (!$rule) {
+    //         return response()->json([
+    //             'success' => false,
+    //             'message' => 'Approval rule not found'
+    //         ]);
+    //     }
+
+    //     // 2. ✅ ADMIN always allowed (IMPORTANT FIX)
+    //     if ($user->role != 1 && $user->role != 3) { 
+    //         // agar tum role-based system use kar rahe ho
+    //         $allowedAdmins = explode(',', $rule->otp_admin_id ?? '');
+
+    //         if (!in_array($user->id, $allowedAdmins)) {
+    //             return response()->json([
+    //                 'success' => false,
+    //                 'message' => 'You are not authorized for this approval'
+    //             ]);
+    //         }
+    //     }
+
+    //     // 3. Log fetch
+    //     $log = DB::table('discount_approval_logs')
+    //         ->where('rule_id', $request->rule_id)
+    //         ->first();
+
+    //     if (!$log) {
+    //         return response()->json([
+    //             'success' => false,
+    //             'message' => 'Approval request not found'
+    //         ]);
+    //     }
+
+    //     // 4. OTP verify
+    //     $mobile = '91' . $request->mobile_number;
+
+    //     $url = "https://control.msg91.com/api/v5/otp/verify?otp={$request->otp}&mobile={$mobile}";
+
+    //     $response = Http::withHeaders([
+    //         'authkey' => env('AuthKeySms')
+    //     ])->get($url);
+
+    //     $result = $response->json();
+
+    //     if (($result['type'] ?? '') != 'success') {
+    //         return response()->json([
+    //             'success' => false,
+    //             'message' => $result['message'] ?? 'Invalid OTP'
+    //         ]);
+    //     }
+
+    //     // 5. Update approval
+    //     DB::table('discount_approval_logs')
+    //         ->where('id', $log->id)
+    //         ->update([
+    //             'mobile_no'   => $request->mobile_number,
+    //             'otp_code'    => $request->otp,
+    //             'status'      => 'APPROVED',
+    //             'approved_at' => now(),
+    //             'updated_at'  => now()
+    //         ]);
+
+    //     return response()->json([
+    //         'success' => true,
+    //         'message' => 'Approval Verified Successfully'
+    //     ]);
+    // }
+public function verifyApproval(Request $request)
+{
+    $user = Auth::guard('admin')->user();
+
+    $rule = DB::table('discount_approval_rules')
+        ->where('rule_id', $request->rule_id)
+        ->first();
+
+    if (!$rule) {
+        return response()->json([
+            'success' => false,
+            'message' => 'Approval rule not found'
+        ]);
     }
 
+    // Role Mapping
+    $roleName = ($user->role == 3)
+        ? 'ADMIN'
+        : 'MANAGER';
+
+    // Current approver row
+    $log = DB::table('discount_approval_logs')
+        ->where('rule_id', $request->rule_id)
+        ->where('approval_role', $roleName)
+        ->whereIn('status', ['PENDING', 'RUNNING'])
+        ->first();
+
+    if (!$log) {
+        return response()->json([
+            'success' => false,
+            'message' => 'Approval request not found'
+        ]);
+    }
+
+    if ($log->status == 'APPROVED') {
+        return response()->json([
+            'success' => false,
+            'message' => 'Already approved'
+        ]);
+    }
+
+    // OTP Verify
+    $mobile = '91' . $request->mobile_number;
+
+    $url = "https://control.msg91.com/api/v5/otp/verify?otp={$request->otp}&mobile={$mobile}";
+
+    $response = Http::withHeaders([
+        'authkey' => env('AuthKeySms')
+    ])->get($url);
+
+    $result = $response->json();
+
+    if (($result['type'] ?? '') != 'success') {
+        return response()->json([
+            'success' => false,
+            'message' => $result['message'] ?? 'Invalid OTP'
+        ]);
+    }
+
+    // Approve current row
+    DB::table('discount_approval_logs')
+        ->where('id', $log->id)
+        ->update([
+            'mobile_no'   => $request->mobile_number,
+            'otp_code'    => $request->otp,
+            'status'      => 'APPROVED',
+            'approved_at' => now(),
+            'updated_at'  => now()
+        ]);
+
+    /**
+     * MANAGER_ADMIN Workflow
+     */
+    if ($rule->approval_required == 'MANAGER_ADMIN') {
+
+        $pendingLog = DB::table('discount_approval_logs')
+            ->where('rule_id', $request->rule_id)
+            ->where('status', 'PENDING')
+            ->first();
+
+        if ($pendingLog) {
+
+            DB::table('discount_approval_logs')
+                ->where('id', $pendingLog->id)
+                ->update([
+                    'status' => 'RUNNING',
+                    'updated_at' => now()
+                ]);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Approval recorded. Waiting for remaining approver.',
+                'approval_status' => 'RUNNING'
+            ]);
+        }
+
+        return response()->json([
+            'success' => true,
+            'message' => 'All approvals completed successfully.',
+            'approval_status' => 'APPROVED'
+        ]);
+    }
+
+    /**
+     * Single ADMIN or MANAGER Workflow
+     */
+    return response()->json([
+        'success' => true,
+        'message' => 'Approval Verified Successfully',
+        'approval_status' => 'APPROVED'
+    ]);
+}
+
+
+    public function sendApprovalOtp(Request $request)
+    {
+        $user = Auth::guard('admin')->user();
+
+        $roleName = ($user->role == 1)
+            ? 'ADMIN'
+            : 'MANAGER';
+
+        DB::table('discount_approval_logs')
+            ->where('rule_id', $request->rule_id)
+            ->where('approval_role', $roleName)
+            ->update([
+                'mobile_no' => $request->mobile_number,
+                'updated_at' => now()
+            ]);
+
+        $mobile = '91' . $request->mobile_number;
+
+        $templateId = env('EntertemplateID1');
+        $authKey = env('AuthKeySms');
+
+        $url = "https://control.msg91.com/api/v5/otp?template_id={$templateId}&mobile={$mobile}&authkey={$authKey}";
+
+        $response = Http::withHeaders([
+            'Content-Type' => 'application/json',
+        ])->post($url);
+
+        if ($response->failed()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to send OTP'
+            ]);
+        }
+
+        return response()->json([
+            'success' => true,
+            'message' => 'OTP Sent Successfully'
+        ]);
+    }
+
+    
     public function indexCash()
     {
       
@@ -1540,6 +1819,51 @@ public function initiatePayment(Request $request)
             // echo"<pre>";print_r($items->toArray());die;  
 
         return view('orders.pos', compact('order', 'items','customers'));
+    }
+
+
+        public function discountApprove(Request $request)
+    {
+        $admin = Admin::where(
+            'email',
+            $request->email
+        )->first();
+
+        if(!$admin)
+        {
+            return back()->with(
+                'error',
+                'Invalid User'
+            );
+        }
+
+        // PASSWORD CHECK
+        if(
+            !Hash::check(
+                $request->password,
+                $admin->password
+            )
+        )
+        {
+            return back()->with(
+                'error',
+                'Wrong Password'
+            );
+        }
+
+        // ROLE CHECK
+        if($admin->role != 'M')
+        {
+            return back()->with(
+                'error',
+                'Only Manager Allowed'
+            );
+        }
+
+        return back()->with(
+            'success',
+            'Discount Approved'
+        );
     }
 
 }

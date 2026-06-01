@@ -218,8 +218,13 @@ Route::prefix('reports')->group(function () {
     Route::get('/orders-zomato-swiggy', [OrderController::class, 'indexZomato'])->name('orders.indexz');
     Route::get('/orders-online', [OrderController::class, 'indexOnline'])->name('orders.indexo');
     Route::get('/orders-store', [OrderController::class, 'store4'])->name('orders.store');
+  
+Route::post('/approval/send-otp',[OrderController::class,'sendApprovalOtp'])
+    ->name('approval.send.otp');
 
-
+Route::post('/approval/verify',[OrderController::class,'verifyApproval'])
+    ->name('approval.verify');
+    
     Route::get('/ordersp', [OrderController::class, 'indexp'])->name('orders.indexp');
     Route::get('/delivered', [OrderController::class, 'delivered'])->name('orders.delivered');
     Route::get('/items', [OrderController::class, 'items'])->name('items');
@@ -458,7 +463,7 @@ Route::get('/upi/status', [OrderController::class, 'checkStatus'])->name('check.
 
 Route::get('/order-status/{order_id}', [OrderController::class, 'checkOrderStatus'])->name('order.status.payment');
 
-
+Route::post('/discount-approve',[OrderController::class,'discountApprove'])->name('discount.approve');
 
 Route::get('/ingredient', [ItemController::class, 'ingredientindex'])->name('ingredient.index');
 Route::get('/ingredient/create', [ItemController::class, 'create'])->name('ingredient.create');
