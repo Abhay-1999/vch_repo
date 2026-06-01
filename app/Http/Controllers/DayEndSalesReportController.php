@@ -54,7 +54,6 @@ class DayEndSalesReportController extends Controller
             );
         }
         if ($request->report_code == 'RPT-0002') {
-
             $items = DB::table('order_dt as od')
                 ->leftJoin(
                     'menu_items as mi',
@@ -86,45 +85,34 @@ class DayEndSalesReportController extends Controller
                 )
                 ->orderByDesc(DB::raw('SUM(od.item_qty)'))
                 ->get();
-
             $totalGross = 0;
             $totalDiscount = 0;
             $totalNet = 0;
             $totalRecipeCost = 0;
             $totalMargin = 0;
             $totalQty = 0;
-
             foreach ($items as $index => $item) {
-
                 $item->net_revenue = $item->gross - $item->discount;
-
                 $item->gross_margin = $item->net_revenue - $item->recipe_cost;
-
                 $item->margin_percent = $item->net_revenue > 0
                     ? ($item->gross_margin / $item->net_revenue) * 100
                     : 0;
-
                 $totalGross += $item->gross;
                 $totalDiscount += $item->discount;
                 $totalNet += $item->net_revenue;
                 $totalRecipeCost += $item->recipe_cost;
                 $totalMargin += $item->gross_margin;
                 $totalQty += $item->qty;
-
                 $item->rank = $index + 1;
             }
-
             foreach ($items as $item) {
-
                 $item->sales_percent = $totalNet > 0
                     ? ($item->net_revenue / $totalNet) * 100
                     : 0;
             }
-
             $overallMarginPercent = $totalNet > 0
                 ? ($totalMargin / $totalNet) * 100
                 : 0;
-
             return view(
                 'reports.item_wise_sales.report',
                 compact(
@@ -165,7 +153,6 @@ class DayEndSalesReportController extends Controller
                     'No records found for selected date.'
                 );
             }
-
             $totalCashSales = 0;
             $totalReceipts = 0;
             $totalInflow = 0;

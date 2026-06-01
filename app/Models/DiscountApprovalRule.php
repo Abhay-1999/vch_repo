@@ -10,6 +10,7 @@ class DiscountApprovalRule extends Model
 
         'rule_id',
         'condition',
+        'otp_admin_id',
         'threshold',
         'approval_required',
         'otp_password',
