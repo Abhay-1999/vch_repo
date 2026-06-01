@@ -75,27 +75,24 @@ class InventoryService
         $recipeQty,
         $saleQty,
         $referenceNo
-    )
-    {
-        //  echo $ingredientCode.'--'.$recipeQty.'--'.$recipeQty.'--'.$referenceNo;die;
+    ) {
+    
         $ingredient = IngredientMaster::where(
             'id',
             $ingredientCode
-        )->first();
+        )
+        ->lockForUpdate()
+        ->first();
     
         if (!$ingredient) {
-            return;
+    
+            throw new \Exception(
+                'Ingredient not found'
+            );
         }
     
-        // ======================
-        // TOTAL CONSUMPTION
-        // ======================
-    
-        $consumeQty = $recipeQty * $saleQty;
-    
-        // ======================
-        // STOCK CHECK
-        // ======================
+        $consumeQty =
+            $recipeQty * $saleQty;
     
         if ($ingredient->current_stock < $consumeQty) {
     
@@ -105,23 +102,18 @@ class InventoryService
             );
         }
     
-        $before = $ingredient->current_stock;
+        $before =
+            $ingredient->current_stock;
     
-        $after = $before - $consumeQty;
-    
-        // ======================
-        // UPDATE STOCK
-        // ======================
+        $after =
+            $before - $consumeQty;
     
         $ingredient->update([
             'current_stock' => $after
         ]);
     
-        // ======================
-        // STOCK LEDGER
-        // ======================
-    
         StockLedger::create([
+    
             'material_id'  => $ingredient->id,
             'type'         => 'SALE',
             'reference_no' => $referenceNo,

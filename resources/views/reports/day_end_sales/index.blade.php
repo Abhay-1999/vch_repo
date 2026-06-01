@@ -544,6 +544,186 @@
     </div>
 
 </div>
+
+{{-- ===================================================== --}}
+{{-- RPT-015 FILTERS --}}
+{{-- ===================================================== --}}
+
+<div id="rpt015_filters"
+     style="display:none;">
+
+    <div class="row">
+
+        {{-- FROM DATE --}}
+        <div class="col-md-3 mb-3">
+
+            <label class="form-label">
+                From Date
+            </label>
+
+            <input type="date"
+                   name="from_date"
+                   class="form-control"
+                   value="{{ date('Y-m-d', strtotime('-7 days')) }}">
+
+        </div>
+
+        {{-- TO DATE --}}
+        <div class="col-md-3 mb-3">
+
+            <label class="form-label">
+                To Date
+            </label>
+
+            <input type="date"
+                   name="to_date"
+                   class="form-control"
+                   value="{{ date('Y-m-d') }}">
+
+        </div>
+
+        {{-- TOP N --}}
+        <div class="col-md-2 mb-3">
+
+            <label class="form-label">
+                Top N
+            </label>
+
+            <input type="number"
+                   name="top_n"
+                   class="form-control"
+                   min="1"
+                   max="100"
+                   value="10">
+
+        </div>
+
+        {{-- RANK BY --}}
+        <div class="col-md-3 mb-3">
+
+            <label class="form-label">
+                Rank By
+            </label>
+
+            <select name="rank_by"
+                    class="form-control">
+
+                <option value="Quantity">
+                    Quantity
+                </option>
+
+                <option value="Revenue">
+                    Revenue
+                </option>
+
+                <option value="Margin">
+                    Margin
+                </option>
+
+            </select>
+
+        </div>
+
+    </div>
+
+</div>
+<div id="rpt004_filters"
+     style="display:none;">
+
+    <div class="row">
+
+        <div class="col-md-3">
+
+            <label>
+                From Date
+            </label>
+
+            <input type="date"
+                   name="from_date"
+                   class="form-control"
+                   value="{{ date('Y-m-d') }}">
+
+        </div>
+
+        <div class="col-md-3">
+
+            <label>
+                To Date
+            </label>
+
+            <input type="date"
+                   name="to_date"
+                   class="form-control"
+                   value="{{ date('Y-m-d') }}">
+
+        </div>
+
+        <div class="col-md-3">
+
+            <label>
+                Type
+            </label>
+
+            <select name="order_type"
+                    class="form-control">
+
+                <option value="">
+                    All
+                </option>
+
+                <option value="D">
+                    Dine In
+                </option>
+
+                <option value="T">
+                    Takeaway
+                </option>
+
+                <option value="O">
+                    Online
+                </option>
+
+            </select>
+
+        </div>
+
+    </div>
+
+</div>
+<div id="rpt005_filters"
+     style="display:none;">
+
+    <div class="row">
+
+        <div class="col-md-3">
+
+            <label>
+                From Date
+            </label>
+
+            <input type="date"
+                   name="from_date"
+                   class="form-control"
+                   value="{{ date('Y-m-d') }}">
+
+        </div>
+
+        <div class="col-md-3">
+
+            <label>
+                To Date
+            </label>
+
+            <input type="date"
+                   name="to_date"
+                   class="form-control"
+                   value="{{ date('Y-m-d') }}">
+
+        </div>
+
+    </div>
+
+</div>
                 {{-- BUTTON --}}
                 <div class="row">
 
@@ -588,8 +768,23 @@
             let reportCode =
                 this.value;
 
+                let rpt004Filters =
+    document.getElementById(
+        'rpt004_filters'
+    );
+
+let rpt005Filters =
+    document.getElementById(
+        'rpt005_filters'
+    );
+                rpt004Filters.style.display = 'none';
+
             let rpt013Filters =
                 document.getElementById('rpt013_filters');
+
+            let rpt015Filters =
+                document.getElementById('rpt015_filters');
+
 
             let rpt023Filters =
                 document.getElementById('rpt023_filters');
@@ -612,7 +807,11 @@
             |--------------------------------------------------------------------------
             */
 
+            
+
             rpt013Filters.style.display = 'none';
+            rpt005Filters.style.display = 'none';
+            rpt015Filters.style.display = 'none';
 
             rpt023Filters.style.display = 'none';
 
@@ -633,6 +832,21 @@
             if (reportCode === 'RPT-013') {
 
                 rpt013Filters.style.display = 'block';
+
+            }else if (reportCode === 'RPT-0004') {
+
+    rpt004Filters.style.display = 'block';
+
+}else if (reportCode === 'RPT-0005') {
+
+    rpt005Filters.style.display = 'block';
+
+}
+
+
+             if (reportCode === 'RPT-015') {
+
+                rpt015Filters.style.display = 'block';
 
             }
 

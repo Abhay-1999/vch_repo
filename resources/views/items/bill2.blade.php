@@ -154,28 +154,57 @@
     </tbody>
   </table>
 
-  <div>
+ <div>
     <small>HSN/SAC: 996331</small>
+
     <div class="text-end total-box mt-1">
-      @if($hd_data->discount)
+
         @php
-          $discountAmount = ($hd_data->gross_amt * $hd_data->discount) / 100;
-          $finalAmount = $hd_data->gross_amt - $discountAmount;
+            $grossAmount = $itemAmt;
+            $gstAmount   = $itemgst;
+            $discountAmt = $hd_data->discount_amount ?? 0;
+
+            $finalAmount = $grossAmount + $gstAmount - $discountAmt;
         @endphp
-        <p>Total: ₹{{ number_format($itemAmt, 2) }}</p>
-        <p>SGST 2.5%: ₹{{ round($itemgst/2, 2) }}</p>
-        <p>CGST 2.5%: ₹{{ round($itemgst/2, 2) }}</p>
-        <p>Discount {{ $hd_data->discount }}%: − ₹{{ number_format($discountAmount, 2) }}</p>
-        <p><strong>Net Payable: ₹{{ number_format($finalAmount, 2) }}</strong></p>
-      @else
-        <p>Total: ₹{{ number_format($itemAmt, 2) }}</p>
-        <p>SGST 2.5%: ₹{{ round($itemgst/2, 2) }}</p>
-        <p>CGST 2.5%: ₹{{ round($itemgst/2, 2) }}</p>
-        <p><strong>Net Payable: ₹{{ number_format(round($hd_data->paid_amt), 2) }}</strong></p>
-      @endif
-      <p class="mt-1"><em class="ptext"></em></p>
+
+        <p>Total: ₹{{ number_format($grossAmount, 2) }}</p>
+
+        <p>SGST 2.5%: ₹{{ number_format($gstAmount / 2, 2) }}</p>
+
+        <p>CGST 2.5%: ₹{{ number_format($gstAmount / 2, 2) }}</p>
+        
+          <p>
+            <strong>
+                Gross Amount: ₹{{ number_format($grossAmount + $gstAmount, 2) }}
+            </strong>
+        </p>
+
+        {{-- Discount show --}}
+        @if($discountAmt > 0)
+
+            <small>
+                Discount
+                @if($hd_data->discount_name)
+                    ({{ $hd_data->discount_name }})
+                @endif
+                : − ₹{{ number_format($discountAmt, 2) }}
+            </small>
+
+        @endif
+
+
+        <p>
+            <strong>
+                Net Payable: ₹{{ number_format($finalAmount, 2) }}
+            </strong>
+        </p>
+
+        <p class="mt-1">
+            <em class="ptext"></em>
+        </p>
+
     </div>
-  </div>
+</div>
 
   <div class="text-center mt-2">
     <p>Thanks for visiting <strong>{{ $rest_data->rest_name }}</strong><br>Have a nice day!</p>
